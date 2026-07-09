@@ -1046,6 +1046,82 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
   border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg-surface);
 }
 
+/* ── SIDEBAR COLLAPSE ── */
+:root { --sidebar-w: 240px; --sidebar-collapsed-w: 52px; }
+.sidebar { transition: width .22s cubic-bezier(.4,0,.2,1); }
+.sidebar.collapsed { width: var(--sidebar-collapsed-w) !important; }
+.sidebar.collapsed .nav-item-text,
+.sidebar.collapsed .sb-label-collapsible,
+.sidebar.collapsed .sb-filters-section,
+.sidebar.collapsed .sidebar-logo-text,
+.sidebar.collapsed .sb-footer .nav-item-text { display: none !important; }
+.sidebar.collapsed .sidebar-logo { justify-content: center; padding: 0 12px; }
+.sidebar.collapsed .sb-collapse-btn svg { transform: rotate(180deg); }
+.sidebar.collapsed .sb-section { padding: 10px 6px 6px; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 10px 0; }
+.sidebar.collapsed .sb-add-btn { justify-content: center; padding: 8px; min-width: 0; }
+.sidebar.collapsed .sb-footer { padding: 8px 6px; }
+.sb-collapse-btn {
+  width: 24px; height: 24px; border-radius: 5px; border: none; background: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--txt-dim); margin-left: auto; flex-shrink: 0;
+  transition: background .12s;
+}
+.sb-collapse-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+.sb-collapse-btn svg { transition: transform .22s; }
+.sidebar-logo-text { flex: 1; min-width: 0; overflow: hidden; }
+
+/* hamburger button (shown only when collapsed) */
+.sb-hamburger {
+  display: none; position: fixed; left: 8px; top: 14px; z-index: 20;
+  width: 32px; height: 32px; border-radius: 6px; border: none;
+  background: var(--bg-sidebar); cursor: pointer;
+  align-items: center; justify-content: center; color: var(--txt-inv);
+}
+.sidebar.collapsed ~ .sb-hamburger,
+.sidebar.collapsed + * .sb-hamburger { display: flex; }
+
+/* filter styles */
+.sb-filters-scroll { flex:1; overflow-y:auto; padding: 0 6px 6px; }
+.sb-filters-scroll::-webkit-scrollbar { width: 3px; }
+.sb-filters-scroll::-webkit-scrollbar-thumb { background: var(--border-dk); border-radius: 2px; }
+.sb-filter-item {
+  padding: 6px 8px; border-radius: 5px; cursor: pointer;
+  font-size: 12px; color: var(--txt-dim); margin-bottom: 2px;
+  transition: background .12s, color .12s;
+}
+.sb-filter-item:hover { background: var(--bg-panel2); color: var(--txt-inv); }
+.sb-filter-item.active { background: rgba(59,130,246,.15); color: var(--blue); font-weight: 600; }
+.sb-filter-group { margin-bottom: 10px; }
+.sb-filter-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--txt-dim); padding: 4px 2px 3px; display: block;
+}
+.sb-filter-select {
+  width: 100%; padding: 4px 6px; border: 1px solid var(--border-dk);
+  border-radius: 4px; background: rgba(255,255,255,.06); color: var(--txt-inv);
+  font-size: 11px; font-family: var(--sans); outline: none; cursor: pointer;
+}
+.sb-filter-select option { background: var(--bg-sidebar); color: var(--txt-inv); }
+.sb-filter-select:focus { border-color: var(--blue); }
+
+/* project gantt left panel rows */
+.pg-proj-row {
+  border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background .1s;
+}
+.pg-proj-row:hover { background: var(--bg-alt); }
+.pg-proj-name-cell {
+  padding: 8px 14px; display: flex; align-items: flex-start; gap: 8px;
+}
+.pg-proj-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; margin-top: 2px; }
+.pg-proj-info { flex:1; min-width: 0; }
+.pg-proj-title { font-size: 13px; font-weight: 700; color: var(--txt-main); line-height: 1.3; }
+.pg-proj-client { font-size: 11px; color: var(--txt-sub); margin-top: 1px; }
+.pg-proj-dates { font-size: 10px; color: var(--txt-muted); margin-top: 2px; font-family: var(--mono); }
+.pg-chevron { border: none; background: none; cursor: pointer; color: var(--txt-muted); padding: 2px; flex-shrink: 0; margin-top: 1px; }
+.pg-res-sub-row { padding: 5px 14px 5px 34px; border-bottom: 1px solid rgba(226,232,240,.4); display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--txt-sub); background: var(--bg-alt); }
+
 </style>
 
 </head>
@@ -1053,43 +1129,140 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 <div class="app">
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<aside class="sidebar" id="mainSidebar">
   <div class="sidebar-logo">
     <div class="logo-mark" id="logoMark">ET</div>
-    <div>
+    <div class="sidebar-logo-text">
       <div class="logo-text" id="logoText" title="Click to edit company name" onclick="startLogoEdit('logoText', 'orgName')">E Tech Group</div>
       <div class="logo-sub" id="logoSub" title="Click to edit subtitle" onclick="startLogoEdit('logoSub', 'orgSub')">Resource Management</div>
     </div>
+    <button class="sb-collapse-btn" id="sbCollapseBtn" onclick="toggleSidebar()" title="Collapse sidebar">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,2 4,7 9,12"/></svg>
+    </button>
   </div>
 
   <div class="sb-section">
-    <div class="sb-label">Views</div>
+    <div class="sb-label sb-label-collapsible">Views</div>
     <div style="display:flex;flex-direction:column;gap:2px;">
-      <button class="nav-item active" id="navSchedule" onclick="switchView('schedule')">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="1.5"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="2" x2="5" y2="6"/><line x1="11" y1="2" x2="11" y2="6"/></svg>
-        Schedule
+      <button class="nav-item active" id="navPeople" onclick="switchView('schedule')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="12" cy="5" r="2"/><path d="M14 14c0-2-1-3.5-3-4"/></svg>
+        <span class="nav-item-text">People</span>
       </button>
-      <button class="nav-item" id="navDash" onclick="switchView('dashboard')">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="7" rx="1"/><rect x="9" y="1" width="6" height="4" rx="1"/><rect x="9" y="7" width="6" height="8" rx="1"/><rect x="1" y="10" width="6" height="5" rx="1"/></svg>
-        Project Dashboard
+      <button class="nav-item" id="navProjects" onclick="switchView('projgantt')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="2.5" rx="1"/><rect x="3" y="7" width="9" height="2.5" rx="1"/><rect x="1" y="11" width="12" height="2.5" rx="1"/></svg>
+        <span class="nav-item-text">Projects</span>
+      </button>
+      <button class="nav-item" id="navPortfolio" onclick="switchView('portfolio')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="11" rx="1.5"/><path d="M6 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
+        <span class="nav-item-text">Portfolio</span>
       </button>
     </div>
   </div>
 
   <div class="sb-divider"></div>
 
-  <div class="sb-section" style="flex:1;display:flex;flex-direction:column;min-height:0;">
-    <div class="sb-label">
-      Projects
-      <span id="sbProjCount" style="font-family:var(--mono);font-size:10px;"></span>
+  <!-- People Filters -->
+  <div class="sb-section sb-filters-section" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+    <div class="sb-label sb-label-collapsible">People Filters</div>
+    <div class="sb-filters-scroll">
+
+      <div class="sb-filter-item active" id="filterEveryone" onclick="setPeopleFilter('everyone')">
+        <span class="nav-item-text">Everyone</span>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Client</div>
+        <select class="sb-filter-select" id="filterClient" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Role</div>
+        <select class="sb-filter-select" id="filterRole" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Discipline / Dept</div>
+        <select class="sb-filter-select" id="filterDept" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+          <option>Automation</option>
+          <option>Electrical</option>
+          <option>Project Management</option>
+          <option>Software</option>
+          <option>Mechanical</option>
+          <option>Sales</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Team Member</div>
+        <select class="sb-filter-select" id="filterMember" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Work Status</div>
+        <select class="sb-filter-select" id="filterStatus" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+          <option>Available</option>
+          <option>Busy</option>
+          <option>Out of Office</option>
+          <option>On Leave</option>
+          <option>Remote</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Manager</div>
+        <select class="sb-filter-select" id="filterManager" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Business Unit</div>
+        <select class="sb-filter-select" id="filterBizUnit" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Resource City/State</div>
+        <select class="sb-filter-select" id="filterCity" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Title</div>
+        <select class="sb-filter-select" id="filterTitle" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <div class="sb-filter-group">
+        <div class="sb-filter-label sb-label-collapsible">Utilization</div>
+        <select class="sb-filter-select" id="filterUtil" onchange="applyPeopleFilters()">
+          <option value="">All</option>
+          <option value="over">Over target</option>
+          <option value="available">Available capacity</option>
+          <option value="unassigned">Unassigned</option>
+        </select>
+      </div>
+
+      <button class="proj-add-link sb-label-collapsible" style="padding:6px 2px;font-size:11px;" onclick="clearPeopleFilters()">✕ Clear filters</button>
+
     </div>
-    <div class="proj-list" id="sbProjList"></div>
   </div>
 
   <div class="sb-footer">
     <button class="sb-add-btn" onclick="openProjectModal()">
       <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5.5" y1="1" x2="5.5" y2="10"/><line x1="1" y1="5.5" x2="10" y2="5.5"/></svg>
-      New Project
+      <span class="nav-item-text">New Project</span>
     </button>
   </div>
 </aside>
@@ -1101,16 +1274,16 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
   <div class="topbar">
     <div class="topbar-tabs">
       <button class="topbar-tab active" id="tabSchedule" onclick="switchView('schedule')">
-        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1.5" width="12" height="11" rx="1.5"/><line x1="1" y1="5" x2="13" y2="5"/><line x1="4" y1="1.5" x2="4" y2="5"/><line x1="10" y1="1.5" x2="10" y2="5"/></svg>
-        Schedule
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="4.5" r="2.5"/><path d="M1 12c0-2.5 1.8-4 4-4s4 1.5 4 4"/><circle cx="10.5" cy="4.5" r="1.8"/><path d="M12.5 12c0-1.8-.8-3-2.5-3.5"/></svg>
+        People
       </button>
-      <button class="topbar-tab" id="tabDash" onclick="switchView('dashboard')">
-        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="5" height="6" rx="1"/><rect x="8" y="1" width="5" height="3.5" rx="1"/><rect x="8" y="6" width="5" height="7" rx="1"/><rect x="1" y="9" width="5" height="4" rx="1"/></svg>
-        Project Dashboard
+      <button class="topbar-tab" id="tabProjGantt" onclick="switchView('projgantt')">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2.5" width="12" height="2" rx=".8"/><rect x="3" y="6" width="7" height="2" rx=".8"/><rect x="1" y="9.5" width="10" height="2" rx=".8"/></svg>
+        Projects
       </button>
       <button class="topbar-tab" id="tabPortfolio" onclick="switchView('portfolio')">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><path d="M5 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
-        Projects
+        Portfolio
       </button>
     </div>
     <div class="topbar-right">
@@ -1182,6 +1355,34 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
       <div class="tl-scroll" id="tlScroll">
         <div class="tl-header-sticky" id="tlHeader"></div>
         <div class="tl-body" id="tlBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECT GANTT VIEW -->
+  <div class="sched-view" id="projGanttView" style="display:none;">
+    <div class="sched-controls">
+      <div class="sched-nav">
+        <button class="sched-nav-btn" onclick="pgGoFirst()">|←</button>
+        <button class="sched-nav-btn" onclick="pgShift(-1)">‹</button>
+        <button class="sched-nav-btn" onclick="pgShift(1)">›</button>
+      </div>
+      <div class="dwm-group">
+        <button class="dwm-btn" id="pgDwmD" onclick="setPgGranularity('D')">D</button>
+        <button class="dwm-btn active" id="pgDwmW" onclick="setPgGranularity('W')">W</button>
+        <button class="dwm-btn" id="pgDwmM" onclick="setPgGranularity('M')">M</button>
+      </div>
+      <button class="tb-btn" onclick="pgGoToday()" style="margin-left:4px;">Today</button>
+      <span class="sched-today" id="pgTodayLabel"></span>
+    </div>
+    <div class="sched-wrap">
+      <div class="person-panel" id="pgLeftPanel">
+        <div class="person-panel-hdr">Projects</div>
+        <div class="person-panel-body" id="pgPanelBody"></div>
+      </div>
+      <div class="tl-scroll" id="pgTlScroll">
+        <div class="tl-header-sticky" id="pgTlHeader"></div>
+        <div class="tl-body" id="pgTlBody"></div>
       </div>
     </div>
   </div>
@@ -1823,20 +2024,107 @@ function totalW(cols){ return cols.length * COL_W; }
 let currentView = 'schedule';
 function switchView(v){
   currentView=v;
-  document.getElementById('schedView').style.display = v==='schedule'?'flex':'none';
+  document.getElementById('schedView').style.display      = v==='schedule'  ?'flex':'none';
+  document.getElementById('projGanttView').style.display  = v==='projgantt' ?'flex':'none';
   document.getElementById('dashView').classList.toggle('active', v==='dashboard');
   document.getElementById('portfolioView').classList.toggle('active', v==='portfolio');
-  ['Schedule','Dash','Portfolio'].forEach(n=>{
-    const tab=document.getElementById('tab'+n);
-    if(tab) tab.classList.toggle('active',
-      (v==='schedule'&&n==='Schedule')||(v==='dashboard'&&n==='Dash')||(v==='portfolio'&&n==='Portfolio'));
+
+  // Topbar tabs
+  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPortfolio','portfolio']].forEach(([id,vv])=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv);
   });
-  ['navSchedule','navDash'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.classList.toggle('active',(id==='navSchedule'&&v==='schedule')||(id==='navDash'&&v==='dashboard'));
+  // Sidebar nav
+  [['navPeople','schedule'],['navProjects','projgantt'],['navPortfolio','portfolio']].forEach(([id,vv])=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv);
   });
-  if(v==='dashboard') renderDashboard();
-  if(v==='portfolio') renderPortfolio();
+
+  if(v==='dashboard')  renderDashboard();
+  if(v==='portfolio')  renderPortfolio();
+  if(v==='projgantt')  renderProjGantt();
+  if(v==='schedule')   renderPeopleFiltersDropdowns();
+}
+
+// ── Sidebar collapse ──
+let _sbCollapsed = false;
+function toggleSidebar() {
+  _sbCollapsed = !_sbCollapsed;
+  const sb = document.getElementById('mainSidebar');
+  sb.classList.toggle('collapsed', _sbCollapsed);
+  const btn = document.getElementById('sbCollapseBtn');
+  if(btn) btn.title = _sbCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  try { localStorage.setItem('etRM_sbCollapsed', _sbCollapsed?'1':''); } catch(e){}
+}
+// Restore collapse state
+(function(){ try{ if(localStorage.getItem('etRM_sbCollapsed')) { _sbCollapsed=true; document.getElementById('mainSidebar')?.classList.add('collapsed'); } }catch(e){} })();
+
+// ── People Filters ──
+let _peopleFilters = {};
+function clearPeopleFilters() {
+  _peopleFilters = {};
+  ['filterClient','filterRole','filterDept','filterMember','filterStatus','filterManager','filterBizUnit','filterCity','filterTitle','filterUtil']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('filterEveryone')?.classList.add('active');
+  if(currentView==='schedule') renderSchedule();
+  if(currentView==='projgantt') renderProjGantt();
+}
+function applyPeopleFilters() {
+  _peopleFilters = {
+    client:  document.getElementById('filterClient')?.value  || '',
+    role:    document.getElementById('filterRole')?.value    || '',
+    dept:    document.getElementById('filterDept')?.value    || '',
+    member:  document.getElementById('filterMember')?.value  || '',
+    status:  document.getElementById('filterStatus')?.value  || '',
+    manager: document.getElementById('filterManager')?.value || '',
+    bizUnit: document.getElementById('filterBizUnit')?.value || '',
+    city:    document.getElementById('filterCity')?.value    || '',
+    title:   document.getElementById('filterTitle')?.value   || '',
+    util:    document.getElementById('filterUtil')?.value    || '',
+  };
+  const hasFilter = Object.values(_peopleFilters).some(v=>v);
+  document.getElementById('filterEveryone')?.classList.toggle('active', !hasFilter);
+  if(currentView==='schedule') renderSchedule();
+  if(currentView==='projgantt') renderProjGantt();
+}
+function setPeopleFilter(f) {
+  clearPeopleFilters();
+}
+function getFilteredResources() {
+  const f = _peopleFilters;
+  return state.resources.filter(r => {
+    if(f.role   && r.role !== f.role)    return false;
+    if(f.dept   && r.dept !== f.dept)    return false;
+    if(f.member && (r.first+' '+r.last) !== f.member) return false;
+    if(f.status && r.status !== f.status) return false;
+    if(f.manager && r.manager !== f.manager) return false;
+    if(f.bizUnit && r.businessUnit !== f.bizUnit) return false;
+    if(f.city   && r.resourceCity !== f.city) return false;
+    if(f.title  && r.title !== f.title) return false;
+    if(f.util==='over')        return totalPct(r.id) > (r.target??100);
+    if(f.util==='available')   return totalPct(r.id) < (r.target??100);
+    if(f.util==='unassigned')  return totalPct(r.id) === 0;
+    if(f.client) {
+      const allocs = allocsForRes(r.id);
+      return allocs.some(a => normalizeName(a.project?.client) === f.client);
+    }
+    return true;
+  });
+}
+function renderPeopleFiltersDropdowns() {
+  const roles   = [...new Set(state.resources.map(r=>r.role).filter(Boolean))].sort();
+  const members = state.resources.map(r=>r.first+' '+r.last).sort();
+  const managers= [...new Set(state.resources.map(r=>r.manager).filter(Boolean))].sort();
+  const bizUnits= [...new Set(state.resources.map(r=>r.businessUnit).filter(Boolean))].sort();
+  const cities  = [...new Set(state.resources.map(r=>r.resourceCity).filter(Boolean))].sort();
+  const titles  = [...new Set(state.resources.map(r=>r.title).filter(Boolean))].sort();
+  const clients = [...new Set(state.projects.map(p=>normalizeName(p.client)).filter(Boolean))].sort();
+  function fill(id, vals) {
+    const el=document.getElementById(id); if(!el) return;
+    const cur=el.value;
+    el.innerHTML='<option value="">All</option>';
+    vals.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;if(v===cur)o.selected=true;el.appendChild(o);});
+  }
+  fill('filterClient', clients); fill('filterRole', roles); fill('filterMember', members);
+  fill('filterManager', managers); fill('filterBizUnit', bizUnits); fill('filterCity', cities); fill('filterTitle', titles);
 }
 
 function setGranularity(g){
@@ -1910,7 +2198,7 @@ function renderSchedule(){
   const tlBody = document.getElementById('tlBody');
   ppBody.innerHTML=''; tlBody.innerHTML='';
 
-  state.resources.forEach(res=>{
+  getFilteredResources().forEach(res=>{
     const allocs = allocsForRes(res.id);
     const pct = totalPct(res.id);
     const expanded = expandedRes.has(res.id);
@@ -2361,6 +2649,7 @@ function renderSchedule(){
     tlBody.appendChild(tlGroup);
   });
 
+  renderPeopleFiltersDropdowns();
   renderSummary();
   renderSidebar();
 
@@ -2370,6 +2659,174 @@ function renderSchedule(){
     if (tl) tl.scrollLeft = EXTRA_COLS * COL_W;
   });
 }
+
+// ── PROJECT GANTT VIEW ──
+let pgGranularity = 'W';
+let pgRangeStart  = new Date(today);
+let pgExpandedProjs = new Set();
+(function(){ pgRangeStart.setDate(pgRangeStart.getDate()-((pgRangeStart.getDay()+6)%7)); })();
+
+function setPgGranularity(g){
+  pgGranularity=g;
+  document.querySelectorAll('[id^=pgDwm]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pgDwm'+g)?.classList.add('active');
+  renderProjGantt();
+}
+function pgShift(dir){
+  const visW = document.getElementById('pgTlScroll')?.clientWidth || 800;
+  const visCols = Math.ceil(visW/COL_W);
+  if(pgGranularity==='W') pgRangeStart.setDate(pgRangeStart.getDate()+dir*7*visCols);
+  else if(pgGranularity==='D') pgRangeStart.setDate(pgRangeStart.getDate()+dir*visCols);
+  else pgRangeStart.setMonth(pgRangeStart.getMonth()+dir*visCols);
+  renderProjGantt();
+}
+function pgGoFirst(){ pgRangeStart=new Date(today); pgRangeStart.setDate(pgRangeStart.getDate()-((pgRangeStart.getDay()+6)%7)); renderProjGantt(); }
+function pgGoToday(){ pgGoFirst(); }
+
+function renderProjGantt(){
+  // Reuse getColumns logic but with pg prefix
+  const origGran=granularity, origStart=new Date(rangeStart);
+  granularity=pgGranularity; rangeStart=pgRangeStart;
+  const cols=getColumns();
+  const TW=cols.length*COL_W;
+  granularity=origGran; rangeStart=origStart;
+
+  document.getElementById('pgTodayLabel').textContent =
+    'Today – '+today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const todayX = dateToX(today, cols);
+  const showToday = todayX>=0 && todayX<=TW;
+
+  // Header
+  const hdr = document.getElementById('pgTlHeader');
+  let rangeRow=`<div class="tl-week-range-row" style="width:${TW}px">`;
+  cols.forEach(col=>{
+    const isNow=today>=col.start&&today<=col.end;
+    let stripeHtml='';
+    if(col.type==='week'){const dw=COL_W/7;stripeHtml=`<div class="tl-week-cell-weekend-stripe" style="left:${dw*5}px;width:${dw*2}px;"></div>`;}
+    rangeRow+=`<div class="tl-week-cell" style="width:${COL_W}px;min-width:${COL_W}px;${isNow?'background:rgba(59,130,246,.06);':''}">${stripeHtml}${col.label}${col.sub?`<span class="tl-week-num">${col.sub}</span>`:''}</div>`;
+  });
+  rangeRow+='</div>';
+  let todayRow=`<div class="tl-today-badge" style="width:${TW}px;position:relative;">`;
+  if(showToday) todayRow+=`<div style="position:absolute;left:${todayX-28}px;top:50%;transform:translateY(-50%)"><span class="today-pill">Today</span></div>`;
+  todayRow+='</div>';
+  hdr.innerHTML=rangeRow+todayRow;
+
+  const panelBody=document.getElementById('pgPanelBody');
+  const tlBody=document.getElementById('pgTlBody');
+  panelBody.innerHTML=''; tlBody.innerHTML='';
+
+  // Wire scroll sync between panel and timeline
+  panelBody.onscroll = () => { const tl=document.getElementById('pgTlScroll'); if(tl) tl.scrollTop=panelBody.scrollTop; };
+  const pgTlEl=document.getElementById('pgTlScroll');
+  if(pgTlEl) pgTlEl.onscroll = () => { panelBody.scrollTop=pgTlEl.scrollTop; };
+
+  const ROW_H=90, SUB_H=36;
+
+  state.projects.filter(p=>!p._builtin&&!p._ooo).forEach(proj=>{
+    const allocs=allocsForProj(proj.id);
+    const expanded=pgExpandedProjs.has(proj.id);
+
+    // ── Left panel row — EXACT same height as timeline row ──
+    const panelRow=document.createElement('div');
+    panelRow.className='pg-proj-row';
+    panelRow.style.cssText=`height:${ROW_H}px;min-height:${ROW_H}px;max-height:${ROW_H}px;overflow:hidden;box-sizing:border-box;border-bottom:1px solid var(--border);`;
+    const nameCell=document.createElement('div');
+    nameCell.className='pg-proj-name-cell';
+    nameCell.style.cssText=`height:100%;overflow:hidden;`;
+    nameCell.innerHTML=`
+      <button class="pg-chevron" onclick="event.stopPropagation();togglePgProj('${proj.id}')">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="${expanded?'2,4 6,8 10,4':'2,8 6,4 10,8'}"/></svg>
+      </button>
+      <div class="pg-proj-dot" style="background:${proj.color};margin-top:3px;"></div>
+      <div class="pg-proj-info" style="overflow:hidden;">
+        <div class="pg-proj-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${proj.name}</div>
+        <div class="pg-proj-client" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${proj.client||''}</div>
+        <div class="pg-proj-dates">${proj.start} — ${proj.end}</div>
+      </div>`;
+    panelRow.appendChild(nameCell);
+    panelRow.onclick=()=>openProjectEdit(proj.id);
+    panelBody.appendChild(panelRow);
+
+    if(expanded){
+      allocs.forEach(a=>{
+        const res=a.resource;
+        const subEl=document.createElement('div'); subEl.className='pg-res-sub-row';
+        subEl.style.cssText=`height:${SUB_H}px;min-height:${SUB_H}px;max-height:${SUB_H}px;box-sizing:border-box;`;
+        subEl.innerHTML=`<div style="width:22px;height:22px;border-radius:50%;background:${avColor(res)};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;">${initials(res)}</div><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${res.first} ${res.last}</span><span style="margin-left:auto;font-family:var(--mono);font-size:10px;flex-shrink:0;">${a.pct}%</span>`;
+        panelBody.appendChild(subEl);
+      });
+    }
+
+    // ── Timeline row — EXACT same height ──
+    const tlGroup=document.createElement('div'); tlGroup.className='tl-group';
+    const mainRow=document.createElement('div'); mainRow.className='tl-main-row';
+    mainRow.style.cssText=`width:${TW}px;height:${ROW_H}px;min-height:${ROW_H}px;max-height:${ROW_H}px;position:relative;overflow:hidden;box-sizing:border-box;`;
+    cols.forEach(col=>{
+      const isNow=today>=col.start&&today<=col.end;
+      const cell=document.createElement('div');
+      cell.className='tl-cell'+(isNow?' today-col':'');
+      cell.style.cssText=`width:${COL_W}px;height:100%;box-sizing:border-box;`;
+      if(col.type==='week'){const dw=COL_W/7;const s=document.createElement('div');s.style.cssText=`position:absolute;top:0;bottom:0;left:${dw*5}px;width:${dw*2}px;background:rgba(0,0,0,.04);pointer-events:none;`;cell.appendChild(s);}
+      mainRow.appendChild(cell);
+    });
+    if(showToday){const l=document.createElement('div');l.className='today-line';l.style.left=todayX+'px';mainRow.appendChild(l);}
+
+    // Project bar
+    const ps=parseD(proj.start), pe=parseD(proj.end);
+    const peX=new Date(pe); peX.setDate(peX.getDate()+1);
+    const sx=Math.max(0,dateToX(ps,cols)), ex=Math.min(TW,dateToX(peX,cols));
+    const barH=34, barTop=(ROW_H-barH)/2;
+    if(ex>sx){
+      const bar=document.createElement('div'); bar.className='g-bar';
+      bar.style.cssText=`left:${sx}px;width:${ex-sx}px;top:${barTop}px;height:${barH}px;bottom:auto;background:${proj.color};cursor:pointer;`;
+      bar.innerHTML=`<span class="g-bar-label">${proj.name}</span><span class="g-bar-meta">${proj.client||''}</span>`;
+      bar.onclick=ev=>{ev.stopPropagation();openProjectEdit(proj.id);};
+      bar.oncontextmenu=ev=>{ev.preventDefault();ev.stopPropagation();showCtx(ev,'project',proj.id);};
+      bar.onmouseenter=ev=>showTip(ev,`<strong>${proj.name}</strong><br>${proj.client||''}<br>${proj.start} → ${proj.end}<br>${allocs.length} resource${allocs.length!==1?'s':''}`);
+      bar.onmouseleave=hideTip;
+      mainRow.appendChild(bar);
+    }
+    tlGroup.appendChild(mainRow);
+
+    if(expanded){
+      allocs.forEach(a=>{
+        const res=a.resource;
+        const subRow=document.createElement('div'); subRow.className='tl-main-row';
+        subRow.style.cssText=`width:${TW}px;height:${SUB_H}px;min-height:${SUB_H}px;max-height:${SUB_H}px;position:relative;background:rgba(248,250,252,.8);overflow:hidden;box-sizing:border-box;`;
+        cols.forEach(col=>{
+          const cell=document.createElement('div');
+          cell.className='tl-cell'; cell.style.cssText=`width:${COL_W}px;height:100%;`;
+          subRow.appendChild(cell);
+        });
+        if(ex>sx){
+          const hpd=(a.pct/100*res.capacity/5);
+          const hpdStr=(hpd%1===0?hpd.toFixed(0):hpd.toFixed(1))+'h/d';
+          const rbar=document.createElement('div'); rbar.className='g-bar';
+          rbar.style.cssText=`left:${sx}px;width:${ex-sx}px;top:5px;height:${SUB_H-10}px;bottom:auto;background:${proj.color};opacity:.8;cursor:pointer;`;
+          rbar.innerHTML=`<span class="g-bar-label">${res.first} ${res.last}</span><span class="g-bar-meta">${hpdStr}</span>`;
+          rbar.onclick=ev=>{ev.stopPropagation();openSnapshot(res.id);};
+          rbar.onmouseenter=ev=>showTip(ev,`${res.first} ${res.last} · ${a.pct}% (${hpdStr})`);
+          rbar.onmouseleave=hideTip;
+          subRow.appendChild(rbar);
+        }
+        tlGroup.appendChild(subRow);
+      });
+    }
+    tlBody.appendChild(tlGroup);
+  });
+
+  // Sync scroll
+  requestAnimationFrame(()=>{
+    const tl=document.getElementById('pgTlScroll');
+    if(tl) tl.scrollLeft=EXTRA_COLS*COL_W;
+  });
+}
+function togglePgProj(id){
+  if(pgExpandedProjs.has(id)) pgExpandedProjs.delete(id); else pgExpandedProjs.add(id);
+  renderProjGantt();
+}
+
+// Project gantt scroll sync is wired inline in renderProjGantt()
 
 function toggleRes(id){
   if(expandedRes.has(id)) expandedRes.delete(id); else expandedRes.add(id);
@@ -2657,16 +3114,8 @@ function buildDonut(segments){
 // SIDEBAR
 // ══════════════════════════════════════════
 function renderSidebar(){
-  const list=document.getElementById('sbProjList');
-  list.innerHTML='';
-  document.getElementById('sbProjCount').textContent=state.projects.length;
-  state.projects.forEach(p=>{
-    const btn=document.createElement('button');
-    btn.className='proj-chip';
-    btn.innerHTML=`<span class="proj-dot" style="background:${p.color}"></span><span class="proj-chip-name">${p.name}</span><span class="proj-chip-n">${allocsForProj(p.id).length}</span>`;
-    btn.onclick=()=>openAllocModal(p.id);
-    list.appendChild(btn);
-  });
+  // Update people filter dropdowns when in schedule view
+  renderPeopleFiltersDropdowns();
 }
 
 // ══════════════════════════════════════════
@@ -3904,7 +4353,7 @@ const TUTORIAL_STEPS = [
   { title:'D / W / M Granularity', body:'Switch between Day, Week, and Month views. In Week mode (default), weekend columns are lightly shaded. Use the ‹ › arrows to scroll through time.', targetId:'dwmW' },
   { title:'Employee Rows', body:'Click a person\'s name or avatar to open their full Snapshot — contact info, utilization chart, and project history. Right-click for quick actions like "New Assignment".', targetId:'personPanelBody' },
   { title:'Utilization Target Bar', body:'When a person\'s projects overlap and push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
-  { title:'Project Dashboard', body:'Click "Project Dashboard" to see a project\'s progress donut, status counts, tasks by assignee, and a mini Gantt grouped by status. Click any project pill at the bottom to switch.', targetId:'tabDash' },
+  { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its timeline bar. Expand any project to see assigned team members. Click a bar to edit the project.', targetId:'tabProjGantt' },
   { title:'Project Portfolio', body:'The Projects tab shows all projects in a sortable, filterable table. Change a project\'s type directly in the table via the dropdown. Client names are automatically deduplicated.', targetId:'tabPortfolio' },
   { title:'Add & Edit Projects', body:'Click "+ Add Project" to create a project. When editing, you can Duplicate it to create a copy, or use the color picker to color-code your project portfolio.', targetId:null },
   { title:'Utilization Alerts', body:'The bell icon shows who is currently over their utilization target. Click it to see a list — click any person to open their snapshot.', targetId:'alertBell' },
@@ -4223,7 +4672,8 @@ const _origSave = save;
 // MASTER RENDER + INIT
 // ══════════════════════════════════════════
 function render(){
-  if(currentView==='schedule') renderSchedule();
+  if(currentView==='schedule')   renderSchedule();
+  else if(currentView==='projgantt') renderProjGantt();
   else if(currentView==='dashboard') renderDashboard();
   else if(currentView==='portfolio') renderPortfolio();
   renderSidebar();
