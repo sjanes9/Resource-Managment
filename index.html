@@ -1121,6 +1121,231 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 .pg-chevron { border: none; background: none; cursor: pointer; color: var(--txt-muted); padding: 2px; flex-shrink: 0; margin-top: 1px; }
 .pg-res-sub-row { padding: 5px 14px 5px 34px; border-bottom: 1px solid rgba(226,232,240,.4); display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--txt-sub); background: var(--bg-alt); }
 
+/* ══════════════════════════════════════════
+   REPORTS VIEW
+══════════════════════════════════════════ */
+.reports-view { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.reports-view.active { display: flex; }
+.reports-subtabs {
+  display: flex; gap: 2px; padding: 10px 20px 0; background: var(--bg-white);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.reports-subtab {
+  padding: 8px 16px; border: none; background: none; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--txt-sub);
+  border-bottom: 2px solid transparent; font-family: var(--sans);
+  transition: color .15s, border-color .15s;
+}
+.reports-subtab:hover { color: var(--blue); }
+.reports-subtab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.reports-content { flex: 1; overflow-y: auto; padding: 18px 20px; }
+.reports-content::-webkit-scrollbar { width: 6px; }
+.reports-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Employee report table */
+.emprep-table-wrap { background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.emprep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.emprep-th {
+  text-align: left; padding: 9px 12px; background: var(--bg-alt);
+  border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700;
+  color: var(--txt-sub); white-space: nowrap;
+}
+.emprep-row { border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+.emprep-row:hover { background: var(--bg-alt); }
+.emprep-td { padding: 8px 12px; vertical-align: middle; }
+.emprep-name-cell { display: flex; align-items: center; gap: 8px; }
+.emprep-chevron { border: none; background: none; cursor: pointer; color: var(--txt-muted); padding: 2px; flex-shrink: 0; transition: transform .15s; }
+.emprep-chevron.open { transform: rotate(90deg); }
+.emprep-avatar { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; overflow: hidden; }
+.emprep-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.emprep-name-link { font-weight: 600; color: var(--blue); cursor: pointer; }
+.emprep-name-link:hover { text-decoration: underline; }
+.emprep-status-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; }
+.emprep-status-ok { color: var(--green); }
+.emprep-status-warn { color: var(--red); }
+.emprep-util-cell { display: flex; flex-direction: column; gap: 3px; }
+.emprep-util-num { font-size: 12px; font-weight: 700; color: var(--txt-main); font-family: var(--mono); }
+.emprep-spark { display: flex; align-items: flex-end; gap: 2px; height: 20px; }
+.emprep-spark-bar { width: 8px; border-radius: 1px; min-height: 2px; }
+
+/* Expanded detail panel */
+.emprep-detail-row td { padding: 0; background: var(--bg-surface); border-bottom: 2px solid var(--border); }
+.emprep-detail-panel { padding: 18px 24px; }
+.emprep-detail-title { font-size: 14px; font-weight: 700; color: var(--txt-main); margin-bottom: 10px; }
+.emprep-stat-grid { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.emprep-stat-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; min-width: 120px; }
+.emprep-stat-val { font-size: 18px; font-weight: 700; color: var(--txt-main); }
+.emprep-stat-lbl { font-size: 11px; color: var(--txt-muted); margin-top: 2px; }
+.emprep-stat-rank { font-size: 10px; color: var(--txt-muted); margin-top: 2px; }
+.emprep-select-week-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 12px; color: var(--txt-sub); }
+.emprep-select-week-row input { padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px; font-size: 12px; font-family: var(--sans); }
+.emprep-toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--txt-sub); }
+.emprep-toggle {
+  width: 32px; height: 18px; border-radius: 9px; background: var(--border); position: relative;
+  cursor: pointer; transition: background .15s; flex-shrink: 0;
+}
+.emprep-toggle.on { background: var(--blue); }
+.emprep-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  background: #fff; border-radius: 50%; transition: left .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.emprep-toggle.on::after { left: 16px; }
+
+/* 6-week schedule mini gantt */
+.emprep-6wk-title { font-size: 13px; font-weight: 700; color: var(--txt-main); margin: 18px 0 8px; }
+.emprep-6wk-wrap { background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.emprep-6wk-header-row { display: flex; }
+.emprep-6wk-seg { flex: 1; text-align: center; font-size: 11px; font-weight: 700; color: var(--txt-main); padding: 6px 2px; background: var(--bg-alt); border-right: 1px solid var(--border); }
+.emprep-6wk-seg:last-child { border-right: none; }
+.emprep-6wk-projrow { display: flex; align-items: center; border-top: 1px solid var(--border); min-height: 32px; position: relative; }
+.emprep-6wk-projbar {
+  position: absolute; top: 4px; bottom: 4px; border-radius: 4px;
+  color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center;
+  padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.emprep-6wk-dates { display: flex; border-top: 1px solid var(--border); }
+.emprep-6wk-date-lbl { flex: 1; text-align: center; font-size: 10px; color: var(--txt-muted); padding: 4px 2px; font-family: var(--mono); }
+
+/* ══════════════════════════════════════════
+   EMPLOYEE PROFILE VIEW (full page)
+══════════════════════════════════════════ */
+.profile-view { display: none; flex: 1; overflow-y: auto; background: var(--bg-surface); }
+.profile-view.active { display: block; }
+.profile-back-link {
+  display: inline-flex; align-items: center; gap: 5px; padding: 12px 24px 0;
+  font-size: 12px; color: var(--blue); cursor: pointer; font-weight: 600;
+}
+.profile-back-link:hover { text-decoration: underline; }
+.profile-shell { display: flex; gap: 24px; padding: 16px 24px 40px; align-items: flex-start; }
+.profile-left { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; }
+.profile-photo-wrap { width: 130px; height: 130px; border-radius: 8px; overflow: hidden; background: var(--bg-alt); border: 1px solid var(--border); }
+.profile-photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.profile-photo-initials { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; color: #fff; }
+.profile-name { font-size: 20px; font-weight: 700; color: var(--txt-main); margin-top: 2px; }
+.profile-title { font-size: 13px; color: var(--txt-sub); margin-top: 2px; }
+.profile-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.profile-tag { background: var(--blue-lt); color: var(--blue-dk); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
+.profile-tenure { font-size: 12px; color: var(--txt-sub); margin-top: 8px; }
+.profile-kudos-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg-white);
+  font-size: 12px; font-weight: 600; color: var(--txt-sub); cursor: pointer; margin-top: 4px; width: fit-content;
+  transition: border-color .15s, color .15s;
+}
+.profile-kudos-btn:hover { border-color: var(--blue); color: var(--blue); }
+.profile-info-list { display: flex; flex-direction: column; gap: 9px; padding-top: 10px; border-top: 1px solid var(--border); }
+.profile-info-row { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: var(--txt-sub); }
+.profile-info-row svg { flex-shrink: 0; margin-top: 1px; color: var(--txt-muted); }
+.profile-info-row a, .profile-info-row .profile-info-link { color: var(--blue); cursor: pointer; }
+.profile-info-row a:hover, .profile-info-row .profile-info-link:hover { text-decoration: underline; }
+
+.profile-main { flex: 1; min-width: 0; }
+.profile-contrib-title { font-size: 15px; font-weight: 700; color: var(--txt-main); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.profile-contrib-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 28px; }
+.profile-contrib-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.profile-contrib-name { font-size: 13px; font-weight: 700; color: var(--blue); cursor: pointer; line-height: 1.3; }
+.profile-contrib-name:hover { text-decoration: underline; }
+.profile-contrib-client { font-size: 12px; color: var(--txt-sub); margin-top: 2px; }
+.profile-contrib-meta { font-size: 11px; color: var(--txt-muted); margin-top: 10px; }
+.profile-contrib-stats { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; color: var(--txt-sub); }
+.profile-contrib-stats span { display: flex; align-items: center; gap: 4px; }
+
+/* Collapsible sections */
+.profile-section { border-top: 1px solid var(--border); }
+.profile-section-header {
+  display: flex; align-items: center; gap: 8px; padding: 14px 0; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: var(--txt-main); user-select: none;
+}
+.profile-section-header svg { transition: transform .15s; color: var(--txt-muted); flex-shrink: 0; }
+.profile-section-header.open svg { transform: rotate(90deg); }
+.profile-section-body { display: none; padding: 0 0 20px 24px; }
+.profile-section-body.open { display: block; }
+
+.prof-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.prof-table th { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); color: var(--txt-sub); font-weight: 600; background: var(--bg-alt); font-size: 11px; }
+.prof-table td { padding: 7px 10px; border-bottom: 1px solid rgba(226,232,240,.5); vertical-align: middle; }
+.prof-table tr:last-child td { border-bottom: none; }
+.prof-star { color: #D1D5DB; font-size: 13px; }
+.prof-star.filled { color: #F59E0B; }
+.prof-pagination { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 12px; color: var(--txt-sub); }
+.prof-page-btn {
+  width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-white);
+  cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; color: var(--txt-sub);
+}
+.prof-page-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.prof-page-btn:hover:not(.active) { border-color: var(--blue); color: var(--blue); }
+.prof-add-btn { font-size: 11px; padding: 5px 10px; margin-bottom: 10px; }
+.prof-overdue-badge { background: #FEE2E2; color: #B91C1C; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; }
+.prof-empty-row td { text-align: center; color: var(--txt-muted); font-style: italic; padding: 20px; }
+
+/* ══════════════════════════════════════════
+   SKILLS MATRIX — employee-facing rating UI (matches category browser screenshot)
+══════════════════════════════════════════ */
+.skm-cat-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.skm-cat-select {
+  padding: 7px 10px; border: 1px solid var(--blue); border-radius: 6px;
+  font-size: 13px; font-family: var(--sans); color: var(--txt-main);
+  background: var(--bg-white); outline: none; min-width: 220px; cursor: pointer;
+}
+.skm-cat-title { font-size: 15px; font-weight: 700; color: var(--txt-main); margin-bottom: 10px; }
+.skm-skill-list { display: flex; flex-direction: column; }
+.skm-skill-row {
+  display: flex; align-items: center; gap: 14px; padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.skm-skill-name { flex: 1; min-width: 0; font-size: 13px; color: var(--txt-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skm-clear-btn {
+  width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--txt-main);
+  background: none; color: var(--txt-main); font-size: 16px; line-height: 1; font-weight: 700;
+  cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  transition: border-color .12s, color .12s;
+}
+.skm-clear-btn.zero { border-color: var(--red); color: var(--red); }
+.skm-clear-btn:hover { border-color: var(--red); color: var(--red); }
+.skm-stars { display: flex; gap: 2px; flex-shrink: 0; width: 66px; }
+.skm-star { font-size: 20px; color: #D1D5DB; cursor: pointer; line-height: 1; transition: color .1s, transform .1s; }
+.skm-star:hover { transform: scale(1.15); }
+.skm-star.filled { color: #F5B400; }
+.skm-cert-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--txt-sub); flex-shrink: 0; cursor: pointer; white-space: nowrap; }
+.skm-cert-check input { accent-color: var(--blue); cursor: pointer; }
+.skm-notes-btn { font-size: 11px; padding: 5px 10px; flex-shrink: 0; white-space: nowrap; }
+
+/* ══════════════════════════════════════════
+   SKILLS MATRIX — master editor (Reports > Skills Matrix)
+══════════════════════════════════════════ */
+.skm-editor-shell { background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.skm-editor-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid var(--border);
+}
+.skm-editor-body { display: flex; min-height: 500px; max-height: 70vh; }
+.skm-cat-list { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; }
+.skm-cat-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 9px 16px; cursor: pointer; font-size: 13px; color: var(--txt-sub);
+  border-bottom: 1px solid rgba(226,232,240,.6); transition: background .1s;
+}
+.skm-cat-item:hover { background: var(--bg-alt); }
+.skm-cat-item.active { background: var(--blue-lt); color: var(--blue-dk); font-weight: 600; }
+.skm-cat-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skm-cat-item-count { font-family: var(--mono); font-size: 11px; color: var(--txt-muted); flex-shrink: 0; }
+.skm-cat-detail { flex: 1; min-width: 0; overflow-y: auto; padding: 18px 20px; }
+.skm-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.skm-edit-skill-list { display: flex; flex-direction: column; }
+.skm-edit-skill-row {
+  display: flex; align-items: center; gap: 10px; padding: 7px 4px;
+  border-bottom: 1px solid rgba(226,232,240,.6);
+}
+.skm-edit-skill-name { flex: 1; font-size: 13px; color: var(--txt-main); }
+.skm-edit-skill-btn {
+  width: 24px; height: 24px; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--bg-white); cursor: pointer; font-size: 11px; color: var(--txt-sub);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: border-color .12s, color .12s;
+}
+.skm-edit-skill-btn:hover { border-color: var(--blue); color: var(--blue); }
+.skm-edit-skill-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
 </style>
 
 </head>
@@ -1154,6 +1379,10 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
       <button class="nav-item" id="navPortfolio" onclick="switchView('portfolio')">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="11" rx="1.5"/><path d="M6 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
         <span class="nav-item-text">Portfolio</span>
+      </button>
+      <button class="nav-item" id="navReports" onclick="switchView('reports')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13 L5 8 L8 10.5 L11 4 L14 7"/><line x1="2" y1="13" x2="14" y2="13"/></svg>
+        <span class="nav-item-text">Reports</span>
       </button>
     </div>
   </div>
@@ -1283,6 +1512,10 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
       <button class="topbar-tab" id="tabPortfolio" onclick="switchView('portfolio')">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><path d="M5 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
         Portfolio
+      </button>
+      <button class="topbar-tab" id="tabReports" onclick="switchView('reports')">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11 L4.5 6.5 L7 9 L10 3.5 L12 6"/><line x1="2" y1="11" x2="12" y2="11"/></svg>
+        Reports
       </button>
     </div>
     <div class="topbar-right">
@@ -1467,6 +1700,21 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
         </table>
       </div>
     </div>
+  </div>
+
+  <!-- REPORTS VIEW -->
+  <div class="reports-view" id="reportsView">
+    <div class="reports-subtabs">
+      <button class="reports-subtab active" id="repSubEmployees" onclick="switchReportsSub('employees')">Employees</button>
+      <button class="reports-subtab" id="repSubProjects" onclick="switchReportsSub('projects')">Projects</button>
+      <button class="reports-subtab" id="repSubSkillsMatrix" onclick="switchReportsSub('skillsmatrix')">Skills Matrix</button>
+    </div>
+    <div class="reports-content" id="reportsContent"></div>
+  </div>
+
+  <!-- EMPLOYEE PROFILE VIEW (full page) -->
+  <div class="profile-view" id="profileView">
+    <div id="profileContent"></div>
   </div>
 
   <!-- SUMMARY BAR -->
@@ -1861,6 +2109,9 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 const PROJ_COLORS = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EF4444','#14B8A6','#F43F5E','#6366F1','#EC4899','#06B6D4','#84CC16','#F97316'];
 const AV_COLORS   = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EF4444','#14B8A6','#F43F5E','#6366F1','#EC4899','#06B6D4'];
 
+// ── Master Skills Matrix catalog (categories -> skill names), seeded from company skills matrix export ──
+const SKILLS_CATALOG_SEED = {"Application Software": [".NET Compact Framework", ".NET Core / .NET 5+", ".NET Framework (2.0-4.8)", "Adobe Acrobat", "Adobe Illustrator", "Adobe Photoshop", "Android Development", "ANSI C / C++", "ANSI C / ISO C", "Ansys Fluent", "ArcView", "ASP.NET Core", "C#", "Certificate Authority", "Classic ASP", "COBOL", "Cognos", "Design View", "Docker", "FORTRAN", "General XML", "Git", "GitHub/GitLab", "HTML", "IBM Websphere", "Internet Information Services", "Java", "Javascript / Typescript", "JSON", "Kepware / TOP Server / Industrial Gateway Server (IGS)", "Kubernetes", "LabVIEW", "Linux (Red Hat or equivalent)", "MathCAD", "MatLab", "MetaStorm eWorks (BPM)", "Microsoft ActiveX Data Objects (ADO)", "Microsoft HyperV (VMWare ESXi's counterpart)", "Microsoft MSMQ", "Microsoft Office", "Microsoft Project", "Microsoft SQL Server Admin", "Microsoft Sync Services", "Microsoft Windows Communication Foundation", "Microsoft Windows Workflow Foundation", "Modern C++ (C++11 or newer)", "Norton Ghost", "Object oriented programming practices", "Oracle", "Pascal", "Python", "React (Web Development)", "RESTful APIs", "SharePoint", "Certified", "Silverlight", "SOAP APIs", "Sun Microsystems Java", "Trackwise", "VB.NET", "VBA (Excel Macros)", "VBScript", "Visio", "Visual Basic", "Visual C++", "Visual Studio", "VMWare", "VSS", "Windows Presentation Foundation (WPF)", "XML", "XSL / XSLT (XML Transformations)"], "Artifical Intelligence": ["Claude Code", "Copilot Design Studio"], "Asset Management": ["AMS Device Manager", "Proficy Change Management", "Rockwell FactoryTalk AssetCentre (RSMACC)"], "Batch Software": ["Aveva InBatch", "DeltaV Batch", "GE Proficy Batch", "Rockwell FactoryTalk Batch", "Rockwell FactoryTalk Batch PhaseManager", "Siemens Braumat/Sistar Batch", "Siemens Simatic Batch"], "Building Management": ["Andover Controls", "Automated Logic", "Carrier", "Delta Controls", "Distech", "Honeywell - BMS", "Honeywell Optimizer", "Honeywell Spyders", "Johnson Controls", "Johnson Controls CCT", "Johnson Controls FEC/IOM", "Johnson Controls Metasys", "Johnson Controls Metasys ADX/ADS", "Johnson Controls SCT", "Johnson Controls TEC Series", "LG", "Mitsubishi Electric", "Siemens ABT", "Siemens APOGEE", "Siemens Desigo", "Siemens DXR", "Siemens PXC", "Trend", "Tridium - Niagara"], "Client Standards": ["DB Tool - OPERA (E-Tech)", "OPERA (P&G)", "P&G BPO's", "PackML (P&G)", "Unity Formula Mgr (P&G)", "Universal Batch (P&G)"], "Cloud Platforms": ["Aveva Connect", "AWS Glacier", "AWS Identity and Access Management (IAM)", "AWS Lightsail", "AWS Relational Database Services (RDS)", "AWS Simple Storage Service (S3)", "Azure Active Directory / Entra ID", "Azure API Management", "Azure App Services", "Azure Blob Storage", "Azure DevOps", "Azure OpenAI", "Azure Portal Configuration", "Azure SQL", "Azure Virtual Machines", "Cloud Deployment", "Google App Engine (GAE)", "Google Cloud Functions", "Google Cloud SQL", "Google Cloud Storage (GCS)", "Google Compute Engine (GCE)"], "DCS": ["ABB - Symphony", "ABB 800xA", "ABB Production Manager", "Bailey Infi 90", "DeltaV", "DeltaV 3rd Party Integration", "DeltaV Controllers", "DeltaV Dynamo", "DeltaV I/O", "DeltaV iFix HMI", "DeltaV Infrastructure", "DeltaV Live", "DeltaV Management Systems", "DeltaV Operate", "DeltaV SIS", "DeltaV SIS I/O", "DeltaV SIS Programming", "Emerson DeltaV", "Emerson DeltaV Live", "Fisher Provox", "Foxboro IA", "Harmony Infi 90", "Honeywell - SCAN 3000", "Honeywell - TDC 2000", "Honeywell - TotalPlant Solution (TPS)", "Honeywell Experion", "Honeywell Plantscape", "Honeywell Safety Manager", "Honeywell TDC 3000", "Infusion 2.X", "Infusion 3.X", "Invensys Triconex", "MaxControls - MAX1000", "Moore APACS", "Production Manager", "Reliance Automax", "Reliance DCS5000", "Rockwell PlantPAx", "Rosemount RS3", "Siemens Simatic PCS neo", "Siemens Simatic PCS7", "TDC 3000"], "Data Historian": ["AspenTech Historian", "Aveva Historian (Wonderware Historian)", "Aveva PI Historian (OSI PI Historian)", "GE Proficy Historian (iHistorian)", "IBA PDA", "Rockwell FactoryTalk Historian"], "Database Software": ["Borland dBase II III IV", "Data Analytics", "Database Design", "Databases", "ETL and Data Migration", "Microsoft Access", "Microsoft SQL Server", "Microsoft SQL Server Analysis Services (SSAS)", "Microsoft SQL Server Integration Services (SSIS)", "Microsoft SQL Server Reporting Services (SSRS)", "MySQL", "NoSQL", "Oracle 11g", "Oracle 8", "Oracle Agile", "Oracle DB", "Oracle SQL", "Oracle XE", "PostgreSQL", "RSSQL", "SQL", "T-SQL"], "Design Drawings": ["AutoCAD", "AutoCAD Electrical", "AutoCAD LT", "Blender", "BlueBeam", "Circuit Breaker Selection", "Combustion Safeguards", "Control Panel Component Specification", "Control Panel External / Internal Layout", "Control Panel Power Distribution", "Current Load Calculation", "Electrical Bus Engineering", "Electrical Substation drawing package", "Electronic Design", "Elementaries/Wiring Diagrams", "Enclosure Design", "ePlan", "Fuse Selection", "Grounding", "Hazardous Areas", "Hazardous Design", "Heat Load Calculations", "Heater / Fan / AC Selection", "IEC/Nema Motor Controls", "Instrumentation Specifications", "Intrinsic Safety Component Specification", "Intrisic Safety Calcs", "IO Wiring", "Junction Box", "Loop Drawings", "MCC", "MCC Selection", "Motor Controls", "Motor Selection and Specification", "Network Drawings", "P&ID", "Panel Layouts", "Power", "PromiseE", "Revit", "Solidworks", "Solidworks EPDM Vault", "Subpanel Design", "System Architechure", "Transformer Selection and Protection", "VFD Selection"], "Documentation": ["Alarm List", "Control System Test Plan", "Functional Requirements Specification", "Hardware Design Spec (HDS)", "Hardware Factory Acceptance Test", "Hardware FAT", "Instrument List", "IO List", "Operator Manual", "Project Quality Plan", "Setpoint list", "Site Acceptance Test (SAT)", "Software Design Spec (SDS)", "Software Factory Acceptance Test", "SOP Development", "Technical Writing", "Test Plans", "Training Manual", "User Requirements Spec (URS)"], "Drives/ Motors": ["1771-DL Encoder Module", "ABB ACS 380/580/880", "ABB DCS800", "ABB DCS880", "ABB Stromburg 1352 AC", "ABB Stromburg DDC/3400", "Allen-Bradley 1305", "Allen-Bradley 1336", "Allen-Bradley 1395/96", "Allen-Bradley 1397", "Allen-Bradley Powerflex", "Allen-Bradley PowerFlex 525", "Allen-Bradley Ultra 3000", "Allen-Bradly Powerflex 40", "Allen-Bradly Powerflex 70", "Allen-Bradly Powerflex 700", "Allen-Bradly Powerflex 75x", "Avtron Advantage", "Berkeley Process BAM-832 8-Axis Servo Controller", "CT Commander", "CT Digitax Servo", "CT M Series Unidrive", "CT Mentor/Quantum MP", "Eurotherm 590", "Eurotherm 690", "GE Silcomatic", "GE Siltron", "GEMS", "Kollmorgen DRIVE", "Magnatek", "Reliance DPS", "Reliance Flexpak", "Reliance GV3000", "Reliance Maxpak", "Robicon", "Rockwell Low Voltage Drives", "Rockwell Low Voltage Drives Systems", "SAF - DD312 DC drives", "Schneider - Altivar 61/71", "Siemens - MASTERDRIVE", "Siemens - MicroMaster 420", "Siemens - MicroMaster 440", "Siemens 6RA70", "Siemens 6RA80", "Siemens Simotics M, S, L, T motors", "Siemens Sinamics G120, V20, G110, G130", "Siemens Sinamics S120, G220, S220", "Siemens Sinamics Servo drives S200, V90, S120, S220", "Synchronous Motor Control", "Toshiba", "VFD Configuration", "Yaskawa Drives"], "IT": ["AB Stratix 2000/5400/5700/5900", "Active Directory", "Anti Virus-McAfee Symantec", "ASA Firewall", "Bash", "Cisco Networking", "Cisco Switch Programming (Cisco IOS)", "CompTIA Security+", "Cryptography", "DNS / DHCP", "Domain Setup", "Equallogic", "esxtop", "Exchange", "Firewalls", "Fortinet", "Fortinet NSE 1-5", "Group Policy", "Illumio", "Incident Response & Recovery", "Jira", "MCSA - Server 2000-2012", "MCSE - Cloud Server", "Microsoft Clustering", "Microsoft Networks", "NAS-Synology", "Nessus Vulnerability Scanning", "Network & Communications Security", "Network Configuration", "pfSense", "Powershell", "Risk Identification, Monitoring & Analysis", "Security Operations & Administration", "Service Now", "Stratix Switch Programming", "Stratus Certified Solution Architect", "Switch Configuration", "Systems & Application Security", "Terminal Services", "Veeam", "Vmware ESXi", "VPN config", "Zendesk"], "Industrial Data Architecture": ["Rockwell Cognite Data", "Rockwell FactoryTalk Analytics VisionAI", "Rockwell FactoryTalk DataMosaix", "Rockwell IoT Solutions", "Rockwell PavilionX", "Rockwell ThingWorx"], "Industry Standards": ["21 CFR Part 11", "21 CFR Part 210/211", "ASTM - E2500", "CFR Part 820", "Current Good Manufacturing Practices (CGMP)", "Data Integrity & ALCOA+ Compliance", "EU Annex 11 Compliance", "Foreign Drug Regulations", "Good Automated Manufacturing Practices (GAMP)", "ISA 5.1 Instrumentation Symbols", "ISA-62443 Cybersecurity for IACS", "ISA-84 Process Safety", "ISA-88 Batch Systems", "ISA-95 MES Systems", "ISA-99 Security", "ISA-TR99 Security Technologies for IACS", "National Electric Code (NEC)", "NFPA 70", "NFPA 70E", "NIST 800 OT Security", "OSHA", "TIA-526-1179 Telecommunications Infrastructure", "UL508A"], "Instrumentation": ["Brix", "Calibration", "Capacitive", "Current", "Density", "Distance", "DP Monitoring", "Dry Bulb / Wet Bulb", "Encoder", "Enthapy", "Flow Meters", "Guided Microwave Spectrometers", "Humidity", "Inductive", "Instrument Specification", "Laser", "Level Sensors", "LVTD - Linear Variable Differential Transformer", "Mass Flow", "pH", "Potentiometer", "Pressure", "Proximity", "Resolver", "Safety Valve Calculations", "Speed", "Temperature", "Turbidity", "Ultrasonic", "Valve Calculations", "Viscosity"], "LAIR": ["Agilent Benchcel Microplate Handler", "Agilent Bravo", "Agilent labware multihub", "Agilent labware Stacker", "Agilent Plateloc", "Agilent V Spin Centrifuge", "Agilent V Works Controls", "Agilent V Works Scheduler (Plus)", "Analytical Instruments (HPLC, GC, MS) Software", "Azenta (Brooks) XPeel", "Azenta (Precise) Robotic Arm", "Azenta Semi-Automated Sheet Heat Sealer (formerly IntelliXseal™ SA)", "Beckman Coulter Biomek 4000 series Robot", "Beckman Coulter Biomek FX series Robot", "Beckman Coulter Biomek I-5 Robot", "Beckman Coulter Biomek I-7 Robot", "Beckman Coulter Biomek Method Launcher", "Beckman Coulter DART software", "Beckman Coulter Echo series", "Beckman Coulter SAMI EX process management", "Beckman Coulter SAMI process management", "Benchling", "Bionex Beesure Acoustic ILQC", "Bionex Bumblebee", "Bionex HiG Centrifuge", "Bionex Hive Automation", "Bionex Nanodrop", "Biosafety Cabinets (BSC)", "Biosero Green Button Go Experience", "Biosero Green Button Go Insights", "Biosero Green Button Go Orchestrator", "Biosero Green Button Go Scheduler", "Biosero Mobile Robotics", "Blood Analyzers", "Chromatography Data Systems (CDS) Software", "Dynamic Devices Lynx", "Dynamic Devices Method Editor", "ELN Development (Electronic Lab Notebook)", "Eppendorf Clean Cap", "Eppendorf EpBlue GXP", "Eppendorf EpMotion 5000 series", "Formulatrix F.A.S.T", "Formulatrix FAST Method Editor", "Formulatrix Flo i8", "Formulatrix Flo i8 Method Editor", "Formulatrix Mantis", "Formulatrix Rover", "Formulatrix Tempest", "Hamilton 96 Head", "Hamilton HMotion", "Hamilton Instinct V", "Hamilton Nimbus", "Hamilton Nimbus HD", "Hamilton Prep", "Hamilton Rackrunner", "Hamilton SAM Freezer", "Hamilton SAM HD Freezer", "Hamilton STAR (STAR+)", "Hamilton STARlet", "Hamilton Track Gripper Robotic Arm", "Hamilton Vantage", "Hamilton Venus", "Hettich Centrifuge", "High Res Bio Ambistore", "High Res Bio Cellario Scheduling Software", "High Res Bio Lid Valet", "High Res Bio Micro Spin", "High Res Bio Microserve", "High Res Bio Nano Serve", "High Res Bio Pico Serve", "High Res Bio Plate Orient", "High Res Bio Plate Weigh", "High Res Bio Prime Liquid Handler", "High Res Bio Solutions Method Editor", "High Res Bio Steristore Incubator", "High Res Bio Tundra Freezer", "Inheco CPAC", "Inheco Incubator Shaker", "Inheco Teleshake 95 AC", "Inheco Thermoshake AC", "JScript", "LabVantage", "LabVantage LIMS", "LabWare LIMS", "LES Configuration (Laboratory Execution System)", "Liconic HiburnX Plate storage", "Liconic LiCotel Plate storage", "Liconic STORE X Plate storage", "LIMS BASIC", "Molecular Devices Plate Readers", "Nanodrop", "Opentrons OT-2 Robot", "Opentrons Temperature Module", "PAA KX2 SCARA arm", "PAA Overlord Software", "PAA S-Cell Series Workcells", "PAA S-Lab Plate Handler", "PCR Hoods", "Perkin Elmer Janus G3 Liquid Handler", "Perkin Elmer Plate Handler FLEX 750 (Precise)", "Perkin Elmer Plate::Works Software (Scheduler and Controls)", "Perkin Elmer Sci Clone G3 Liquid Handler", "Perkin Elmer Zephyr G3 liquid Handler", "SDMS Configuration (Scientific Data Management)", "Smalltalk", "STARLIMS", "STARLIMS Scripting Language (SSL)", "Tecan D300 Dispenser", "Tecan EVOware Normalization Module", "Tecan EVOware Sample Tracking", "Tecan Fluent 96 384 head", "Tecan Fluent Control Software", "Tecan Fluent Deck Check Camera", "Tecan Fluent Dynamic Deck", "Tecan Fluent Liquid Handler", "Tecan Fluent Robotic Gripper", "Tecan Freedom Evo", "Tecan Freedom EVOware Control Software", "Tecan Touch Tools", "Thermo F7 Robot System", "Thermo Incubators", "Thermo King Fisher", "Thermo microplate Carousel", "Thermo Microplate Delidder", "Thermo Microscan MS-3", "Thermo Orbitor RS2 microplate mover", "Thermo Platefeeder Carousel", "Thermo Regrip Turntable", "Thermo Sample Array System", "Thermo SampleManager LIMS", "Thermo Spinnaker", "Thermo Vanquish", "Thermocyclers"], "Languages": ["Arabic", "Chinese", "French", "German", "Hindi", "Italian", "Japanese", "Persian", "Portugese", "Russian", "Spanish", "Urdu"], "MES Software": ["Activplant APMS", "Apprentice MES", "Aveva MES", "Brooks FACTORYworks", "Camstar InSite", "Elan", "GE Proficy Operations Hub", "GE Proficy PlantApps", "NextPlus MES", "PharmaSuite", "Plex", "POMSNet", "Proficy Plant Applications", "Rockwell PLEX MES", "Rockwell PLEX Production Monitoring", "Rockwell PLEX QMS", "SAP MES", "Siematic IT", "Siemens OpCenter", "Syncade", "Syncade Administration", "Syncade Batch Report/Label Configuration", "Syncade Behavior Development", "Syncade DCA", "Syncade EM", "Syncade Equipment Tracking", "Syncade Integrations", "Syncade Material and Inventory Management", "Syncade OM", "Syncade QRM", "Syncade recipie Authoring", "Syncade SA", "Syncade WD", "Syncade Webpart Development", "Tulip MES", "Werum"], "Management - Soft Skills": ["Client Relationship Management", "Communication", "Critical Thinking", "Delegation", "Leadership", "Negotiating", "Time Management"], "Management - Technical": ["Agile & Scrum Methodologies", "Change Management", "Communication Management", "Cost management", "FEED Study Management", "Internal Auditing and Audit Defense", "Internal Auditing and Audit Defense EMEA Guidance", "Internal Auditing and Audit Defense GAMP V", "Internal Auditing and Audit Defense General", "Internal Auditing and Audit Defense ISO 13485", "Internal Auditing and Audit Defense ISO 9001", "Internal Auditing and Audit Defense USP Guidance (FDA)", "Procurement management", "Project Budget & Cost Management", "Project Data Analysis", "Project Planning", "Quality Management", "Resource management", "Risk management", "Schedule Development", "Schedule Management", "Scope Management", "Six Sigma", "Stakeholder Management", "Subcontractor Management", "Team / Site Lead", "Vendor Management & SLAs", "Vendor Quality Audit", "Waterfall Methodologies"], "Mechanical Design": ["Coupling Specification", "Dimensioning / Geometric Tolerancing", "Hydraulic Systems", "Manufacturing Process Knowledge", "Material Selection", "Pneumatic Systems", "Power Transmission Specification", "Stress and Strain Analysis", "Structural Analysis", "Vibration Analysis", "Weld Specification"], "Microcontroller": ["Arduino", "Assembly", "Basic", "Forth", "Microcontroller C"], "Motion Control": ["Allen-Bradley - 1394-GMC", "Allen-Bradley - 1746-HSRV", "Allen-Bradley - 9/Series CNC", "Allen-Bradley - ControlLogix (Motion Commands)", "Allen-Bradley - IMC Compact", "Allen-Bradley - IMC-110", "Allen-Bradley - IMC-12x", "Allen-Bradley - Kinetix 2000", "Allen-Bradley - Kinetix 3", "Allen-Bradley - Kinetix 300", "Allen-Bradley - Kinetix 350", "Allen-Bradley - Kinetix 5500", "Allen-Bradley - Kinetix 5700", "Allen-Bradley - Kinetix 6000", "Allen-Bradley - Kinetix 6000M", "Allen-Bradley - Kinetix 6200", "Allen-Bradley - Kinetix 6500", "Allen-Bradley - Kinetix 7000", "Allen-Bradley - Ultra 5000", "Allen-Bradley - Ultra3000i", "Animatics Smart Motor", "Compumotor", "Compumotor Motion Planner", "Control Techniques", "Electro-Craft IQ Master", "Emerson FX", "Encoders", "Eurotherm Servo", "Fanuc CNC", "Indramat (Bosch Rexroth)", "Kinetix Servos", "Mitsubishi MR-J3-T", "Oriental Motor Stepper Motor", "Parker Stepper Drive", "Servos", "Siemens Sinamics Motion Control", "Siemens Sinumerik Motion Control", "SIMOTICS S/M/L/T", "Yaskawa, PacSci"], "Network & Comms": ["Allen-Bradley RIO", "ArcNet", "ASi", "BACNet", "Cambium Radios", "CAN Bus", "Cellular Modems - Sierra Wireless Multitech Cradlepoint", "ControlNet", "Core Network", "Data Highway Plus (DH+)", "DeviceNet", "DF1 Protocol", "DH+", "DH485", "DNP", "DNP3", "Edge Computing", "EGD", "EtherCAT", "Ethernet", "Ethernet/IP", "Fieldbus", "Frame Relay Networks", "Frequency-shift keying modems", "GE Microwave Data Systems (MDS) Radios", "General OPC Servers and Clients", "Genius I/O and Communications", "HART", "IEC61850", "IO Link", "ISA 61850", "Licensed Radio", "LONWorks", "Modbus", "Modbus ASCII", "Modbus Plus", "Modbus TCP", "Network translation", "Novell", "OPC", "Panduit", "PDM", "Port configuration", "Profibus DP", "Profibus PA", "Profinet", "Profinet IO", "Prosoft Configuration Builder", "Prosoft FieldServer", "Prosoft Gateways", "Radio Surveys", "Rockwell FactoryTalk Remote Access", "Rockwell SecureOT (Verve Security Center)", "RS Linx", "RS Networx", "RS-232", "RS-422", "Certified", "RS-485", "SDI-12 Protocol", "SEL", "Siemens PROFISafe", "Siemens TeleControl", "SONET", "Teledesign Systems Radios", "TIWAY", "Token Ring", "TOP Server", "TwinCAT", "Unlicensed FHSS Radio", "VHF/UHF/Spread Spectrum Radios", "Virtual network Config", "VPN"], "Operating Systems": ["DOS", "LINUX", "UNIX", "Windows 10", "Windows 11", "Windows 2000", "Windows 7", "Windows 8", "Windows 95", "Windows 98", "Windows CE", "Windows Embedded 7", "Windows Embedded XP", "Windows NT", "Windows Server 2003", "Windows Server 2008", "Windows Server 2012", "Windows Server 2016", "Windows Server 2019", "Windows Server NT", "Windows Vista", "Windows XP"], "PLC- GE": ["90/30", "90/70", "DC-2000", "DC-3000", "DMC", "Genius Blocks", "LM90", "PACSystems RX3i", "PACSystems RX7i", "Proficy Machine Edition", "RX3i 330 CPU", "RX3i CPL410", "RX3i-EP CPE100", "RX7i", "Series One/Three/Five/Six", "VersaMax", "VersaPro"], "PLC - Other": ["Automation Direct", "Automation Direct DirectSoft DL PLC", "B&R", "B&R Automation Studio", "Beckhoff Embedded PC", "Beckhoff PLC", "Beckhoff TwinCAT2 - HW", "Beckhoff TwinCAT2 - SW", "Codesys", "Emerson RSTi", "Emerson Rx3i / Rx7i", "Emerson VersaMax", "GX Developer", "Himatrix", "Hitachi", "ISaGRAF", "KV-1000", "KW Software", "Melsec Medoc A&F Series"], "PLC - Rockwell": ["6200 and APS", "AI Series", "Allen-Bradley CompactLogix", "Allen-Bradley ControlLogix", "Allen-Bradley Flex IO", "Allen-Bradley FlexLogix", "Allen-Bradley Micro800", "Allen-Bradley Micrologix", "Allen-Bradley PLC2/3", "Allen-Bradley PLC2/3/5", "Allen-Bradley PLC5", "Allen-Bradley Point IO", "Automation ISaGRAF", "Connected Components Workbench", "ControlLogix Redundancy", "Integrated Architecture Builder", "Rockwell Level 1 Logix", "Rockwell Level 2 Logix", "Rockwell Studio 5000 Logix Designer", "RSLogix 5", "RSLogix 500", "RSLogix 5000", "RSNetWorx", "SLC 5/xx", "SoftLogix"], "PLC - Schneider": ["EAE", "Electric ProWorx32", "Modicon", "Modicon Concept", "Modicon Lmodsoft", "Modicon M-340", "Modicon M-580", "Modicon Micro", "Modicon Momentum", "Modicon Quantum", "Modicon Unity", "Modsoft", "PL7", "ProWORX", "ProWorx32", "RemoteConnect", "SCADAPack Workbench", "SCADAPacks", "Square D", "Taylor", "Taylor ProWorx Plus (Modicon)", "Telemechanique", "Telepace", "TSX", "Unity Pro / Control Expert"], "PLC - Siemens": ["Braumat & Sistar", "ET200", "Micro", "S5", "S7 - Hardware", "S7 - Micro/Win", "S7 - Software", "S7-1200/1500", "S7-200", "S7-300/400", "TIA Portal", "WinCC"], "Power Engineering": ["Capacitor Banks", "Electrical Substations", "Generators", "Harmonic Filters", "Inverters", "Line/Load Reactors", "Power Distribution", "Power Generation", "Power Monitoring", "Power Quality & Energy Management (PQEM)", "Power Transmission", "Transfer Switches", "Transformers", "Uninterruptible Power Supplies"], "Power OEM Solutions": ["AB Industrial UPS", "AB i-Sense Voltage Monitor", "AB PowerMonitor 1000", "AB PowerMonitor 3000", "AB PowerMonitor 500", "AB PowerMonitor 5000", "Acti9 iEM3000", "DySC Voltage Sag Corrector", "EasyLogic PM2000", "Eaton Power Xpert Meter 1000", "Eaton Power Xpert Meter 2000", "Eaton Power Xpert Meter 3000", "Eaton Power Xpert Meter 350", "Eaton Power Xpert Meter 4000/6000/8000 PXM", "Eaton Power Xpert Multi-Point Meter", "EcoStruxure Conductor MDM", "EcoStruxure Energy Hub", "EcoStruxure Panel Server", "EcoStruxure Power Advisor", "EcoStruxure Power Monitoring Expert", "EcoStruxure Power Operation", "EcoStruxure Site Server", "Enerlin 'X Com'X", "HPS TruWave Active Harmonic Filter", "Link150", "Mesta DPM Active Harmonic Filter", "Power Xpert Protection Manager (PXPM)", "PowerLogic BCPM", "PowerLogic EM3500", "PowerLogic EM4200", "PowerLogic EM4800", "PowerLogic EM4900", "PowerLogic HDPM6000", "PowerLogic ION7400", "PowerLogic ION7550/7650", "PowerLogic ION8650", "PowerLogic ION9000", "PowerLogic PM3000", "PowerLogic PM5000", "PowerLogic PM8000", "PXQ event analysis system", "Rockwell FactoryTalk EnergyMetrix"], "Process Knowledge": ["Aerospace", "Aggregates And Cement", "Analytical Balances and Scales", "Apples", "Assay Development", "Autoclave", "Automated Assembly", "Automated Warehouse", "Automotive", "Bakery", "Banders/Wrappers/Stackers", "Batch", "Beer", "Bioreactor", "Biotechnology", "Boilers", "Bottled Water", "Brewery", "Buffer Tanks", "Building Automation", "Building Supplies", "Business Plan Development", "Canning", "Casepacking", "Centrifuge", "Cheese", "Chemical", "Chemical Exhaust (Fume) Hoods", "Cherries", "Chromatography", "CIP", "Clean Steam Generator", "Cleaner Lines", "Cleaning Products", "Cold Mills", "Combustion", "Consumer Products", "Continuous Annealing", "Continuous Billet Caster", "Cosmetics", "Cranes", "Cytiva FlexFactory", "Dairy", "Deionization", "Electric Plating", "Electronics", "Emissions Monitoring", "Energy", "Energy Monitoring", "Entertainment", "Environmental Monitoring Systems (EMS)", "Equipment - Blend Manifolds", "Equipment - Evaporators", "Equipment - Reverse Osmosis", "Equipment - Silos", "Equipment - Vat Pasteurizing", "Factory Acceptance Testing", "Filling", "Filter Dryers", "Fluid Beds", "Food & Beverage", "Freeze Thaw", "Freezers", "Galvanize", "Glass", "Glass Washer", "High Speed Counting", "HPLC", "HTST", "HVAC", "Hydraulics", "Ice Cream", "Juices - non-Pasteurized", "Juices - Pasteurized", "Lab Systems", "Labeling", "Ladle", "Laser Testing", "Manual Pipettes", "Marine - Diesel Engine Control", "Marine - Diesel Protection Systems", "Marine - Ramp Controls", "Material Handling", "Media Prep", "Medical Devices", "Metals - Coater/Paint", "Metals - Coke Plant", "Metals - Cut To Length", "Metals - Desulf", "Metals - Finishing Chrome", "Metals - Finishing Cold Mill", "Metals - Finishing Galvanize", "Metals - Finishing Pickling", "Metals - Finishing Temper Mill", "Metals - Finishing Tin", "Metals - Finishing Tubular", "Metals - Hot Strip", "Metals - Iron Producing BF", "Metals - Leveling", "Metals - LMF", "Metals - Metals Producing BOF", "Metals - Metals Producing EAF", "Metals - Slab Casting", "Metals - Slitters", "Microfiltration", "Military", "Mining", "Neutraceuticals", "Nuts - Almonds", "Nuts - Hazelnuts", "Nuts - Walnuts", "Oil And Gas", "Olives", "Oral Liquid Dosage", "Oral Solid Dosage", "Ozonation", "Packaging", "Certified", "Painting", "Palletizing", "Pan Coater", "Paper", "Paper - Coaters", "Paper - Corrigators", "Paper - Laminators", "Part ID", "Particulate Recovery", "Parts Washer/COP", "Peeling", "Pet Care", "Petro Chemical", "Pharma Aseptic (Sterile)", "Pharmaceutical", "Pickle Lines", "PID Loops", "Plant Based Meat Substitute", "Plastic Molding Injection", "Plastics", "Poultry", "Press Control", "Printing Press", "Process Line Web/Strip Tension Control Application", "Pulp And Paper", "Pump Stations", "Purification", "Refrigeration", "RFID", "Rice", "Robot Palletizing", "Roofing Materials", "Sanitary Design", "Seed Lab", "Shampoo Making", "Slitters", "Solvent Distribution", "Sortation", "Steam in Place (SIP) Distribution", "Tablet Press", "TCU", "Temper Mill", "Temperature Mapping", "Textiles", "TFF", "Thermal Process", "Tomato", "Tracking, Conveying", "Certified", "Transportation", "Tundish", "Ultra Filtration", "Ultrafiltration/Diafiltration (UF/DF)", "Ultrasonic Welding", "Upack", "Viral Filtration", "Waste Collection", "Waste Neutralization", "Waste Water Treatment", "Water/Wastewater", "Weigh Scales", "WFI", "WFI Generation", "WFI Storage & Distribution", "Winding", "Wine", "WRO"], "Professional Associations": ["CCNA", "Certified Pharmaceutical Industry Professional", "Cisco CyberOps Associate", "CISSP", "Functional Safety Engineer (TUV SUD)", "Functional Safety Technician (TUV Rheinland)", "ISA Certified Automation Professional", "ISA/IEC 62443 Cybersecurity Expert", "PE", "PMP", "SCRUM Master Certification", "SSCP"], "Proposals": ["AB - Proposal Works (IAB)", "BOM selections", "Estimating", "Proposal Development", "RFQ Development", "Scope Development", "Siemens Concept & Design Tool for PCS neo and PCS 7", "Siemens TIA Selection Tool"], "Robotics": ["ABB", "Adept", "Comau", "Epson", "Fanuc", "Kawasaki", "Kuka Robot", "Motoman Robot", "Nachi Fujikoshi", "Robotic Process Automation (RPA)", "Staubli", "Yaskawa Robotics", "Universal Robots"], "SCADA Design": ["Desktop PC selection", "KVM Selection", "Monitor Selection", "Rockwell ThinManager", "SAN Selection", "Server cabinet Design", "Server cabinet Selection", "Server Selection", "Thin Client Config", "Thin Client Selection", "ThinClient"], "Safety": ["AB - GuardLogix", "AB - GuardMaster", "AB - Press Controller", "AB - SmartGuard 600", "Aerial Work Platform-Scissor Lift Operator", "Aerial Work Platform-Scissor Lift Trainer", "AS-i Safety", "CPR", "First Aid", "Fortress Gate Switches", "GuardLogix", "Jokab Pluto", "Mitsubishi Safety PLC", "Omron NE1A-SCPU01-V1", "PFD Calculations", "Phoenix Safety PLC", "PILZ PLC", "PILZ Safety Relays", "Risk Assessment", "Rockwell AB - Safety Products (non-PLC)", "Rockwell Machine Safety - Guard Logix programming", "Safety Instrumented Systems", "Safety Requirements Specification", "Sick S3000/300 Safety Area Scanner", "Siemens Factory Automation Safety Systems", "Siemens Process Safety", "SIL Calculations", "ToyoPuc PCS"], "Simulation": ["CAPE", "Demo3D", "Echo Node", "ExtendSim 9", "FSIM", "MATLAB Simulink", "Microfusion Labs THINK", "MiMiC", "Mynah Mimic", "PICS Pro", "Rockwell Emulate3D", "RS Emulate", "SIMIT Simulation Platform", "Simulation Unit 8", "Virtual Plant"], "Site Work": ["Electrical Installation", "Instrument Installation", "Loop Checks", "Loop Tuning", "Power up test", "Site Acceptance Testing", "Startup & Commissioning", "Supervision of Trades/Subcontractors"], "Specialty": ["Agilent Barcode Labeler", "AI and Machine Learning (Deep Learning)", "Barcode Systems", "Blue Mountain BM Ram CMMS", "Business Objects Crystal Reports", "CAB Printers", "Citrix Xen", "Cognex 600 Series", "Cognex Checker", "Cognex DataMan", "Cognex Insight", "Cognex Insight 1000 Series", "Cognex Insight 5000 Series", "Cognex InSight 7000 Series", "Cognex Vision Systems", "Cognex VisionPro", "CTC Parker", "Data Science", "Delphi", "DeltaV Mobile", "DeviceLogix", "Dream Reports", "DVT", "DVT Camera", "Expression Blend", "Fisher", "Functional Safety", "GE - Proficy Plant Applications - Efficiency", "GE - Proficy Plant Applications - Quality", "GE - Proficy Realtime Information Portal (RTIP)", "GE - Proficy Shop Floor SPC", "General Barcode Scanning & Printing Applications", "General Biometric Applications", "General Energy Monitoring & Targeting Applications", "General HTML", "General Web Services Applications", "Halcon Vision SW", "Ignition Alarm Module Notifications", "INGRES", "JD Edwards (Oracle)", "Keyence CV-5000", "MagneMotion Conveyance System", "Maximo (config/Val)", "Maxwell Systems American Contractor", "MicroSoft Dynamics AX", "Omron - F150", "Omron - FZ3 Series", "OSI Pi Notifications", "PicPro", "Proleit", "RFID Read/Write", "SAP", "Scinomix Sci Print MP2+", "Sepasoft OEE", "Sepasoft Other Modules", "Sepasoft Track and Trace", "SICK - IVP Sensor", "Siemens 4-Mation", "Siemens Insight", "Siemens SimaticIT Production Suite", "TopView", "Valgenesis", "Vision Systems", "Win911", "Zebra Printers"], "Validation": ["Calman (Config/Val)", "Chamber Validation", "Cleaning Qualification", "Cold Room Qualifications", "Component Criticality", "Computer System Validation", "Discrepancy Resolution", "Equipment Qualification", "Facilities Validation", "FMEA and Risk Assessment", "Good Distribution Practice (GDP)", "Installation Qualification (IQ)", "Integrated C & Q Planning", "Labratory Qualification", "Method Validation", "Operational Qualification (OQ)", "Performance Qualification (PQ)", "Process Validation", "Protocol Development", "Protocol Execution", "Qualification Summary", "Risk Assessment - Validation", "Traceability Matrix", "Validation Master Plan"], "Vizualization": ["ABB MicroSCADA Pro", "ArchestrA Scripting (QuickScript.NET)", "Automation Direct - Cmore", "Automation Direct - DirectSoft", "Automation Direct - Lookout", "Aveva AOT ToolKit", "Aveva Archestra", "Aveva ArchestrA Workflow (Skelta)", "Aveva GR Access ToolKit", "Aveva IAS", "Aveva Industrial Application Server", "Aveva Information Server", "Aveva Intelligence", "Aveva Intouch", "Aveva Ops & Performance", "Aveva Quality", "Aveva Recipe Manager Plus", "Aveva System Platform", "Beijer Electronics Cimrex/Information Designer/iX Developer", "Citect", "Clear SCADA", "ControlView", "Crystal Reports", "Eaton - PanelMate", "Eaton Visual Designer", "Ethernet IP Driver Development for Vision I/F Keyence Vision", "Fix DMACS", "GE - Proficy", "GE - Proficy ME", "GE Cimplicity", "GE Fix32", "GE iFix", "GE Proficy Workflow", "Honeywell GUS", "Honeywell HMIWeb", "Honeywell Native Window", "Horner Cscape", "Iconics Genesis32", "Iconics Genesis64", "Iconics Trendworx", "Ignition", "Ignition Perspective", "Ignition Vision", "Maple Systems", "Modicon - Magelis", "Monitouch", "Omron GX-One", "PanelView", "PI Client Tools", "Power BI", "QuickPanel View", "Red Lion", "Rockwell AB - FactoryTalk Transaction Manager", "Rockwell AB - PanelBuilder", "Rockwell Allen-Bradley RSView32", "Rockwell FactoryTalk Historian ME", "Rockwell FactoryTalk Historian SE", "Rockwell FactoryTalk Metrics", "Rockwell FactoryTalk Optix", "Rockwell FactoryTalk VantagePoint", "Rockwell FactoryTalk View ME", "Rockwell FactoryTalk View SE", "Rockwell FactoryTalk View SE - HMI", "Rockwell FactoryTalk View SE - SCADA", "Rockwell FactoryTalk View Studio ME", "Rockwell FactoryTalk ViewPoint", "Rockwell FactoryTalk ViewPoint - HMI", "Schneider Electric ClearSCADA / EcoStruxture Geo SCADA Expert", "Schneider Electric Vijeo Designer", "ScreenWorks", "SIMATIC PCS 7 - WinCC", "SIMATIC WinCC Classic", "SIMATIC WinCC Flexible", "SIMATIC WinCC Open Architecture", "SIMATIC WinCC Unified", "Tableau", "Tendworx", "Total Control Products", "Visual Plant", "WonderWare - ActiveFactory"]};
+
 function uid() { return '_'+Math.random().toString(36).slice(2,9); }
 function fmt(d) { return d.toISOString().split('T')[0]; }
 function parseD(s) { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
@@ -1921,6 +2172,53 @@ function ensureOOO() {
   }
 }
 ensureOOO();
+
+// ── Backfill new profile/report fields onto resources that predate this feature ──
+const DEFAULT_TRAININGS = () => ([
+  { name:'Electrical Safety - Hands-on Qualification', progress:0,   lastActivity:'—',        overdue:true  },
+  { name:'Intro to Project Execution',                 progress:0,   lastActivity:'—',        overdue:false },
+  { name:'Performance Evaluation Overview',             progress:0,   lastActivity:'—',        overdue:false },
+  { name:'Performance Evaluation Employee Input',       progress:0,   lastActivity:'—',        overdue:false },
+  { name:'AI Policy',                                   progress:0,   lastActivity:'—',        overdue:false },
+  { name:'Intro to Project Workbook',                   progress:100, lastActivity:'—',        overdue:false },
+  { name:'Intro to Playbook',                           progress:100, lastActivity:'—',        overdue:false },
+  { name:'Quality & Continuous Improvement Policy',     progress:100, lastActivity:'3/19/2025',  overdue:false },
+  { name:'Data Classification SOP',                     progress:100, lastActivity:'10/29/2025', overdue:false },
+  { name:'Workplace Violence Prevention Refresher',     progress:100, lastActivity:'10/29/2025', overdue:false },
+]);
+// ── Master skills matrix: state.skillsMatrix = { "Category": ["Skill A","Skill B",...], ... } ──
+function ensureSkillsMatrix(){
+  if (!state.skillsMatrix) {
+    state.skillsMatrix = JSON.parse(JSON.stringify(SKILLS_CATALOG_SEED));
+  }
+}
+function skillKey(category, skillName){ return category + '|||' + skillName; }
+
+const OFFICE_CITIES = ['Dallas-Fort Worth','Houston','Chicago','Denver','Atlanta','Charlotte'];
+function ensureResourceExtras(){
+  state.resources.forEach((r, idx) => {
+    if (r.tags === undefined)          r.tags = ['Engineer','Project Delivery'];
+    if (r.hireDate === undefined) {
+      // Stagger hire dates so tenure varies a bit per person
+      const yrsAgo = 1 + (idx % 5);
+      const moOffset = (idx*3) % 12;
+      r.hireDate = T(yr-yrsAgo, ((mo-1-moOffset+12)%12)+1, 15);
+    }
+    if (r.address === undefined)       r.address = '';
+    if (r.employeeType === undefined)  r.employeeType = 'Direct';
+    if (r.timesheetOk === undefined)   r.timesheetOk = true;
+    if (r.trainings === undefined)     r.trainings = DEFAULT_TRAININGS();
+    // Skill ratings are now a sparse map keyed by "Category|||Skill Name" -> {rating, certified, notes}
+    // referencing the shared master skills matrix rather than a per-person invented list.
+    if (r.skillRatings === undefined)  r.skillRatings = {};
+    if (r.skills !== undefined)        delete r.skills; // discard old placeholder skill list format
+    if (r.certifications === undefined) r.certifications = [];
+    if (r.skillsMeta === undefined)    r.skillsMeta = { recentSubmission:null, lastApproval:null, approvedBy:'' };
+    if (r.location === undefined)      r.location = OFFICE_CITIES[idx % OFFICE_CITIES.length];
+  });
+}
+ensureResourceExtras();
+ensureSkillsMatrix();
 
 function save(){ try{localStorage.setItem('etRM2',JSON.stringify(state));}catch(e){} }
 
@@ -2022,20 +2320,23 @@ function switchView(v){
   document.getElementById('projGanttView').style.display  = v==='projgantt' ?'flex':'none';
   document.getElementById('dashView').classList.toggle('active', v==='dashboard');
   document.getElementById('portfolioView').classList.toggle('active', v==='portfolio');
+  document.getElementById('reportsView').classList.toggle('active', v==='reports');
+  document.getElementById('profileView').classList.toggle('active', v==='profile');
 
   // Topbar tabs
-  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPortfolio','portfolio']].forEach(([id,vv])=>{
-    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv);
+  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPortfolio','portfolio'],['tabReports','reports']].forEach(([id,vv])=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='reports'));
   });
   // Sidebar nav
-  [['navPeople','schedule'],['navProjects','projgantt'],['navPortfolio','portfolio']].forEach(([id,vv])=>{
-    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv);
+  [['navPeople','schedule'],['navProjects','projgantt'],['navPortfolio','portfolio'],['navReports','reports']].forEach(([id,vv])=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='reports'));
   });
 
   if(v==='dashboard')  renderDashboard();
   if(v==='portfolio')  renderPortfolio();
   if(v==='projgantt')  renderProjGantt();
   if(v==='schedule')   renderPeopleFiltersDropdowns();
+  if(v==='reports')    renderReportsView();
 }
 
 // ── Sidebar collapse ──
@@ -4428,17 +4729,20 @@ function buildUtilizationChart(res) {
 // ══════════════════════════════════════════
 const TUTORIAL_STEPS = [
   { title:'Welcome to Resource Manager', body:'This quick tour covers the key features. Use the arrows to navigate, or press Escape to exit at any time.', targetId:null },
-  { title:'Schedule View', body:'The main timeline shows every team member\'s project assignments. Each colored bar is a project. Hover for details, click for the full info card.', targetId:'tabSchedule' },
-  { title:'D / W / M Granularity', body:'Switch between Day, Week, and Month views. In Week mode (default), weekend columns are lightly shaded. Use the ‹ › arrows to scroll through time.', targetId:'dwmW' },
-  { title:'Employee Rows', body:'Click a person\'s name or avatar to open their full Snapshot — contact info, utilization chart, and project history. Right-click for quick actions like "New Assignment".', targetId:'personPanelBody' },
-  { title:'Utilization Target Bar', body:'When a person\'s projects overlap and push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
-  { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its timeline bar. Expand any project to see assigned team members. Click a bar to edit the project.', targetId:'tabProjGantt' },
-  { title:'Project Portfolio', body:'The Projects tab shows all projects in a sortable, filterable table. Change a project\'s type directly in the table via the dropdown. Client names are automatically deduplicated.', targetId:'tabPortfolio' },
-  { title:'Add & Edit Projects', body:'Click "+ Add Project" to create a project. When editing, you can Duplicate it to create a copy, or use the color picker to color-code your project portfolio.', targetId:null },
-  { title:'Utilization Alerts', body:'The bell icon shows who is currently over their utilization target. Click it to see a list — click any person to open their snapshot.', targetId:'alertBell' },
-  { title:'Save & Load Data', body:'"Save Data" exports everything to a JSON file. "Load Data" restores from a saved file — great for backups or sharing with another browser.', targetId:null },
+  { title:'People View', body:'The main timeline shows every team member\'s project assignments. Each colored bar is a project. Hover for details, click a bar for the full info card — you can even edit the allocation % or hours/day right there.', targetId:'tabSchedule' },
+  { title:'D / W / M Granularity', body:'Switch between Day, Week, and Month views. In Week mode (default), weekend columns are lightly shaded. Use the ‹ › arrows to scroll through time — the app auto-scrolls to keep Today in view.', targetId:'dwmW' },
+  { title:'Employee Rows', body:'Click a person\'s name or avatar to open their Snapshot panel — contact info, a 6-month utilization chart, and upcoming/recent project assignments. Right-click a row for quick actions like "New Assignment", or click any empty week to assign a project on the spot.', targetId:'personPanelBody' },
+  { title:'Utilization Target Bar', body:'When a person\'s overlapping projects push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
+  { title:'People Filters', body:'Use the sidebar filters to narrow the People view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
+  { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
+  { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
+  { title:'Reports', body:'The Reports tab has three views: Employees (timesheet/training status, utilization sparklines, and an expandable 6-week schedule + skills summary per person), Projects (coming soon), and the Skills Matrix editor.', targetId:'tabReports' },
+  { title:'Employee Profile', body:'In Reports → Employees, click any name to open their full profile page — tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications.', targetId:null },
+  { title:'Skills Matrix', body:'Reports → Skills Matrix is the master catalog of every trackable skill, organized by category. Add, rename, or remove skills and categories here — changes instantly show up on every employee\'s profile for rating.', targetId:null },
+  { title:'Utilization Alerts', body:'The bell icon shows who is currently over their utilization target. Click it to see a list — click any person to open their profile.', targetId:'alertBell' },
+  { title:'Save & Load Data', body:'"Save Data" exports everything — projects, people, allocations, and the skills matrix — to a JSON file. "Load Data" restores from a saved file, great for backups or moving to another browser.', targetId:null },
   { title:'Undo', body:'Made a mistake? Click Undo (or press Ctrl+Z / Cmd+Z) to step back. Up to 30 actions are remembered per session.', targetId:'undoBtn' },
-  { title:'You\'re all set!', body:'Tip: right-click on any person\'s name or on an empty area in their timeline row to quickly assign a project. You can also drag the right edge of any project bar to extend its end date.', targetId:null },
+  { title:'You\'re all set!', body:'Tip: drag either edge of a project bar to change its start or end date, or drag the middle to move the whole thing. Right-click a bar for quick Edit/Duplicate/Delete options.', targetId:null },
 ];
 
 let _tutStep = 0;
@@ -4679,6 +4983,893 @@ function closeQuickAssign() {
 }
 
 // ══════════════════════════════════════════
+// REPORTS — shared date/utilization helpers
+// ══════════════════════════════════════════
+function mondayOf(d){ const x=new Date(d); x.setDate(x.getDate()-((x.getDay()+6)%7)); x.setHours(0,0,0,0); return x; }
+
+function weekUtilForRes(resId, wStart, wEnd){
+  const allocs = allocsForRes(resId);
+  const mid = new Date((wStart.getTime()+wEnd.getTime())/2);
+  return allocs.reduce((sum,a)=>{
+    const ps=parseD(a.project.start), pe=parseD(a.project.end);
+    return (ps<=mid && pe>=mid) ? sum+a.pct : sum;
+  },0);
+}
+
+// Build an array of weekly {wStart, wEnd, pct, isFuture} from weeksBack..weeksForward relative to today
+function buildWeeklySeries(resId, weeksBack, weeksForward){
+  const thisMonday = mondayOf(today);
+  const series = [];
+  for(let i=-weeksBack; i<=weeksForward; i++){
+    const wStart = new Date(thisMonday); wStart.setDate(wStart.getDate()+i*7);
+    const wEnd   = new Date(wStart); wEnd.setDate(wEnd.getDate()+6);
+    series.push({ wStart, wEnd, pct: weekUtilForRes(resId, wStart, wEnd), isFuture: i>0, isCurrent: i===0 });
+  }
+  return series;
+}
+
+function computeUtilStats(resId){
+  const series = buildWeeklySeries(resId, 60, 0); // ~60 weeks back to cover "last year"
+  const past = series.filter(w=>!w.isFuture && !w.isCurrent);
+  const lastWeek = past.length ? past[past.length-1].pct : 0;
+  const last6 = past.slice(-6);
+  const last6Avg = last6.length ? Math.round(last6.reduce((s,w)=>s+w.pct,0)/last6.length) : 0;
+  const last52 = past.slice(-52);
+  const lastYearAvg = last52.length ? Math.round(last52.reduce((s,w)=>s+w.pct,0)/last52.length) : 0;
+  const jan1 = new Date(today.getFullYear(),0,1);
+  const ytdWeeks = past.filter(w=>w.wStart>=jan1);
+  const ytdAvg = ytdWeeks.length ? Math.round(ytdWeeks.reduce((s,w)=>s+w.pct,0)/ytdWeeks.length) : 0;
+  return { lastWeek, last6Avg, lastYearAvg, ytdAvg };
+}
+
+function computeTenureStr(hireDateStr){
+  if(!hireDateStr) return '—';
+  const hd = parseD(hireDateStr);
+  let months = (today.getFullYear()-hd.getFullYear())*12 + (today.getMonth()-hd.getMonth());
+  if(today.getDate()<hd.getDate()) months--;
+  const years = Math.floor(months/12);
+  const remMonths = months%12;
+  const parts=[];
+  if(years>0) parts.push(years+' year'+(years!==1?'s':''));
+  parts.push(remMonths+' month'+(remMonths!==1?'s':''));
+  return parts.join(', ');
+}
+
+// Small sparkline of colored bars for the report table cell
+function buildSparklineHTML(series, targetPct){
+  const maxH = 20;
+  return `<div class="emprep-spark">${series.map(w=>{
+    const h = Math.max(2, Math.min(maxH, Math.round(w.pct/Math.max(150,targetPct+50)*maxH)));
+    const color = w.pct===0 ? '#CBD5E1' : (w.pct>targetPct ? '#EF4444' : '#10B981');
+    return `<div class="emprep-spark-bar" style="height:${h}px;background:${color};" title="${fmtShort(w.wStart)}: ${w.pct}%"></div>`;
+  }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════
+// REPORTS VIEW — Employees table
+// ══════════════════════════════════════════
+let _reportsSub = 'employees';
+let _empRepExpanded = new Set();
+
+function switchReportsSub(sub){
+  _reportsSub = sub;
+  document.getElementById('repSubEmployees').classList.toggle('active', sub==='employees');
+  document.getElementById('repSubProjects').classList.toggle('active', sub==='projects');
+  document.getElementById('repSubSkillsMatrix').classList.toggle('active', sub==='skillsmatrix');
+  renderReportsView();
+}
+
+function renderReportsView(){
+  const content = document.getElementById('reportsContent');
+  if(_reportsSub==='projects'){
+    content.innerHTML = `<div style="padding:60px 20px;text-align:center;color:var(--txt-muted);">
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--txt-sub);">Project Reports</div>
+      <div style="font-size:13px;">Coming soon — project-level reporting (budget burn, schedule variance, staffing history) will live here.</div>
+    </div>`;
+    return;
+  }
+  if(_reportsSub==='skillsmatrix'){
+    renderSkillsMatrixEditor();
+    return;
+  }
+  renderEmployeeReportsTable();
+}
+
+function renderEmployeeReportsTable(){
+  const content = document.getElementById('reportsContent');
+  const resources = getFilteredResources();
+
+  let rowsHtml = '';
+  resources.forEach(res=>{
+    const target = res.target ?? 100;
+    const pastSeries = buildWeeklySeries(res.id, 6, 0).filter(w=>!w.isFuture && !w.isCurrent);
+    const futureSeries = buildWeeklySeries(res.id, 0, 6).filter(w=>w.isFuture);
+    const currentUtil = pastSeries.length ? pastSeries[pastSeries.length-1].pct : 0;
+    const nextUtil = futureSeries.length ? futureSeries[0].pct : 0;
+    const hasOverdueTraining = (res.trainings||[]).some(t=>t.overdue);
+    const expanded = _empRepExpanded.has(res.id);
+    const photoHtml = res.photo ? `<img src="${res.photo}">` : initials(res);
+
+    rowsHtml += `
+      <tr class="emprep-row" onclick="toggleEmpRepRow('${res.id}')">
+        <td class="emprep-td">
+          <div class="emprep-name-cell">
+            <button class="emprep-chevron ${expanded?'open':''}" onclick="event.stopPropagation();toggleEmpRepRow('${res.id}')">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,1 8,5.5 3,10"/></svg>
+            </button>
+            <div class="emprep-avatar" style="background:${avColor(res)}">${photoHtml}</div>
+            <span class="emprep-name-link" onclick="event.stopPropagation();openEmployeeProfile('${res.id}')">${res.first} ${res.last}</span>
+          </div>
+        </td>
+        <td class="emprep-td"><span class="emprep-status-icon ${res.timesheetOk?'emprep-status-ok':'emprep-status-warn'}">${res.timesheetOk?'✓':'⚠'}</span></td>
+        <td class="emprep-td"><span class="emprep-status-icon ${hasOverdueTraining?'emprep-status-warn':'emprep-status-ok'}">${hasOverdueTraining?'⚠':'✓'}</span></td>
+        <td class="emprep-td">${res.title||res.role||'—'}</td>
+        <td class="emprep-td">${res.manager||'—'}</td>
+        <td class="emprep-td">${res.employeeType||'Direct'}</td>
+        <td class="emprep-td">
+          <div class="emprep-util-cell">
+            <span class="emprep-util-num">${currentUtil}%</span>
+            ${buildSparklineHTML(pastSeries, target)}
+          </div>
+        </td>
+        <td class="emprep-td">
+          <div class="emprep-util-cell">
+            <span class="emprep-util-num">${nextUtil}%</span>
+            ${buildSparklineHTML(futureSeries, target)}
+          </div>
+        </td>
+      </tr>
+      <tr class="emprep-detail-row" id="empRepDetail-${res.id}" style="display:${expanded?'table-row':'none'}">
+        <td colspan="8">${expanded ? buildEmpRepDetailPanel(res.id) : ''}</td>
+      </tr>`;
+  });
+
+  content.innerHTML = `
+    <div class="emprep-table-wrap">
+      <table class="emprep-table">
+        <thead><tr>
+          <th class="emprep-th">Employee</th>
+          <th class="emprep-th">Timesheet</th>
+          <th class="emprep-th">Training</th>
+          <th class="emprep-th">Title</th>
+          <th class="emprep-th">Manager</th>
+          <th class="emprep-th">Type</th>
+          <th class="emprep-th">Utilization</th>
+          <th class="emprep-th">Scheduled Utilization</th>
+        </tr></thead>
+        <tbody>${rowsHtml || '<tr><td colspan="8" style="padding:30px;text-align:center;color:var(--txt-muted);">No employees match your filters.</td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
+function toggleEmpRepRow(resId){
+  if(_empRepExpanded.has(resId)) _empRepExpanded.delete(resId);
+  else _empRepExpanded.add(resId);
+  renderEmployeeReportsTable();
+}
+
+function buildEmpRepDetailPanel(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return '';
+  const stats = computeUtilStats(resId);
+  return `
+    <div class="emprep-detail-panel">
+      <div class="emprep-detail-title">Utilization</div>
+      ${buildBigUtilBarChart(resId)}
+      <div class="emprep-select-week-row">
+        <span>Select a week to view timesheets:</span>
+        <input type="text" placeholder="Select date" onclick="showToast('Timesheet drill-down coming soon')" readonly>
+        <span style="color:var(--txt-muted);font-size:11px;">Tip: you can also click a bar above to select a week.</span>
+      </div>
+      <div class="emprep-toggle-row">
+        <div class="emprep-toggle" onclick="this.classList.toggle('on')"></div>
+        <span>Show Details</span>
+      </div>
+      <div class="emprep-stat-grid">
+        <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.lastWeek}%</div><div class="emprep-stat-lbl">Last Week</div></div>
+        <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.last6Avg}%</div><div class="emprep-stat-lbl">Last 6 Weeks</div></div>
+        <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.lastYearAvg}%</div><div class="emprep-stat-lbl">Last Year</div></div>
+        <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.ytdAvg}%</div><div class="emprep-stat-lbl">YTD</div></div>
+      </div>
+      <div class="emprep-6wk-title">6-Week Schedule</div>
+      ${buildSixWeekSchedule(resId)}
+      <div class="emprep-6wk-title">Skills Summary</div>
+      ${buildSkillsSummary(resId)}
+    </div>`;
+}
+
+function buildSkillsSummary(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return '';
+  const ratings = res.skillRatings || {};
+  const entries = Object.entries(ratings).filter(([k,v])=>v && (v.rating>0 || v.certified));
+  const totalCatalogSkills = skillCategoryList().reduce((s,c)=>s+(state.skillsMatrix[c]||[]).length, 0);
+  const certifiedCount = entries.filter(([k,v])=>v.certified).length;
+
+  if(entries.length===0){
+    return `<div class="emprep-6wk-wrap" style="padding:16px;color:var(--txt-muted);font-size:12px;font-style:italic;">No skills rated yet for ${res.first} — visit their profile to rate skills against the Skills Matrix (${totalCatalogSkills} skills across ${skillCategoryList().length} categories).</div>`;
+  }
+
+  // Group by category, compute avg rating per category
+  const byCategory = {};
+  entries.forEach(([key,val])=>{
+    const cat = key.split('|||')[0];
+    byCategory[cat] = byCategory[cat] || { ratings:[], certified:0 };
+    byCategory[cat].ratings.push(val.rating);
+    if(val.certified) byCategory[cat].certified++;
+  });
+  const rows = Object.entries(byCategory)
+    .sort((a,b)=> (b[1].ratings.reduce((s,r)=>s+r,0)/b[1].ratings.length) - (a[1].ratings.reduce((s,r)=>s+r,0)/a[1].ratings.length))
+    .map(([cat,v])=>{
+      const avg = (v.ratings.reduce((s,r)=>s+r,0)/v.ratings.length).toFixed(1);
+      return `<tr><td>${cat}</td><td>${v.ratings.length}</td><td>${avg} ★</td><td>${v.certified}</td></tr>`;
+    }).join('');
+
+  return `
+    <div class="emprep-6wk-wrap" style="padding:14px 16px;">
+      <div style="font-size:12px;color:var(--txt-sub);margin-bottom:10px;">
+        <strong>${entries.length}</strong> skill${entries.length!==1?'s':''} rated (out of ${totalCatalogSkills} in the matrix) · <strong>${certifiedCount}</strong> certified
+      </div>
+      <table class="prof-table"><thead><tr><th>Category</th><th># Rated</th><th>Avg Rating</th><th>Certified</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+}
+
+// Bigger bar-chart style utilization view (past bars solid, future bars khaki background) — matches Smartsheet-style reports
+function buildBigUtilBarChart(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return '';
+  const target = res.target ?? 100;
+  const series = buildWeeklySeries(resId, 26, 26); // ~1 year window centered on today
+
+  const W = 1400, H = 220, PAD = { t:14, r:10, b:26, l:44 };
+  const chartW = W-PAD.l-PAD.r, chartH = H-PAD.t-PAD.b;
+  const maxPct = Math.max(150, ...series.map(w=>w.pct), target+40);
+  const barGap = 2;
+  const barW = chartW/series.length - barGap;
+  const yScale = v => chartH - (v/maxPct*chartH);
+  const targetY = PAD.t + yScale(target);
+
+  let bars = '';
+  series.forEach((w,i)=>{
+    const x = PAD.l + i*(barW+barGap);
+    const isOver = w.pct > target;
+    const barColor = w.isFuture ? '#94A3B8' : (isOver ? '#EF4444' : '#3F6B6B');
+    const bh = chartH - yScale(w.pct);
+    // Future weeks get a khaki background column behind the bar
+    if(w.isFuture || w.isCurrent){
+      bars += `<rect x="${x}" y="${PAD.t}" width="${barW}" height="${chartH}" fill="#F5EEDC"/>`;
+    }
+    bars += `<rect x="${x}" y="${PAD.t+yScale(w.pct)}" width="${barW}" height="${Math.max(1,bh)}" fill="${barColor}" rx="1"/>`;
+  });
+
+  // Month labels
+  let monthLabels = '';
+  series.forEach((w,i)=>{
+    if(i===0 || w.wStart.getMonth()!==series[i-1].wStart.getMonth()){
+      const x = PAD.l + i*(barW+barGap);
+      monthLabels += `<text x="${x}" y="${H-6}" font-size="10" fill="#94A3B8" font-family="sans-serif">${w.wStart.toLocaleDateString('en-US',{month:'short',year:'2-digit'})}</text>`;
+    }
+  });
+
+  const yLabels = [0,50,100,150,200].filter(v=>v<=maxPct);
+
+  return `
+    <div style="overflow-x:auto;">
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:900px;display:block;" xmlns="http://www.w3.org/2000/svg">
+        ${yLabels.map(v=>`<line x1="${PAD.l}" y1="${PAD.t+yScale(v)}" x2="${PAD.l+chartW}" y2="${PAD.t+yScale(v)}" stroke="#E2E8F0" stroke-width="1"/><text x="4" y="${PAD.t+yScale(v)+4}" font-size="10" fill="#94A3B8" font-family="monospace">${v}%</text>`).join('')}
+        ${bars}
+        <line x1="${PAD.l}" y1="${targetY}" x2="${PAD.l+chartW}" y2="${targetY}" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="${PAD.l+chartW-70}" y="${targetY-5}" font-size="10" fill="#EF4444" font-family="sans-serif" font-weight="700">Utilization Target</text>
+        ${monthLabels}
+      </svg>
+      <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--txt-sub);">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#3F6B6B;display:inline-block;border-radius:2px;"></span>Utilization</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#F5EEDC;border:1px solid #E2D9BE;display:inline-block;border-radius:2px;"></span>Scheduled</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:2px;background:#EF4444;display:inline-block;"></span>Target (${target}%)</span>
+      </div>
+    </div>`;
+}
+
+// 6-week schedule mini gantt (used in expanded report row and could be reused elsewhere)
+function buildSixWeekSchedule(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return '';
+  const monday = mondayOf(today);
+  const weeks = [];
+  for(let i=0;i<6;i++){ const s=new Date(monday); s.setDate(s.getDate()+i*7); const e=new Date(s); e.setDate(e.getDate()+6); weeks.push({s,e}); }
+  const rangeStartD = weeks[0].s, rangeEndD = weeks[weeks.length-1].e;
+  const totalMs = rangeEndD.getTime()+86400000 - rangeStartD.getTime();
+
+  // header segments: merge contiguous weeks with same total %
+  const segPcts = weeks.map(w=>weekUtilForRes(resId, w.s, w.e));
+  let headerHtml = '';
+  segPcts.forEach(p=>{ headerHtml += `<div class="emprep-6wk-seg">${p}%</div>`; });
+
+  // project rows
+  const allocs = allocsForRes(resId).filter(a=>{
+    const ps=parseD(a.project.start), pe=parseD(a.project.end);
+    return ps<=rangeEndD && pe>=rangeStartD;
+  });
+
+  let rowsHtml = '';
+  if(allocs.length===0){
+    rowsHtml = `<div class="emprep-6wk-projrow" style="padding-left:12px;color:var(--txt-muted);font-size:12px;font-style:italic;">No assignments in this window</div>`;
+  } else {
+    allocs.forEach(a=>{
+      const ps=parseD(a.project.start), pe=parseD(a.project.end);
+      const clampS = ps<rangeStartD?rangeStartD:ps;
+      const clampE = pe>rangeEndD?rangeEndD:pe;
+      const leftPct = (clampS.getTime()-rangeStartD.getTime())/totalMs*100;
+      const widthPct = Math.max(2,(clampE.getTime()+86400000-clampS.getTime())/totalMs*100);
+      rowsHtml += `<div class="emprep-6wk-projrow">
+        <div class="emprep-6wk-projbar" style="left:${leftPct}%;width:${widthPct}%;background:${a.project.color};" title="${a.project.name} — ${a.pct}%" onclick="openProjectEdit('${a.project.id}')">${a.project.name}</div>
+      </div>`;
+    });
+  }
+
+  const dateLabels = weeks.map(w=>`<div class="emprep-6wk-date-lbl">${fmtShort(w.s)}</div>`).join('');
+
+  return `
+    <div class="emprep-6wk-wrap">
+      <div class="emprep-6wk-header-row">${headerHtml}</div>
+      ${rowsHtml}
+      <div class="emprep-6wk-dates">${dateLabels}</div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// SKILLS MATRIX — master catalog editor (Reports > Skills Matrix)
+// ══════════════════════════════════════════
+let _skmEditCategory = null;
+
+function renderSkillsMatrixEditor(){
+  const content = document.getElementById('reportsContent');
+  const cats = skillCategoryList();
+  if(!_skmEditCategory || !cats.includes(_skmEditCategory)) _skmEditCategory = cats[0] || null;
+
+  const totalSkills = cats.reduce((s,c)=>s+(state.skillsMatrix[c]||[]).length, 0);
+
+  content.innerHTML = `
+    <div class="skm-editor-shell">
+      <div class="skm-editor-header">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--txt-main);">Skills Matrix</div>
+          <div style="font-size:12px;color:var(--txt-muted);margin-top:2px;">${cats.length} categories · ${totalSkills} skills total. Edits here update what's available to rate on every employee's profile.</div>
+        </div>
+        <button class="tb-btn tb-btn-primary" onclick="addSkillCategory()">+ Add Category</button>
+      </div>
+      <div class="skm-editor-body">
+        <div class="skm-cat-list">
+          ${cats.map(c=>`
+            <div class="skm-cat-item ${c===_skmEditCategory?'active':''}" onclick="selectSkmCategory('${c.replace(/'/g,"\\'")}')">
+              <span class="skm-cat-item-name">${c}</span>
+              <span class="skm-cat-item-count">${(state.skillsMatrix[c]||[]).length}</span>
+            </div>`).join('') || '<div style="padding:14px;color:var(--txt-muted);font-size:12px;">No categories yet.</div>'}
+        </div>
+        <div class="skm-cat-detail" id="skmCatDetail"></div>
+      </div>
+    </div>`;
+
+  renderSkmCatDetail();
+}
+
+function selectSkmCategory(cat){
+  _skmEditCategory = cat;
+  renderSkillsMatrixEditor();
+}
+
+function renderSkmCatDetail(){
+  const el = document.getElementById('skmCatDetail'); if(!el) return;
+  const cat = _skmEditCategory;
+  if(!cat){ el.innerHTML = `<div style="padding:20px;color:var(--txt-muted);font-size:12px;">Add a category to get started.</div>`; return; }
+  const skills = (state.skillsMatrix[cat]||[]).slice().sort((a,b)=>a.localeCompare(b));
+
+  el.innerHTML = `
+    <div class="skm-detail-header">
+      <div style="font-size:14px;font-weight:700;color:var(--txt-main);">${cat}</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="renameSkillCategory('${cat.replace(/'/g,"\\'")}')">Rename</button>
+        <button class="btn btn-danger" style="font-size:11px;padding:5px 10px;" onclick="deleteSkillCategory('${cat.replace(/'/g,"\\'")}')">Delete Category</button>
+      </div>
+    </div>
+    <button class="btn btn-ghost prof-add-btn" onclick="addSkillToCategory('${cat.replace(/'/g,"\\'")}')">+ Add Skill</button>
+    <div class="skm-edit-skill-list">
+      ${skills.map(s=>`
+        <div class="skm-edit-skill-row">
+          <span class="skm-edit-skill-name">${s}</span>
+          <button class="skm-edit-skill-btn" title="Rename" onclick="renameSkillInCategory('${cat.replace(/'/g,"\\'")}','${s.replace(/'/g,"\\'")}')">✎</button>
+          <button class="skm-edit-skill-btn danger" title="Delete" onclick="deleteSkillFromCategory('${cat.replace(/'/g,"\\'")}','${s.replace(/'/g,"\\'")}')">✕</button>
+        </div>`).join('') || '<div style="padding:12px;color:var(--txt-muted);font-size:12px;font-style:italic;">No skills in this category yet.</div>'}
+    </div>`;
+}
+
+function addSkillCategory(){
+  const name = prompt('New category name:'); if(!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if(state.skillsMatrix[trimmed]){ showToast('That category already exists', 'error'); return; }
+  pushUndo();
+  state.skillsMatrix[trimmed] = [];
+  save();
+  _skmEditCategory = trimmed;
+  renderSkillsMatrixEditor();
+  showToast('Category added');
+}
+function renameSkillCategory(cat){
+  const newName = prompt('Rename category:', cat); if(!newName || !newName.trim() || newName===cat) return;
+  const trimmed = newName.trim();
+  if(state.skillsMatrix[trimmed]){ showToast('A category with that name already exists', 'error'); return; }
+  pushUndo();
+  state.skillsMatrix[trimmed] = state.skillsMatrix[cat];
+  delete state.skillsMatrix[cat];
+  // Migrate any employee ratings keyed to the old category name
+  state.resources.forEach(r=>{
+    if(!r.skillRatings) return;
+    Object.keys(r.skillRatings).forEach(key=>{
+      if(key.startsWith(cat+'|||')){
+        const skillName = key.slice((cat+'|||').length);
+        r.skillRatings[skillKey(trimmed, skillName)] = r.skillRatings[key];
+        delete r.skillRatings[key];
+      }
+    });
+  });
+  save();
+  _skmEditCategory = trimmed;
+  renderSkillsMatrixEditor();
+  showToast('Category renamed');
+}
+function deleteSkillCategory(cat){
+  if(!confirm(`Delete category "${cat}" and all ${((state.skillsMatrix[cat]||[]).length)} skills in it? This also removes any employee ratings for those skills.`)) return;
+  pushUndo();
+  delete state.skillsMatrix[cat];
+  state.resources.forEach(r=>{
+    if(!r.skillRatings) return;
+    Object.keys(r.skillRatings).forEach(key=>{ if(key.startsWith(cat+'|||')) delete r.skillRatings[key]; });
+  });
+  save();
+  _skmEditCategory = null;
+  renderSkillsMatrixEditor();
+  showToast('Category deleted');
+}
+function addSkillToCategory(cat){
+  const name = prompt('New skill name:'); if(!name || !name.trim()) return;
+  const trimmed = name.trim();
+  pushUndo();
+  state.skillsMatrix[cat] = state.skillsMatrix[cat] || [];
+  if(state.skillsMatrix[cat].includes(trimmed)){ showToast('That skill already exists in this category', 'error'); return; }
+  state.skillsMatrix[cat].push(trimmed);
+  save();
+  renderSkmCatDetail();
+  renderSkillsMatrixEditor();
+  showToast('Skill added');
+}
+function renameSkillInCategory(cat, oldName){
+  const newName = prompt('Rename skill:', oldName); if(!newName || !newName.trim() || newName===oldName) return;
+  const trimmed = newName.trim();
+  pushUndo();
+  const arr = state.skillsMatrix[cat]||[];
+  const idx = arr.indexOf(oldName);
+  if(idx>=0) arr[idx] = trimmed;
+  // Migrate employee ratings for this skill
+  state.resources.forEach(r=>{
+    if(!r.skillRatings) return;
+    const oldKey = skillKey(cat, oldName);
+    if(r.skillRatings[oldKey]){
+      r.skillRatings[skillKey(cat, trimmed)] = r.skillRatings[oldKey];
+      delete r.skillRatings[oldKey];
+    }
+  });
+  save();
+  renderSkmCatDetail();
+  renderSkillsMatrixEditor();
+  showToast('Skill renamed');
+}
+function deleteSkillFromCategory(cat, name){
+  if(!confirm(`Remove "${name}" from ${cat}? Any employee ratings for it will be lost.`)) return;
+  pushUndo();
+  state.skillsMatrix[cat] = (state.skillsMatrix[cat]||[]).filter(s=>s!==name);
+  const key = skillKey(cat, name);
+  state.resources.forEach(r=>{ if(r.skillRatings && r.skillRatings[key]) delete r.skillRatings[key]; });
+  save();
+  renderSkmCatDetail();
+  renderSkillsMatrixEditor();
+  showToast('Skill removed');
+}
+
+// ══════════════════════════════════════════
+// EMPLOYEE PROFILE (full page)
+// ══════════════════════════════════════════
+let _profileResId = null;
+let _profOpenSections = new Set(); // which collapsible sections are open
+let _profSkillsPage = 1;
+
+function openEmployeeProfile(resId){
+  _profileResId = resId;
+  _profOpenSections = new Set();
+  _profSkillsPage = 1;
+  _profSkillCategory = null;
+  switchView('profile');
+  renderEmployeeProfile(resId);
+}
+
+function backToReports(){
+  switchView('reports');
+}
+
+function getTopContributions(resId, n){
+  const allocs = allocsForRes(resId);
+  const withHours = allocs.map(a=>{
+    const res = state.resources.find(r=>r.id===resId);
+    const days = daysBetween(parseD(a.project.start), parseD(a.project.end));
+    const weeksSpan = Math.max(1, days/5);
+    const hrs = Math.round(a.pct/100 * (res?res.capacity:40) * weeksSpan);
+    return { ...a, hrs };
+  });
+  return withHours.sort((a,b)=>b.hrs-a.hrs).slice(0,n);
+}
+
+function renderEmployeeProfile(resId){
+  const res = state.resources.find(r=>r.id===resId);
+  const content = document.getElementById('profileContent');
+  if(!res){ content.innerHTML='<div style="padding:40px;color:var(--txt-muted);">Employee not found.</div>'; return; }
+
+  const photoHtml = res.photo
+    ? `<img src="${res.photo}">`
+    : `<div class="profile-photo-initials" style="background:${avColor(res)}">${initials(res)}</div>`;
+
+  const tenureStr = computeTenureStr(res.hireDate);
+  const contribs = getTopContributions(resId, 4);
+
+  const contribCardsHtml = contribs.length ? contribs.map(a=>{
+    const p = a.project;
+    return `
+      <div class="profile-contrib-card">
+        <div class="profile-contrib-name" onclick="openProjectEdit('${p.id}')">${p.name}</div>
+        <div class="profile-contrib-client">${p.client||''}</div>
+        <div class="profile-contrib-meta">Team Member · ${p.start} - ${p.end}</div>
+        <div class="profile-contrib-stats">
+          <span>👥 ${allocsForProj(p.id).length}</span>
+          <span>🕐 ${a.hrs}</span>
+        </div>
+      </div>`;
+  }).join('') : `<div style="grid-column:1/-1;color:var(--txt-muted);font-size:12px;font-style:italic;">No project assignments yet.</div>`;
+
+  content.innerHTML = `
+    <div class="profile-back-link" onclick="backToReports()">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7,2 3,6 7,10"/></svg>
+      Back to Reports
+    </div>
+    <div class="profile-shell">
+      <div class="profile-left">
+        <div class="profile-photo-wrap">${photoHtml}</div>
+        <div>
+          <div class="profile-name">${res.first} ${res.last}</div>
+          <div class="profile-title">${res.title||res.role||''}</div>
+          <div class="profile-tags">${(res.tags||[]).map(t=>`<span class="profile-tag">${t}</span>`).join('')}</div>
+          <div class="profile-tenure">Tenure: ${tenureStr}</div>
+        </div>
+        <button class="profile-kudos-btn" onclick="sendKudos('${res.id}')">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 2c1.5-1.5 4 0 4 2 0 2.5-4 5.5-4 5.5s-4-3-4-5.5c0-2 2.5-3.5 4-2z"/></svg>
+          Give Kudos
+        </button>
+        <div class="profile-info-list">
+          <div class="profile-info-row">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="11" height="9" rx="1"/><path d="M1 3l5.5 4L12 3"/></svg>
+            Office: ${res.location||'—'}
+          </div>
+          <div class="profile-info-row">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="4" r="2.5"/><path d="M2 12c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/></svg>
+            Manager: <span class="profile-info-link" onclick="event.stopPropagation();">${res.manager||'—'}</span>
+          </div>
+          <div class="profile-info-row">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="11" height="9" rx="1"/><path d="M1 3l5.5 4L12 3"/></svg>
+            ${res.email?`<a href="mailto:${res.email}">${res.email}</a>`:'—'}
+          </div>
+          <div class="profile-info-row">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6l4.5-4.5L11 6"/><path d="M3.5 5v6h7V5"/></svg>
+            ${res.address||res.resourceCity||'—'}
+          </div>
+          <div class="profile-info-row" style="cursor:pointer;" onclick="messageOnTeams('${res.id}')">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="5.5"/><path d="M4 6h5M4 8.5h3"/></svg>
+            <span class="profile-info-link">Message on Teams</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-main">
+        <div class="profile-contrib-title">Top Contributions</div>
+        <div class="profile-contrib-grid">${contribCardsHtml}</div>
+
+        <div class="profile-section">
+          <div class="profile-section-header" onclick="toggleProfileSection('util')">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,1 8,5.5 3,10"/></svg>
+            Utilization
+          </div>
+          <div class="profile-section-body" id="profSection-util"></div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-header" onclick="toggleProfileSection('history')">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,1 8,5.5 3,10"/></svg>
+            Project History
+          </div>
+          <div class="profile-section-body" id="profSection-history"></div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-header" onclick="toggleProfileSection('training')">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,1 8,5.5 3,10"/></svg>
+            Training Completion
+          </div>
+          <div class="profile-section-body" id="profSection-training"></div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-header" onclick="toggleProfileSection('skills')">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,1 8,5.5 3,10"/></svg>
+            Skills
+          </div>
+          <div class="profile-section-body" id="profSection-skills"></div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-header" onclick="toggleProfileSection('certs')">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,1 8,5.5 3,10"/></svg>
+            Certifications
+          </div>
+          <div class="profile-section-body" id="profSection-certs"></div>
+        </div>
+      </div>
+    </div>`;
+
+  // Re-apply any previously-open sections (e.g. after an edit re-render)
+  _profOpenSections.forEach(id=>openProfileSectionContent(resId,id));
+}
+
+function toggleProfileSection(id){
+  const header = event.currentTarget;
+  const body = document.getElementById('profSection-'+id);
+  const isOpen = _profOpenSections.has(id);
+  if(isOpen){
+    _profOpenSections.delete(id);
+    body.classList.remove('open');
+    header.classList.remove('open');
+  } else {
+    _profOpenSections.add(id);
+    header.classList.add('open');
+    body.classList.add('open');
+    openProfileSectionContent(_profileResId, id);
+  }
+}
+
+function openProfileSectionContent(resId, id){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const body = document.getElementById('profSection-'+id);
+  if(!body) return;
+  body.classList.add('open');
+  const header = body.previousElementSibling;
+  if(header) header.classList.add('open');
+
+  if(id==='util'){
+    const stats = computeUtilStats(resId);
+    body.innerHTML = `
+      ${buildBigUtilBarChart(resId)}
+      <div class="emprep-stat-grid">
+        <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.lastWeek}%</div><div class="emprep-stat-lbl">Last Week</div></div>
+        <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.last6Avg}%</div><div class="emprep-stat-lbl">Last 6 Weeks</div></div>
+        <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.lastYearAvg}%</div><div class="emprep-stat-lbl">Last Year</div></div>
+        <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.ytdAvg}%</div><div class="emprep-stat-lbl">YTD</div></div>
+      </div>`;
+  }
+  else if(id==='history'){
+    const allocs = allocsForRes(resId).sort((a,b)=>parseD(b.project.start)-parseD(a.project.start));
+    let rows = allocs.map(a=>{
+      const p=a.project;
+      const now=new Date(); now.setHours(0,0,0,0);
+      const ps=parseD(p.start), pe=parseD(p.end);
+      const stat = pe<now?'Complete':(ps>now?'Upcoming':'Active');
+      return `<tr><td>${p.name}</td><td>${p.client||'—'}</td><td>${a.pct}%</td><td>${p.start}</td><td>${p.end}</td><td>${stat}</td></tr>`;
+    }).join('');
+    if(!rows) rows = `<tr class="prof-empty-row"><td colspan="6">No project history yet.</td></tr>`;
+    body.innerHTML = `<table class="prof-table"><thead><tr><th>Project</th><th>Client</th><th>Allocation</th><th>Start</th><th>End</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  else if(id==='training'){
+    renderProfTrainingTable(resId);
+  }
+  else if(id==='skills'){
+    renderProfSkillsTable(resId);
+  }
+  else if(id==='certs'){
+    renderProfCertsTable(resId);
+  }
+}
+
+function renderProfTrainingTable(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const body = document.getElementById('profSection-training'); if(!body) return;
+  const trainings = res.trainings||[];
+  let rows = trainings.map(t=>`
+    <tr>
+      <td>${t.name}</td>
+      <td>${t.overdue?'<span class="prof-overdue-badge">⚠ Overdue</span>':(t.progress+'%')}</td>
+      <td>${t.lastActivity||'—'}</td>
+    </tr>`).join('');
+  if(!rows) rows = `<tr class="prof-empty-row"><td colspan="3">No training records yet.</td></tr>`;
+  body.innerHTML = `
+    <button class="btn btn-ghost prof-add-btn" onclick="addTrainingItem('${resId}')">+ Add Training</button>
+    <table class="prof-table"><thead><tr><th>Name</th><th>Progress</th><th>Last Activity</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ── Employee Skills Matrix viewer (category dropdown + Prev/Next, per-skill rating/certified/notes) ──
+let _profSkillCategory = null; // currently viewed category for the open profile
+
+function skillCategoryList(){ return Object.keys(state.skillsMatrix||{}); }
+
+function renderProfSkillsTable(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const body = document.getElementById('profSection-skills'); if(!body) return;
+  const cats = skillCategoryList();
+  if(!cats.length){ body.innerHTML = `<div style="padding:12px;color:var(--txt-muted);font-size:12px;">No skills matrix categories defined yet. Add some in Reports → Skills Matrix.</div>`; return; }
+  if(!_profSkillCategory || !cats.includes(_profSkillCategory)) _profSkillCategory = cats[0];
+
+  const ratings = res.skillRatings || {};
+  const allEntries = [];
+  Object.entries(ratings).forEach(([key,val])=>{
+    if(val && (val.rating>0 || val.certified)) allEntries.push(val);
+  });
+  const totalRated = allEntries.length;
+  const totalCertified = allEntries.filter(v=>v.certified).length;
+  const meta = res.skillsMeta || {};
+
+  body.innerHTML = `
+    <div style="font-size:12px;color:var(--txt-sub);margin-bottom:4px;"><strong>Recent skills submission:</strong> ${meta.recentSubmission||'None'}</div>
+    <div style="font-size:12px;color:var(--txt-sub);margin-bottom:4px;"><strong>Last approval date:</strong> ${meta.lastApproval||'—'}</div>
+    <div style="font-size:12px;color:var(--txt-sub);margin-bottom:12px;"><strong>Approved by:</strong> ${meta.approvedBy||'—'}</div>
+    <div style="font-size:12px;color:var(--txt-sub);margin-bottom:14px;">Total <strong>${totalRated}</strong> skill${totalRated!==1?'s':''} rated, <strong>${totalCertified}</strong> certified (out of ${cats.reduce((s,c)=>s+(state.skillsMatrix[c]||[]).length,0)} in the matrix)</div>
+    <div class="skm-cat-nav">
+      <label style="font-size:12px;color:var(--txt-sub);">Category:</label>
+      <select class="skm-cat-select" id="profSkillCatSelect-${resId}" onchange="setProfSkillCategory('${resId}', this.value)">
+        ${cats.map(c=>`<option value="${c.replace(/"/g,'&quot;')}" ${c===_profSkillCategory?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="stepProfSkillCategory('${resId}',-1)">‹ Prev</button>
+      <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="stepProfSkillCategory('${resId}',1)">Next ›</button>
+    </div>
+    <div id="profSkillCatBody-${resId}"></div>`;
+
+  renderProfSkillCategoryBody(resId);
+}
+
+function setProfSkillCategory(resId, cat){
+  _profSkillCategory = cat;
+  renderProfSkillCategoryBody(resId);
+}
+function stepProfSkillCategory(resId, dir){
+  const cats = skillCategoryList();
+  let idx = cats.indexOf(_profSkillCategory);
+  idx = (idx + dir + cats.length) % cats.length;
+  _profSkillCategory = cats[idx];
+  const sel = document.getElementById('profSkillCatSelect-'+resId);
+  if(sel) sel.value = _profSkillCategory;
+  renderProfSkillCategoryBody(resId);
+}
+
+function renderProfSkillCategoryBody(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const el = document.getElementById('profSkillCatBody-'+resId); if(!el) return;
+  const cat = _profSkillCategory;
+  const skillNames = (state.skillsMatrix[cat]||[]).slice().sort((a,b)=>a.localeCompare(b));
+  res.skillRatings = res.skillRatings || {};
+
+  el.innerHTML = `
+    <div class="skm-cat-title">${cat}</div>
+    <div class="skm-skill-list">
+      ${skillNames.map(name=>{
+        const key = skillKey(cat, name);
+        const val = res.skillRatings[key] || { rating:0, certified:false, notes:'' };
+        const stars = [1,2,3].map(n=>`<span class="skm-star ${n<=val.rating?'filled':''}" onclick="setSkillRating('${resId}','${cat.replace(/'/g,"\\'")}','${name.replace(/'/g,"\\'")}',${n})">★</span>`).join('');
+        return `
+        <div class="skm-skill-row">
+          <span class="skm-skill-name" title="${name}">${name}</span>
+          <button class="skm-clear-btn ${val.rating===0?'zero':''}" title="Clear rating" onclick="setSkillRating('${resId}','${cat.replace(/'/g,"\\'")}','${name.replace(/'/g,"\\'")}',0)">−</button>
+          <span class="skm-stars">${stars}</span>
+          <label class="skm-cert-check">
+            <input type="checkbox" ${val.certified?'checked':''} onchange="toggleSkillCertified('${resId}','${cat.replace(/'/g,"\\'")}','${name.replace(/'/g,"\\'")}',this.checked)">
+            Certified
+          </label>
+          <button class="btn btn-ghost skm-notes-btn" onclick="editSkillNotes('${resId}','${cat.replace(/'/g,"\\'")}','${name.replace(/'/g,"\\'")}')">✎ Notes${val.notes?' •':''}</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function setSkillRating(resId, cat, name, rating){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const key = skillKey(cat, name);
+  pushUndo();
+  res.skillRatings = res.skillRatings || {};
+  const existing = res.skillRatings[key] || { rating:0, certified:false, notes:'' };
+  // Clicking the same star value again clears it (toggle behavior)
+  existing.rating = (existing.rating === rating) ? 0 : rating;
+  res.skillRatings[key] = existing;
+  save();
+  renderProfSkillCategoryBody(resId);
+}
+function toggleSkillCertified(resId, cat, name, checked){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const key = skillKey(cat, name);
+  pushUndo();
+  res.skillRatings = res.skillRatings || {};
+  const existing = res.skillRatings[key] || { rating:0, certified:false, notes:'' };
+  existing.certified = checked;
+  res.skillRatings[key] = existing;
+  save();
+}
+function editSkillNotes(resId, cat, name){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const key = skillKey(cat, name);
+  const existing = res.skillRatings[key] || { rating:0, certified:false, notes:'' };
+  const note = prompt(`Notes for "${name}":`, existing.notes||'');
+  if(note===null) return;
+  pushUndo();
+  res.skillRatings = res.skillRatings || {};
+  existing.notes = note;
+  res.skillRatings[key] = existing;
+  save();
+  renderProfSkillCategoryBody(resId);
+}
+
+function renderProfCertsTable(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const body = document.getElementById('profSection-certs'); if(!body) return;
+  const certs = res.certifications||[];
+  let rows = certs.map(c=>`
+    <tr>
+      <td>${c.name}</td>
+      <td>${c.certId||'—'}</td>
+      <td>${c.obtained||'—'}</td>
+      <td>${c.lastRenewal||'—'}</td>
+      <td>${c.validity||'—'}</td>
+      <td>${c.expDate||'—'}</td>
+      <td>${c.discipline||'—'}</td>
+      <td>${c.authState||'—'}</td>
+      <td>${c.links?`<a href="${c.links}" target="_blank">Link</a>`:'—'}</td>
+    </tr>`).join('');
+  if(!rows) rows = `<tr class="prof-empty-row"><td colspan="9">No certifications on file.</td></tr>`;
+  body.innerHTML = `
+    <button class="btn btn-ghost prof-add-btn" onclick="addCertItem('${resId}')">+ Add Certification</button>
+    <div style="overflow-x:auto;">
+    <table class="prof-table"><thead><tr><th>Certification</th><th>Certification ID</th><th>Obtained</th><th>Last renewal</th><th>Validity</th><th>Expiration date</th><th>Discipline</th><th>Authorized State</th><th>Links</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+}
+
+function addTrainingItem(resId){
+  const name = prompt('Training name:'); if(!name) return;
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  pushUndo();
+  res.trainings = res.trainings||[];
+  res.trainings.push({ name, progress:0, lastActivity:'—', overdue:false });
+  save();
+  renderProfTrainingTable(resId);
+  renderEmployeeReportsTable();
+  showToast('Training added');
+}
+function addCertItem(resId){
+  const name = prompt('Certification name:'); if(!name) return;
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  pushUndo();
+  res.certifications = res.certifications||[];
+  res.certifications.push({ name, authState:'', certId:'', obtained:'', lastRenewal:'', validity:'', expDate:'', discipline:'', links:'' });
+  save();
+  renderProfCertsTable(resId);
+  showToast('Certification added');
+}
+
+function sendKudos(resId){
+  const res = state.resources.find(r=>r.id===resId);
+  showToast(`Kudos sent to ${res?res.first:'employee'}! 🎉`, 'success');
+}
+function messageOnTeams(resId){
+  const res = state.resources.find(r=>r.id===resId);
+  if(res && res.email){ window.location.href = 'mailto:'+res.email; }
+  else showToast('No email on file for this person');
+}
+
+// ══════════════════════════════════════════
 // SCROLL SYNC
 // ══════════════════════════════════════════
 const ppb=document.getElementById('personPanelBody');
@@ -4755,6 +5946,8 @@ function render(){
   else if(currentView==='projgantt') renderProjGantt();
   else if(currentView==='dashboard') renderDashboard();
   else if(currentView==='portfolio') renderPortfolio();
+  else if(currentView==='reports') renderReportsView();
+  else if(currentView==='profile' && _profileResId) renderEmployeeProfile(_profileResId);
   renderSidebar();
   renderSummary();
 }
