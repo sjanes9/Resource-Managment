@@ -801,7 +801,6 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 .pf-col-type   { width: 120px; }
 .pf-col-date   { width: 100px; }
 .pf-col-owner  { width: 130px; }
-.pf-col-mgr    { width: 130px; }
 .pf-col-res    { width: 90px; }
 
 .pf-tr { border-bottom: 1px solid var(--border); transition: background .1s; cursor: pointer; }
@@ -1461,7 +1460,6 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
               <th class="pf-th pf-col-date" onclick="pfSort('start')">Starts At <span class="pf-sort-icon" id="pfSort-start">↕</span></th>
               <th class="pf-th pf-col-date" onclick="pfSort('end')">Ends At <span class="pf-sort-icon" id="pfSort-end">↕</span></th>
               <th class="pf-th pf-col-owner" onclick="pfSort('owner')">Project Owner <span class="pf-sort-icon" id="pfSort-owner">↕</span></th>
-              <th class="pf-th pf-col-mgr" onclick="pfSort('manager')">Project Manager <span class="pf-sort-icon" id="pfSort-manager">↕</span></th>
               <th class="pf-th pf-col-res">Resources</th>
             </tr>
           </thead>
@@ -1575,10 +1573,6 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
             <label class="proj-field-label">Project Owner</label>
             <input class="proj-field-input" id="projOwner" placeholder="Project owner name" list="projOwnerList">
             <datalist id="projOwnerList"></datalist>
-          </div>
-          <div class="proj-field-group">
-            <label class="proj-field-label">Project Manager</label>
-            <input class="proj-field-input" id="projManager" placeholder="Project manager name">
           </div>
           <div class="proj-field-group">
             <label class="proj-field-label">Schedule Type</label>
@@ -2231,16 +2225,7 @@ function renderSchedule(){
     nameRow.oncontextmenu = (e) => { e.preventDefault(); showCtx(e,'resource',res.id); };
     ppGroup.appendChild(nameRow);
 
-    // sub-rows in person panel
-    if(expanded){
-      allocs.forEach(a=>{
-        const pr = document.createElement('div'); pr.className='pr-proj-row';
-        pr.innerHTML = `<span class="pr-proj-dot" style="background:${a.project.color}"></span><span class="pr-proj-name">${a.project.name}</span>`;
-        ppGroup.appendChild(pr);
-      });
-      const av = document.createElement('div'); av.className='pr-avail-row'; av.textContent='Available:';
-      ppGroup.appendChild(av);
-    }
+    // Sub-rows and available row are appended below inside the expanded/collapsed branches
     ppBody.appendChild(ppGroup);
 
     // ── timeline: group ──
@@ -2442,87 +2427,105 @@ function renderSchedule(){
     const resTarget = res.target ?? 100;
 
     if(expanded){
-      // ── EXPANDED: name row, then one timeline row per alloc, then available row ──
+      // ── EXPANDED: name row, then LANE-PACKED bars, then available row ──
+      // Sort allocs by end date descending so furthest-future project gets the top lane (lane 0)
+      const sortedAllocs = [...allocs].sort((a,b) =>
+        parseD(b.project.end).getTime() - parseD(a.project.end).getTime()
+      );
+
+      // Lane packing: assign each alloc to the first lane where it doesn't overlap any existing bar
+      // Two projects overlap if their date ranges intersect
+      const lanes = []; // lanes[i] = array of allocs in that lane
+      sortedAllocs.forEach(a => {
+        const aS = parseD(a.project.start).getTime();
+        const aE = parseD(a.project.end).getTime();
+        let placed = false;
+        for (let li = 0; li < lanes.length; li++) {
+          const conflicts = lanes[li].some(existing => {
+            const eS = parseD(existing.project.start).getTime();
+            const eE = parseD(existing.project.end).getTime();
+            // Overlap: midpoint-based — they overlap if start of one < end of other (strict)
+            return aS < eE && aE > eS;
+          });
+          if (!conflicts) { lanes[li].push(a); placed = true; break; }
+        }
+        if (!placed) lanes.push([a]);
+      });
+
+      const OVER_BAR_H = 18;
+      const LANE_H = SUB_ROW_H + OVER_BAR_H;
+
+      // Name row (empty timeline row, click to assign)
       const nameRowTl = makeTlRow(NAME_ROW_H);
-      // Right-click on the empty name row area = new assignment
       nameRowTl.oncontextmenu = e => { e.preventDefault(); showCtx(e,'timeline-cell',{resId:res.id}); };
       tlGroup.appendChild(nameRowTl);
 
-      // Track running pct per column so we can show the over-target bar
-      // at the right time (when cumulative exceeds target)
-      allocs.forEach((a, ai) => {
-        // Height: if over-target bar is needed, add room above
-        const OVER_BAR_H = 18;
-        const rowH = SUB_ROW_H + OVER_BAR_H; // always reserve space; hide bar if not over
-        const subRow = makeTlRow(rowH);
+      // One timeline row per lane (not per alloc)
+      lanes.forEach((laneAllocs, laneIdx) => {
+        const laneRow = makeTlRow(LANE_H);
+        laneRow.oncontextmenu = e => { e.preventDefault(); showCtx(e,'timeline-cell',{resId:res.id}); };
 
-        // Project bar sits in the bottom SUB_ROW_H portion
-        addBar(subRow, a, OVER_BAR_H + 3, SUB_ROW_H - 6);
+        laneAllocs.forEach(a => {
+          // Draw the project bar
+          addBar(laneRow, a, OVER_BAR_H + 3, SUB_ROW_H - 6);
 
-        // ── Over-target red bar: check per column whether concurrent allocs exceed target ──
-        // Use strict non-overlapping: project active during col if start <= col.end AND end >= col.start
-        // BUT treat end date as inclusive-only-if-start-differs-from-next-project's-start
-        // i.e. two projects with one ending Jul 13 and another starting Jul 14 do NOT share a column
-        const p2 = a.project;
-        const p2StartMs = parseD(p2.start).getTime();
-        const p2EndMs   = parseD(p2.end).getTime();
+          // Over-target red bar — same column-segment logic as before
+          const p2 = a.project;
+          const p2StartMs = parseD(p2.start).getTime();
+          const p2EndMs   = parseD(p2.end).getTime();
 
-        const colSegments = [];
-        cols.forEach((col, ci) => {
-          const colStartMs = col.start.getTime();
-          const colEndMs   = col.end.getTime();
-
-          // This project must be active during this column
-          if (p2StartMs > colEndMs || p2EndMs < colStartMs) return;
-
-          // Sum all allocs active during this column
-          // A project is active in a column if its [start, end] overlaps [col.start, col.end]
-          // We use colStartMs+1 and colEndMs-1 as the test midpoint to avoid touching adjacent days
-          const colMidMs = Math.floor((colStartMs + colEndMs) / 2);
-          let colTotalPct = 0;
-          allocs.forEach(other => {
-            const oSms = parseD(other.project.start).getTime();
-            const oEms = parseD(other.project.end).getTime();
-            // Active if project's date range contains the column midpoint
-            // Using midpoint avoids edge cases where end of one = start of another
-            if (oSms <= colMidMs && oEms >= colMidMs) colTotalPct += other.pct;
+          const colSegments = [];
+          cols.forEach((col, ci) => {
+            const colStartMs = col.start.getTime();
+            const colEndMs   = col.end.getTime();
+            if (p2StartMs > colEndMs || p2EndMs < colStartMs) return;
+            const colMidMs = Math.floor((colStartMs + colEndMs) / 2);
+            let colTotalPct = 0;
+            allocs.forEach(other => {
+              const oSms = parseD(other.project.start).getTime();
+              const oEms = parseD(other.project.end).getTime();
+              if (oSms <= colMidMs && oEms >= colMidMs) colTotalPct += other.pct;
+            });
+            if (colTotalPct > resTarget) {
+              const prev = colSegments[colSegments.length-1];
+              if (prev && prev.endCi === ci-1 && prev.pct === colTotalPct) prev.endCi = ci;
+              else colSegments.push({ startCi: ci, endCi: ci, pct: colTotalPct });
+            }
           });
 
-          if (colTotalPct > resTarget) {
-            const prev = colSegments[colSegments.length-1];
-            if (prev && prev.endCi === ci-1 && prev.pct === colTotalPct) {
-              prev.endCi = ci;
-            } else {
-              colSegments.push({ startCi: ci, endCi: ci, pct: colTotalPct });
-            }
-          }
+          colSegments.forEach(seg => {
+            const sx2 = seg.startCi * COL_W;
+            const ex2 = (seg.endCi + 1) * COL_W;
+            const vSx = Math.max(0, sx2), vEx = Math.min(TW, ex2);
+            if (vEx <= vSx) return;
+            const redBar = document.createElement('div');
+            redBar.style.cssText = `position:absolute;left:${vSx}px;width:${vEx-vSx}px;top:1px;height:${OVER_BAR_H-2}px;background:#EF4444;border-radius:3px 3px 0 0;display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none;`;
+            const lbl = document.createElement('span');
+            lbl.textContent = seg.pct + '%';
+            lbl.style.cssText = 'font-size:10px;font-weight:700;color:#fff;font-family:var(--mono);';
+            redBar.appendChild(lbl);
+            laneRow.appendChild(redBar);
+          });
         });
 
-        // Draw red bar for each contiguous over-target segment
-        colSegments.forEach(seg => {
-          const sx2 = seg.startCi * COL_W;
-          const ex2 = (seg.endCi + 1) * COL_W;
-          const visibleSx = Math.max(0, sx2);
-          const visibleEx = Math.min(TW, ex2);
-          if (visibleEx <= visibleSx) return;
+        tlGroup.appendChild(laneRow);
+      });
 
-          const redBar = document.createElement('div');
-          redBar.style.cssText = `
-            position:absolute;
-            left:${visibleSx}px;width:${visibleEx-visibleSx}px;
-            top:1px;height:${OVER_BAR_H-2}px;
-            background:#EF4444;border-radius:3px 3px 0 0;
-            display:flex;align-items:center;justify-content:center;
-            z-index:3;pointer-events:none;
-          `;
-          const lbl = document.createElement('span');
-          lbl.textContent = seg.pct + '%';
-          lbl.style.cssText = `font-size:10px;font-weight:700;color:#fff;font-family:var(--mono);`;
-          redBar.appendChild(lbl);
-          subRow.appendChild(redBar);
+      // Match the person panel sub-rows to lanes (not allocs)
+      // Clear existing sub-rows in ppGroup and rebuild
+      // The panel already has the nameRow appended; we need to add one row per lane
+      // Lane sub-rows show all allocs in that lane as stacked labels
+      lanes.forEach(laneAllocs => {
+        const laneEl = document.createElement('div');
+        laneEl.style.cssText = `height:${LANE_H}px;min-height:${LANE_H}px;max-height:${LANE_H}px;border-top:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;gap:2px;padding:4px 14px 4px 40px;box-sizing:border-box;overflow:hidden;`;
+        laneAllocs.forEach(a => {
+          const row = document.createElement('div');
+          row.className = 'pr-proj-row';
+          row.style.cssText = 'height:auto;padding:0;border:none;';
+          row.innerHTML = `<span class="pr-proj-dot" style="background:${a.project.color}"></span><span class="pr-proj-name">${a.project.name}</span>`;
+          laneEl.appendChild(row);
         });
-
-        tlGroup.appendChild(subRow);
+        ppGroup.appendChild(laneEl);
       });
 
       // ── Available row: shows "Available: Xh/d" per-week and is clickable to assign ──
@@ -2875,10 +2878,14 @@ function showBarPopover(ev, p, a, res) {
       </div>
       <div class="pop-field">
         <span class="pop-field-label">Allocation</span>
-        <span class="pop-field-val" style="color:var(--blue);font-weight:600;">${a.pct}% · ${hpdStr2} for ${projDays} work days</span>
+        <span class="pop-field-val" style="display:flex;align-items:center;gap:6px;">
+          <span id="popAllocDisplay" style="color:var(--blue);font-weight:600;cursor:pointer;border-bottom:1px dashed var(--blue);" 
+            title="Click to edit" onclick="startPopAllocEdit('${a.id}','${res.id}',${a.pct},${res.capacity})">
+            ${a.pct}% · ${hpdStr2} for ${projDays} work days
+          </span>
+        </span>
       </div>
       ${p.owner?`<div class="pop-field"><span class="pop-field-label">Project Owner</span><span class="pop-field-val">${p.owner}</span></div>`:''}
-      ${p.manager?`<div class="pop-field"><span class="pop-field-label">Project Manager</span><span class="pop-field-val">${p.manager}</span></div>`:''}
     </div>
     <div class="pop-actions" style="justify-content:space-between;">
       <button class="btn btn-danger" style="font-size:11px;padding:5px 10px;" onclick="deleteAllocation('${a.id}')">
@@ -2915,6 +2922,82 @@ function showBarPopover(ev, p, a, res) {
 }
 function closeBarPopover() {
   if (_popoverEl) { _popoverEl.remove(); _popoverEl = null; }
+}
+
+// ── Inline allocation editor inside the popover ──
+function startPopAllocEdit(allocId, resId, currentPct, capacity) {
+  const display = document.getElementById('popAllocDisplay');
+  if (!display) return;
+  const res = state.resources.find(r=>r.id===resId);
+  if (!res) return;
+
+  // Replace the display span with an inline editor
+  const editor = document.createElement('div');
+  editor.style.cssText = 'display:flex;align-items:center;gap:6px;flex-wrap:wrap;';
+  editor.innerHTML = `
+    <label style="font-size:11px;color:var(--txt-sub);">%</label>
+    <input id="popAllocPct" type="number" min="1" max="200" value="${currentPct}"
+      style="width:54px;padding:3px 6px;border:1px solid var(--blue);border-radius:4px;font-size:12px;text-align:center;font-family:var(--sans);outline:none;">
+    <span style="font-size:11px;color:var(--txt-muted);">or</span>
+    <label style="font-size:11px;color:var(--txt-sub);">h/d</label>
+    <input id="popAllocHpd" type="number" min="0.5" max="24" step="0.5"
+      value="${(currentPct/100*capacity/5).toFixed(1)}"
+      style="width:54px;padding:3px 6px;border:1px solid var(--blue);border-radius:4px;font-size:12px;text-align:center;font-family:var(--sans);outline:none;">
+    <button onclick="commitPopAllocEdit('${allocId}','${resId}',${capacity})"
+      style="padding:3px 10px;background:var(--blue);color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--sans);cursor:pointer;">
+      Save
+    </button>
+    <button onclick="cancelPopAllocEdit('${allocId}','${resId}',${currentPct},${capacity})"
+      style="padding:3px 8px;border:1px solid var(--border);background:none;border-radius:4px;font-size:11px;font-family:var(--sans);cursor:pointer;color:var(--txt-sub);">
+      ✕
+    </button>`;
+  display.replaceWith(editor);
+
+  const pctInput = document.getElementById('popAllocPct');
+  const hpdInput = document.getElementById('popAllocHpd');
+
+  // Keep pct and h/d in sync as user types
+  pctInput.addEventListener('input', () => {
+    const pct = parseFloat(pctInput.value)||0;
+    hpdInput.value = (pct/100*capacity/5).toFixed(1);
+  });
+  hpdInput.addEventListener('input', () => {
+    const hpd = parseFloat(hpdInput.value)||0;
+    pctInput.value = Math.round(hpd*5/capacity*100);
+  });
+
+  pctInput.focus(); pctInput.select();
+  pctInput.addEventListener('keydown', e => { if(e.key==='Enter') commitPopAllocEdit(allocId, resId, capacity); });
+  hpdInput.addEventListener('keydown', e => { if(e.key==='Enter') commitPopAllocEdit(allocId, resId, capacity); });
+}
+
+function commitPopAllocEdit(allocId, resId, capacity) {
+  const pct = parseInt(document.getElementById('popAllocPct')?.value)||0;
+  if (pct < 1 || pct > 200) { showToast('Enter a value between 1 and 200%', 'error'); return; }
+  pushUndo();
+  const idx = state.allocations.findIndex(a=>a.id===allocId);
+  if (idx>=0) state.allocations[idx].pct = pct;
+  save();
+  closeBarPopover();
+  render();
+  showToast(`Allocation updated to ${pct}%`, 'success');
+}
+
+function cancelPopAllocEdit(allocId, resId, currentPct, capacity) {
+  // Restore the display
+  const editor = document.querySelector('#popAllocDisplay')?.parentElement?.querySelector('div');
+  if (!editor) { closeBarPopover(); return; }
+  const res = state.resources.find(r=>r.id===resId);
+  const hpd = (currentPct/100*capacity/5);
+  const hpdStr = (hpd%1===0?hpd.toFixed(0):hpd.toFixed(1))+'h/d';
+  const projDays = 0; // we don't have it here so just show pct
+  const span = document.createElement('span');
+  span.id = 'popAllocDisplay';
+  span.style.cssText = 'color:var(--blue);font-weight:600;cursor:pointer;border-bottom:1px dashed var(--blue);';
+  span.title = 'Click to edit';
+  span.textContent = `${currentPct}% · ${hpdStr}`;
+  span.onclick = () => startPopAllocEdit(allocId, resId, currentPct, capacity);
+  editor.replaceWith(span);
 }
 
 
@@ -3420,7 +3503,6 @@ function openProjectModal(){
   document.getElementById('projScheduleType').value='Scheduled - Onsite';
   document.getElementById('projClient').value='';
   document.getElementById('projOwner').value='';
-  document.getElementById('projManager').value='';
   document.getElementById('projDesc').value='';
   document.getElementById('projCode').value='';
   document.getElementById('projProgram').value='';
@@ -3451,7 +3533,6 @@ function openProjectEdit(id){
   document.getElementById('projScheduleType').value=p.scheduleType||'Scheduled - Onsite';
   document.getElementById('projClient').value=p.client||'';
   document.getElementById('projOwner').value=p.owner||'';
-  document.getElementById('projManager').value=p.manager||'';
   document.getElementById('projDesc').value=p.desc||'';
   document.getElementById('projCode').value=p.code||'';
   document.getElementById('projProgram').value=p.program||'';
@@ -3485,7 +3566,6 @@ function saveProject(){
     scheduleType:document.getElementById('projScheduleType').value,
     client:  document.getElementById('projClient').value,
     owner:   document.getElementById('projOwner').value,
-    manager: document.getElementById('projManager').value,
     desc:    document.getElementById('projDesc').value,
     code:    document.getElementById('projCode').value,
     program: document.getElementById('projProgram').value,
@@ -4024,7 +4104,6 @@ function renderPortfolio(){
       <td class="pf-td pf-date-txt">${fmtDate(p.start)}</td>
       <td class="pf-td pf-date-txt">${fmtDate(p.end)}</td>
       <td class="pf-td pf-owner-txt">${p.owner||'<span class="pf-none">[none]</span>'}</td>
-      <td class="pf-td pf-owner-txt">${p.manager||'<span class="pf-none">[none]</span>'}</td>
       <td class="pf-td">
         <div class="pf-res-avatars">${avatarHtml || '<span class="pf-none" style="font-size:11px;">—</span>'}</div>
       </td>`;
