@@ -1025,6 +1025,12 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 /* sections */
 .proj-section { margin-bottom: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
 .proj-section-title { font-size: 14px; font-weight: 700; color: var(--txt-main); margin-bottom: 5px; }
+.proj-coming-soon-badge {
+  display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 10px;
+  background: var(--amber-lt, #FEF3C7); color: #92400E;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  vertical-align: middle;
+}
 .proj-section-desc { font-size: 12px; color: var(--txt-sub); line-height: 1.5; margin-bottom: 10px; }
 .proj-radio-group { display: flex; flex-direction: column; gap: 7px; }
 .proj-radio-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--txt-main); cursor: pointer; }
@@ -1923,40 +1929,40 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
 
         <!-- Time Budget -->
         <div class="proj-section">
-          <div class="proj-section-title">Time Budget</div>
+          <div class="proj-section-title">Time Budget <span class="proj-coming-soon-badge">Coming soon</span></div>
           <div class="proj-section-desc">The time budget is the allocated labor for this project expressed in days or hours. The hours worked by team members weigh against this budget.</div>
           <div class="proj-radio-group">
-            <label class="proj-radio-label"><input type="radio" name="timeBudget" value="none" checked> Do not specify a time budget for this project</label>
-            <label class="proj-radio-label"><input type="radio" name="timeBudget" value="project"> Specify one time budget for the entire project</label>
-            <label class="proj-radio-label"><input type="radio" name="timeBudget" value="phase"> Specify a time budget for each phase</label>
+            <label class="proj-radio-label"><input type="radio" name="timeBudget" value="none" checked disabled> Do not specify a time budget for this project</label>
+            <label class="proj-radio-label"><input type="radio" name="timeBudget" value="project" disabled> Specify one time budget for the entire project</label>
+            <label class="proj-radio-label"><input type="radio" name="timeBudget" value="phase" disabled> Specify a time budget for each phase</label>
           </div>
         </div>
 
         <!-- Fee Budget -->
         <div class="proj-section">
-          <div class="proj-section-title">Fee Budget (Amounts)</div>
+          <div class="proj-section-title">Fee Budget (Amounts) <span class="proj-coming-soon-badge">Coming soon</span></div>
           <div class="proj-section-desc">The fee budget is the allocated labor for this project expressed in a currency amount. The hours worked by team members, taking their bill rates into account, weigh against this budget.</div>
           <div class="proj-radio-group">
-            <label class="proj-radio-label"><input type="radio" name="feeBudget" value="none" checked> Do not specify a fee budget for this project</label>
-            <label class="proj-radio-label"><input type="radio" name="feeBudget" value="project"> Specify one fee budget for the entire project</label>
-            <label class="proj-radio-label"><input type="radio" name="feeBudget" value="phase"> Specify a fee budget for each phase</label>
+            <label class="proj-radio-label"><input type="radio" name="feeBudget" value="none" checked disabled> Do not specify a fee budget for this project</label>
+            <label class="proj-radio-label"><input type="radio" name="feeBudget" value="project" disabled> Specify one fee budget for the entire project</label>
+            <label class="proj-radio-label"><input type="radio" name="feeBudget" value="phase" disabled> Specify a fee budget for each phase</label>
           </div>
         </div>
 
         <!-- Expense Budget -->
         <div class="proj-section">
-          <div class="proj-section-title">Expense Budget</div>
+          <div class="proj-section-title">Expense Budget <span class="proj-coming-soon-badge">Coming soon</span></div>
           <div class="proj-section-desc">This is the non-labor related budget for this project.</div>
           <div class="proj-radio-group">
-            <label class="proj-radio-label"><input type="radio" name="expBudget" value="none" checked> Do not specify a expense budget for this project</label>
-            <label class="proj-radio-label"><input type="radio" name="expBudget" value="project"> Specify one expense budget for the entire project</label>
-            <label class="proj-radio-label"><input type="radio" name="expBudget" value="phase"> Specify an expense budget for each phase</label>
+            <label class="proj-radio-label"><input type="radio" name="expBudget" value="none" checked disabled> Do not specify a expense budget for this project</label>
+            <label class="proj-radio-label"><input type="radio" name="expBudget" value="project" disabled> Specify one expense budget for the entire project</label>
+            <label class="proj-radio-label"><input type="radio" name="expBudget" value="phase" disabled> Specify an expense budget for each phase</label>
           </div>
         </div>
 
         <!-- Bill Rates -->
         <div class="proj-section">
-          <div class="proj-section-title">Bill Rates</div>
+          <div class="proj-section-title">Bill Rates <span class="proj-coming-soon-badge">Coming soon</span></div>
           <div class="proj-section-desc">Add rate for specific roles or disciplines. Bill rates are per hour.</div>
           <div style="overflow-x:auto;">
             <table class="proj-rates-table" id="projRatesTable">
@@ -1967,34 +1973,34 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
                   <th>Engineer 1</th>
                   <th>Engineer 2</th>
                   <th>Engineer 3</th>
-                  <th><button class="proj-add-link" onclick="addBillRateRole()">+ Add a Role</button></th>
+                  <th><button class="proj-add-link" onclick="addBillRateRole()" disabled>+ Add a Role</button></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td class="proj-rate-row-label">Default</td>
-                  <td><input class="proj-rate-input" type="text" value="$100"></td>
-                  <td><input class="proj-rate-input" type="text" value="$110"></td>
-                  <td><input class="proj-rate-input" type="text" value="$120"></td>
-                  <td><input class="proj-rate-input" type="text" value="$130"></td>
+                  <td><input class="proj-rate-input" type="text" value="$100" disabled></td>
+                  <td><input class="proj-rate-input" type="text" value="$110" disabled></td>
+                  <td><input class="proj-rate-input" type="text" value="$120" disabled></td>
+                  <td><input class="proj-rate-input" type="text" value="$130" disabled></td>
                   <td></td>
                 </tr>
               </tbody>
             </table>
-            <button class="proj-add-link" style="margin-top:6px;" onclick="addBillRateDiscipline()">+ Add a Discipline</button>
+            <button class="proj-add-link" style="margin-top:6px;" onclick="addBillRateDiscipline()" disabled>+ Add a Discipline</button>
           </div>
         </div>
 
         <!-- Time Entry Locking -->
         <div class="proj-section">
-          <div class="proj-section-title">Time Entry Locking</div>
+          <div class="proj-section-title">Time Entry Locking <span class="proj-coming-soon-badge">Coming soon</span></div>
           <div class="proj-radio-group">
-            <label class="proj-radio-label"><input type="radio" name="timeLock" value="none" checked> Do not lock time entries for this project</label>
-            <label class="proj-radio-label"><input type="radio" name="timeLock" value="all"> Lock all time entries for this project</label>
+            <label class="proj-radio-label"><input type="radio" name="timeLock" value="none" checked disabled> Do not lock time entries for this project</label>
+            <label class="proj-radio-label"><input type="radio" name="timeLock" value="all" disabled> Lock all time entries for this project</label>
             <label class="proj-radio-label" style="display:flex;align-items:center;gap:6px;">
-              <input type="radio" name="timeLock" value="older">
+              <input type="radio" name="timeLock" value="older" disabled>
               Lock time entries for this project that are older than
-              <input class="proj-rate-input" type="number" value="14" style="width:48px;margin:0 4px;">
+              <input class="proj-rate-input" type="number" value="14" style="width:48px;margin:0 4px;" disabled>
               calendar days
             </label>
           </div>
@@ -2015,45 +2021,45 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
         <div class="proj-fields-grid">
           <div class="proj-field-group full">
             <label class="proj-field-label">Phase Name</label>
-            <input class="proj-field-input" id="phaseNameInput" placeholder="Phase name">
+            <input class="proj-field-input" id="phaseNameInput" placeholder="Phase name" oninput="syncPhaseField('name', this.value)">
           </div>
           <div class="proj-field-group full">
             <label class="proj-field-label">Phase Code</label>
-            <input class="proj-field-input" id="phaseCodeInput" placeholder="Phase code">
+            <input class="proj-field-input" id="phaseCodeInput" placeholder="Phase code" oninput="syncPhaseField('code', this.value)">
           </div>
           <div class="proj-field-group">
             <label class="proj-field-label">Start Date</label>
-            <input class="proj-field-input" type="date" id="phaseStart">
+            <input class="proj-field-input" type="date" id="phaseStart" onchange="syncPhaseField('start', this.value)">
           </div>
           <div class="proj-field-group">
             <label class="proj-field-label">End Date</label>
-            <input class="proj-field-input" type="date" id="phaseEnd">
+            <input class="proj-field-input" type="date" id="phaseEnd" onchange="syncPhaseField('end', this.value)">
           </div>
           <div class="proj-field-group">
             <label class="proj-field-label">Duration (working days)</label>
             <div style="display:flex;align-items:center;gap:10px;">
-              <input class="proj-field-input" type="number" id="phaseDuration" min="1" style="width:80px;">
+              <input class="proj-field-input" type="number" id="phaseDuration" min="1" style="width:80px;" onchange="syncPhaseField('duration', this.value)">
               <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt-sub);cursor:pointer;">
-                <input type="checkbox" id="phaseLockDuration"> Lock Duration
+                <input type="checkbox" id="phaseLockDuration" onchange="syncPhaseField('lockDuration', this.checked)"> Lock Duration
               </label>
             </div>
           </div>
         </div>
         <div class="proj-section">
-          <div class="proj-section-title">Bill Rates</div>
+          <div class="proj-section-title">Bill Rates <span class="proj-coming-soon-badge">Coming soon</span></div>
           <div class="proj-radio-group">
-            <label class="proj-radio-label"><input type="radio" name="phaseBillRate" value="follow" checked> Follow the project bill rates</label>
-            <label class="proj-radio-label"><input type="radio" name="phaseBillRate" value="custom"> Set different bill rates for this phase</label>
+            <label class="proj-radio-label"><input type="radio" name="phaseBillRate" value="follow" checked disabled> Follow the project bill rates</label>
+            <label class="proj-radio-label"><input type="radio" name="phaseBillRate" value="custom" disabled> Set different bill rates for this phase</label>
           </div>
         </div>
         <div class="proj-section">
           <div class="proj-section-title">Description</div>
-          <textarea class="proj-field-input" id="phaseDesc" rows="3" placeholder="Phase description" style="resize:vertical;width:100%;"></textarea>
+          <textarea class="proj-field-input" id="phaseDesc" rows="3" placeholder="Phase description" style="resize:vertical;width:100%;" oninput="syncPhaseField('desc', this.value)"></textarea>
         </div>
         <div class="proj-section">
-          <div class="proj-section-title">Tags</div>
-          <div class="proj-section-desc">Add one or more tags to the project or remove already assigned tags from the list below.</div>
-          <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;">Add Tags</button>
+          <div class="proj-section-title">Tags <span class="proj-coming-soon-badge">Coming soon</span></div>
+          <div class="proj-section-desc">Per-phase tags aren't wired up yet — use the project-level Tags section on the Project Settings tab for now.</div>
+          <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" disabled>Add Tags</button>
         </div>
       </div>
 
@@ -3791,22 +3797,29 @@ function buildColorPicker(sel){
 
 // project modal
 // ── Project modal helpers ──
-let _projPhases = []; // [{id, name, code, start, end, desc}]
+let _projPhases = []; // [{id, name, code, start, end, duration, lockDuration, desc}]
 let _projTags   = [];
+let _currentPhaseId = null; // which phase is currently loaded into the Phase tab's input fields
 
 function switchProjTab(tab, phaseId) {
   document.getElementById('projTabSettings').style.display = tab==='settings' ? 'block' : 'none';
   document.getElementById('projTabPhase').style.display   = tab==='phase'    ? 'block' : 'none';
   document.querySelectorAll('.proj-sidebar-link').forEach(l=>l.classList.remove('active'));
   document.querySelectorAll('.proj-sidebar-phase').forEach(l=>l.classList.remove('active'));
-  if(tab==='settings') document.querySelector('.proj-sidebar-link')?.classList.add('active');
+  if(tab==='settings') {
+    document.querySelector('.proj-sidebar-link')?.classList.add('active');
+    _currentPhaseId = null;
+  }
   if(tab==='phase' && phaseId) {
+    _currentPhaseId = phaseId;
     const ph = _projPhases.find(p=>p.id===phaseId);
     if(ph){
       document.getElementById('phaseNameInput').value = ph.name||'';
       document.getElementById('phaseCodeInput').value = ph.code||'';
       document.getElementById('phaseStart').value = ph.start||'';
       document.getElementById('phaseEnd').value   = ph.end||'';
+      document.getElementById('phaseDuration').value = ph.duration||'';
+      document.getElementById('phaseLockDuration').checked = !!ph.lockDuration;
       document.getElementById('phaseDesc').value  = ph.desc||'';
     }
     document.querySelectorAll('.proj-sidebar-phase').forEach(l=>{
@@ -3815,12 +3828,24 @@ function switchProjTab(tab, phaseId) {
   }
 }
 
+// Writes a single phase field's live value back into _projPhases the moment it changes —
+// without this, "Save" only ever persisted whatever the phase looked like the instant
+// it was created, since the input fields weren't otherwise connected to any state.
+function syncPhaseField(key, value){
+  if (!_currentPhaseId) return;
+  const ph = _projPhases.find(p=>p.id===_currentPhaseId);
+  if (!ph) return;
+  ph[key] = value;
+  if (key === 'name') renderProjPhaseList(); // keep the sidebar label live
+}
+
 function renderProjPhaseList() {
   const list = document.getElementById('projPhaseList'); if(!list) return;
   list.innerHTML = '';
   _projPhases.forEach(ph => {
     const d = document.createElement('div');
     d.className = 'proj-sidebar-phase'; d.dataset.phaseId = ph.id;
+    if (ph.id === _currentPhaseId) d.classList.add('active');
     d.textContent = ph.name||'Unnamed';
     d.onclick = () => switchProjTab('phase', ph.id);
     list.appendChild(d);
@@ -3828,7 +3853,7 @@ function renderProjPhaseList() {
 }
 
 function addPhase() {
-  const ph = {id:uid(), name:'Unnamed', code:'', start:'', end:'', desc:''};
+  const ph = {id:uid(), name:'Unnamed', code:'', start:'', end:'', duration:'', lockDuration:false, desc:''};
   _projPhases.push(ph);
   renderProjPhaseList();
   switchProjTab('phase', ph.id);
@@ -4768,8 +4793,9 @@ const TUTORIAL_STEPS = [
   { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
+  { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet.', targetId:null },
   { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile.', targetId:'tabPeopleRpt' },
-  { title:'Employee Profile', body:'From the People tab, click any name to open their full profile page — tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications.', targetId:null },
+  { title:'Employee Profile', body:'From the People tab, click any name to open their full profile page — tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications. In the Utilization chart, flip "Show Details" to overlay real training-activity markers; a Sales series is listed but marked "Coming Soon" since there\'s no sales data tracked yet.', targetId:null },
   { title:'Reports & Skills Matrix', body:'The Reports tab holds the Skills Matrix — the master catalog of every trackable skill, organized by category. Add, rename, or remove skills and categories here — changes instantly show up on every employee\'s profile for rating. Project Reports are coming soon.', targetId:'tabReports' },
   { title:'Utilization Alerts', body:'The bell icon shows who is currently over their utilization target. Click it to see a list — click any person to open their profile.', targetId:'alertBell' },
   { title:'Save & Load Data', body:'"Save Data" exports everything — projects, people, allocations, and the skills matrix — to a JSON file. "Load Data" restores from a saved file, great for backups or moving to another browser.', targetId:null },
@@ -5178,18 +5204,20 @@ function toggleEmpRepRow(resId){
 function buildEmpRepDetailPanel(resId){
   const res = state.resources.find(r=>r.id===resId); if(!res) return '';
   const stats = computeUtilStats(resId);
+  const showDetails = !!_showDetailsState[resId];
   return `
     <div class="emprep-detail-panel">
       <div class="emprep-detail-title">Utilization</div>
-      ${buildBigUtilBarChart(resId)}
+      <div id="utilChartWrap-${resId}">${buildBigUtilBarChart(resId, showDetails)}</div>
       <div class="emprep-select-week-row">
         <span>Select a week to view timesheets:</span>
         <input type="text" placeholder="Select date" onclick="showToast('Timesheet drill-down coming soon')" readonly>
         <span style="color:var(--txt-muted);font-size:11px;">Tip: you can also click a bar above to select a week.</span>
       </div>
       <div class="emprep-toggle-row">
-        <div class="emprep-toggle" onclick="this.classList.toggle('on')"></div>
+        <div class="emprep-toggle ${showDetails?'on':''}" onclick="toggleShowDetails('${resId}', this)"></div>
         <span>Show Details</span>
+        <span style="color:var(--txt-muted);font-size:11px;">(adds Training activity and Sales markers to the chart)</span>
       </div>
       <div class="emprep-stat-grid">
         <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.lastWeek}%</div><div class="emprep-stat-lbl">Last Week</div></div>
@@ -5240,7 +5268,16 @@ function buildSkillsSummary(resId){
 }
 
 // Bigger bar-chart style utilization view (past bars solid, future bars khaki background) — matches Smartsheet-style reports
-function buildBigUtilBarChart(resId){
+let _showDetailsState = {}; // resId -> boolean, shared by both the Reports row and Profile page charts
+
+function toggleShowDetails(resId, toggleEl){
+  _showDetailsState[resId] = !_showDetailsState[resId];
+  if (toggleEl) toggleEl.classList.toggle('on', _showDetailsState[resId]);
+  const wrap = document.getElementById('utilChartWrap-'+resId);
+  if (wrap) wrap.innerHTML = buildBigUtilBarChart(resId, _showDetailsState[resId]);
+}
+
+function buildBigUtilBarChart(resId, showDetails){
   const res = state.resources.find(r=>r.id===resId); if(!res) return '';
   const target = res.target ?? 100;
   const series = buildWeeklySeries(resId, 26, 26); // ~1 year window centered on today
@@ -5277,19 +5314,44 @@ function buildBigUtilBarChart(resId){
 
   const yLabels = [0,50,100,150,200].filter(v=>v<=maxPct);
 
+  // ── "Show Details" adds real Training markers (derived from this person's actual
+  // training records) plus a Sales legend entry. There's no sales data model anywhere
+  // in this app yet, so Sales is labeled "Coming soon" rather than showing fabricated numbers. ──
+  let trainingMarkers = '';
+  if (showDetails) {
+    (res.trainings||[]).forEach(t => {
+      if (!t.lastActivity || t.lastActivity === '—') return;
+      const d = new Date(t.lastActivity);
+      if (isNaN(d.getTime())) return;
+      const idx = series.findIndex(w => d >= w.wStart && d <= w.wEnd);
+      if (idx === -1) return;
+      const x = PAD.l + idx*(barW+barGap) + barW/2;
+      trainingMarkers += `<circle cx="${x}" cy="${PAD.t+8}" r="4" fill="#F59E0B" stroke="#fff" stroke-width="1"><title>${t.name} — ${t.lastActivity}</title></circle>`;
+    });
+  }
+
+  const legendItems = [
+    `<span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#3F6B6B;display:inline-block;border-radius:2px;"></span>Utilization</span>`,
+    `<span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#F5EEDC;border:1px solid #E2D9BE;display:inline-block;border-radius:2px;"></span>Scheduled</span>`,
+    `<span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:2px;background:#EF4444;display:inline-block;"></span>Target (${target}%)</span>`,
+  ];
+  if (showDetails) {
+    legendItems.push(`<span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#F59E0B;border-radius:50%;display:inline-block;"></span>Training</span>`);
+    legendItems.push(`<span style="display:flex;align-items:center;gap:4px;color:var(--txt-muted);font-style:italic;"><span style="width:9px;height:9px;background:#E2E8F0;border:1px dashed #94A3B8;display:inline-block;border-radius:2px;"></span>Sales (coming soon)</span>`);
+  }
+
   return `
     <div style="overflow-x:auto;">
       <svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:900px;display:block;" xmlns="http://www.w3.org/2000/svg">
         ${yLabels.map(v=>`<line x1="${PAD.l}" y1="${PAD.t+yScale(v)}" x2="${PAD.l+chartW}" y2="${PAD.t+yScale(v)}" stroke="#E2E8F0" stroke-width="1"/><text x="4" y="${PAD.t+yScale(v)+4}" font-size="10" fill="#94A3B8" font-family="monospace">${v}%</text>`).join('')}
         ${bars}
+        ${trainingMarkers}
         <line x1="${PAD.l}" y1="${targetY}" x2="${PAD.l+chartW}" y2="${targetY}" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5,3"/>
         <text x="${PAD.l+chartW-70}" y="${targetY-5}" font-size="10" fill="#EF4444" font-family="sans-serif" font-weight="700">Utilization Target</text>
         ${monthLabels}
       </svg>
-      <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--txt-sub);">
-        <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#3F6B6B;display:inline-block;border-radius:2px;"></span>Utilization</span>
-        <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#F5EEDC;border:1px solid #E2D9BE;display:inline-block;border-radius:2px;"></span>Scheduled</span>
-        <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:2px;background:#EF4444;display:inline-block;"></span>Target (${target}%)</span>
+      <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--txt-sub);flex-wrap:wrap;">
+        ${legendItems.join('')}
       </div>
     </div>`;
 }
@@ -5794,8 +5856,19 @@ function openProfileSectionContent(resId, id){
 
   if(id==='util'){
     const stats = computeUtilStats(resId);
+    const showDetails = !!_showDetailsState[resId];
     body.innerHTML = `
-      ${buildBigUtilBarChart(resId)}
+      <div id="utilChartWrap-${resId}">${buildBigUtilBarChart(resId, showDetails)}</div>
+      <div class="emprep-select-week-row">
+        <span>Select a week to view timesheets:</span>
+        <input type="text" placeholder="Select date" onclick="showToast('Timesheet drill-down coming soon')" readonly>
+        <span style="color:var(--txt-muted);font-size:11px;">Tip: you can also click a bar above to select a week.</span>
+      </div>
+      <div class="emprep-toggle-row">
+        <div class="emprep-toggle ${showDetails?'on':''}" onclick="toggleShowDetails('${resId}', this)"></div>
+        <span>Show Details</span>
+        <span style="color:var(--txt-muted);font-size:11px;">(adds Training activity and Sales markers to the chart)</span>
+      </div>
       <div class="emprep-stat-grid">
         <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.lastWeek}%</div><div class="emprep-stat-lbl">Last Week</div></div>
         <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.last6Avg}%</div><div class="emprep-stat-lbl">Last 6 Weeks</div></div>
