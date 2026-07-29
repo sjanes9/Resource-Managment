@@ -4788,7 +4788,7 @@ const TUTORIAL_STEPS = [
   { title:'Welcome to Resource Manager', body:'This quick tour covers the key features. Use the arrows to navigate, or press Escape to exit at any time.', targetId:null },
   { title:'Schedule View', body:'The main timeline shows every team member\'s project assignments. Each colored bar is a project. Hover for details, click a bar for the full info card — you can even edit the allocation % or hours/day right there.', targetId:'tabSchedule' },
   { title:'D / W / M Granularity', body:'Switch between Day, Week, and Month views. In Week mode (default), weekend columns are lightly shaded. Use the ‹ › arrows to scroll through time — the app auto-scrolls to keep Today in view.', targetId:'dwmW' },
-  { title:'Employee Rows', body:'Click a person\'s name or avatar to open their Snapshot panel — contact info, a 6-month utilization chart, and upcoming/recent project assignments. Right-click a row for quick actions like "New Assignment", or click any empty week to assign a project on the spot.', targetId:'personPanelBody' },
+  { title:'Employee Rows', body:'Click a person\'s name or avatar to open their Snapshot panel — contact info, a 6-month utilization chart, and upcoming/recent project assignments. Right-click a row for quick actions like "New Assignment", or click any empty week to assign a project on the spot. In the assignment picker, check "Repeat weekly" to schedule the same project across several individual weeks in one go, instead of one long continuous bar.', targetId:'personPanelBody' },
   { title:'Utilization Target Bar', body:'When a person\'s overlapping projects push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
   { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
@@ -4895,7 +4895,7 @@ function openQuickAssign(ev, resId, col) {
     position:fixed;z-index:600;
     background:#fff;border:1px solid var(--border);border-radius:10px;
     box-shadow:0 8px 30px rgba(0,0,0,.16);
-    width:300px;overflow:hidden;
+    width:320px;overflow:hidden;
     font-family:var(--sans);
   `;
 
@@ -4912,10 +4912,21 @@ function openQuickAssign(ev, resId, col) {
         style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--sans);outline:none;">
     </div>
     <div id="qaList" style="max-height:220px;overflow-y:auto;"></div>
-    <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;">
+    <div style="padding:10px 14px 4px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;">
       <label style="font-size:11px;color:var(--txt-sub);flex-shrink:0;">Allocation %</label>
       <input id="qaPct" type="number" min="10" max="100" step="10" value="100"
         style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;text-align:center;font-family:var(--sans);">
+    </div>
+    <div style="padding:6px 14px 10px;display:flex;align-items:center;gap:8px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--txt-sub);cursor:pointer;flex-shrink:0;">
+        <input type="checkbox" id="qaRepeatWeekly" onchange="document.getElementById('qaRepeatCount').style.display=this.checked?'inline-block':'none'">
+        Repeat weekly ×
+      </label>
+      <input id="qaRepeatCount" type="number" min="2" max="52" value="4"
+        style="display:none;width:55px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;text-align:center;font-family:var(--sans);">
+      <span style="font-size:10px;color:var(--txt-muted);">weeks, starting this week</span>
+    </div>
+    <div style="padding:6px 14px 10px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;">
       <button onclick="commitQuickAssign('${resId}','${colStart}','${colEnd}')"
         style="flex:1;padding:7px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;">
         Assign
@@ -4928,8 +4939,8 @@ function openQuickAssign(ev, resId, col) {
 
   // Position near click
   let x = ev.clientX, y = ev.clientY + 8;
-  if (x + 310 > window.innerWidth)  x = window.innerWidth - 315;
-  if (y + 360 > window.innerHeight) y = ev.clientY - 360;
+  if (x + 330 > window.innerWidth)  x = window.innerWidth - 335;
+  if (y + 410 > window.innerHeight) y = ev.clientY - 410;
   panel.style.left = x + 'px';
   panel.style.top  = y + 'px';
   document.body.appendChild(panel);
@@ -4982,7 +4993,7 @@ function renderQAList(search) {
       <div style="width:10px;height:10px;border-radius:3px;background:${p.color};flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:600;color:${isSelected?'var(--blue-dk)':'var(--txt-main)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
-        ${p.client?`<div style="font-size:10px;color:var(--txt-muted);">${p.client}</div>`:''}
+        <div style="font-size:10px;color:var(--txt-muted);">${p.client?p.client+' · ':''}${p.start} – ${p.end}</div>
       </div>
       ${isSelected?'<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--blue)" stroke-width="2.5"><polyline points="2,7 5,10 12,3"/></svg>':''}`;
     row.onmouseenter = () => { if(!isSelected) row.style.background='var(--bg-alt)'; };
@@ -5004,10 +5015,33 @@ function commitQuickAssign(resId, colStart, colEnd) {
   const proj = state.projects.find(p=>p.id===_qaSelectedProjId);
   if (!proj) return;
 
+  const repeatOn = document.getElementById('qaRepeatWeekly')?.checked;
+  const repeatCount = repeatOn ? Math.max(2, parseInt(document.getElementById('qaRepeatCount')?.value) || 4) : 1;
+
   pushUndo();
 
-  // If OOO — create a new OOO assignment project with the week's dates
-  if (_qaSelectedProjId === OOO_ID) {
+  if (repeatOn) {
+    // ── Repeat Weekly: build a chain of separate single-week clones of the selected
+    // project, all sharing its name/color/client — this is what produces the
+    // week-by-week tiled bars (rather than one continuous multi-week bar). ──
+    const startMonday = mondayOf(parseD(colStart));
+    let created = 0;
+    for (let i = 0; i < repeatCount; i++) {
+      const wStart = new Date(startMonday); wStart.setDate(wStart.getDate() + i*7);
+      const wEnd   = new Date(wStart); wEnd.setDate(wEnd.getDate() + 6);
+      const clone = {
+        id: uid(), name: proj.name, client: proj.client, color: proj.color,
+        status: proj.status, projType: proj.projType, scheduleType: proj.scheduleType,
+        owner: proj.owner, desc: proj.desc,
+        start: fmt(wStart), end: fmt(wEnd),
+      };
+      state.projects.push(clone);
+      state.allocations.push({ id: uid(), projId: clone.id, resId, pct });
+      created++;
+    }
+    showToast(`Assigned ${proj.name} for ${created} week${created!==1?'s':''}`, 'success');
+
+  } else if (_qaSelectedProjId === OOO_ID) {
     // Create a dated OOO entry scoped to this period
     const oooProj = {
       id: uid(), name:'Out of Office', client:'', color:'#F59E0B',
@@ -5017,6 +5051,7 @@ function commitQuickAssign(resId, colStart, colEnd) {
     };
     state.projects.push(oooProj);
     state.allocations.push({id:uid(), projId:oooProj.id, resId, pct});
+
   } else {
     // Check if already assigned
     const existing = state.allocations.findIndex(a=>a.projId===_qaSelectedProjId&&a.resId===resId);
