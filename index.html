@@ -1346,6 +1346,45 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 .skm-edit-skill-btn:hover { border-color: var(--blue); color: var(--blue); }
 .skm-edit-skill-btn.danger:hover { border-color: var(--red); color: var(--red); }
 
+/* ══════════════════════════════════════════
+   RESPONSIVE — applied when the JS-detected viewport is "compact" (<1440px) or
+   "narrow" (<1024px). Classes are toggled on <html> by recomputeResponsiveSizing().
+   Column width and per-row heights inside the Gantt are handled in JS (COL_W,
+   NAME_ROW_H, SUB_ROW_H, AVAIL_ROW_H) since they drive pixel-exact inline layout;
+   everything else is handled here.
+══════════════════════════════════════════ */
+html.rm-compact { --person-w: 200px; --sidebar-w: 210px; }
+html.rm-narrow  { --person-w: 170px; --sidebar-collapsed-w: 46px; }
+
+html.rm-compact .topbar { height: 50px; }
+html.rm-compact .topbar-tab { padding: 0 14px; font-size: 12px; }
+html.rm-compact .sched-controls { height: 36px; }
+html.rm-compact .g-bar { font-size: 11px; }
+html.rm-compact .g-bar-meta { font-size: 10px; }
+html.rm-compact .pr-fullname { font-size: 12px; }
+html.rm-compact .pr-role-dept { font-size: 10px; }
+html.rm-compact .tl-week-cell { font-size: 11px; }
+html.rm-compact .tl-week-num { font-size: 9px; }
+
+html.rm-compact .emprep-table { font-size: 11px; }
+html.rm-compact .emprep-th, html.rm-compact .emprep-td { padding: 6px 8px; }
+html.rm-compact .emprep-spark-bar { width: 6px; }
+
+html.rm-compact .proj-fields-grid { grid-template-columns: 1fr; }
+html.rm-compact .proj-modal-sidebar { width: 130px; }
+html.rm-compact .proj-image-row { flex-direction: column; align-items: flex-start; }
+
+html.rm-compact .profile-shell { flex-direction: column; }
+html.rm-compact .profile-left { width: 100%; flex-direction: row; align-items: flex-start; flex-wrap: wrap; }
+html.rm-compact .profile-photo-wrap { width: 90px; height: 90px; }
+html.rm-compact .profile-contrib-grid { grid-template-columns: 1fr; }
+
+html.rm-compact .snapshot-panel { width: 620px; }
+html.rm-compact .bar-popover { width: 270px; }
+
+html.rm-narrow .pg-proj-name-cell .pg-proj-dates { display: none; }
+html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
+
 </style>
 
 </head>
@@ -1368,9 +1407,9 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
   <div class="sb-section">
     <div class="sb-label sb-label-collapsible">Views</div>
     <div style="display:flex;flex-direction:column;gap:2px;">
-      <button class="nav-item active" id="navPeople" onclick="switchView('schedule')">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="12" cy="5" r="2"/><path d="M14 14c0-2-1-3.5-3-4"/></svg>
-        <span class="nav-item-text">People</span>
+      <button class="nav-item active" id="navSchedule" onclick="switchView('schedule')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="1.5"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="2" x2="5" y2="6"/><line x1="11" y1="2" x2="11" y2="6"/></svg>
+        <span class="nav-item-text">Schedule</span>
       </button>
       <button class="nav-item" id="navProjects" onclick="switchView('projgantt')">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="2.5" rx="1"/><rect x="3" y="7" width="9" height="2.5" rx="1"/><rect x="1" y="11" width="12" height="2.5" rx="1"/></svg>
@@ -1379,6 +1418,10 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
       <button class="nav-item" id="navPortfolio" onclick="switchView('portfolio')">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="11" rx="1.5"/><path d="M6 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
         <span class="nav-item-text">Portfolio</span>
+      </button>
+      <button class="nav-item" id="navPeopleRpt" onclick="switchView('people')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="12" cy="5" r="2"/><path d="M14 14c0-2-1-3.5-3-4"/></svg>
+        <span class="nav-item-text">People</span>
       </button>
       <button class="nav-item" id="navReports" onclick="switchView('reports')">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13 L5 8 L8 10.5 L11 4 L14 7"/><line x1="2" y1="13" x2="14" y2="13"/></svg>
@@ -1502,8 +1545,8 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
   <div class="topbar">
     <div class="topbar-tabs">
       <button class="topbar-tab active" id="tabSchedule" onclick="switchView('schedule')">
-        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="4.5" r="2.5"/><path d="M1 12c0-2.5 1.8-4 4-4s4 1.5 4 4"/><circle cx="10.5" cy="4.5" r="1.8"/><path d="M12.5 12c0-1.8-.8-3-2.5-3.5"/></svg>
-        People
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1.5" width="12" height="11" rx="1.5"/><line x1="1" y1="5" x2="13" y2="5"/><line x1="4" y1="1.5" x2="4" y2="5"/><line x1="10" y1="1.5" x2="10" y2="5"/></svg>
+        Schedule
       </button>
       <button class="topbar-tab" id="tabProjGantt" onclick="switchView('projgantt')">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2.5" width="12" height="2" rx=".8"/><rect x="3" y="6" width="7" height="2" rx=".8"/><rect x="1" y="9.5" width="10" height="2" rx=".8"/></svg>
@@ -1512,6 +1555,10 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
       <button class="topbar-tab" id="tabPortfolio" onclick="switchView('portfolio')">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><path d="M5 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
         Portfolio
+      </button>
+      <button class="topbar-tab" id="tabPeopleRpt" onclick="switchView('people')">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="4.5" r="2.5"/><path d="M1 12c0-2.5 1.8-4 4-4s4 1.5 4 4"/><circle cx="10.5" cy="4.5" r="1.8"/><path d="M12.5 12c0-1.8-.8-3-2.5-3.5"/></svg>
+        People
       </button>
       <button class="topbar-tab" id="tabReports" onclick="switchView('reports')">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11 L4.5 6.5 L7 9 L10 3.5 L12 6"/><line x1="2" y1="11" x2="12" y2="11"/></svg>
@@ -1702,12 +1749,16 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
     </div>
   </div>
 
+  <!-- PEOPLE VIEW (employee overview report, pulled out of Reports into its own tab) -->
+  <div class="reports-view" id="peopleView">
+    <div class="reports-content" id="peopleContent"></div>
+  </div>
+
   <!-- REPORTS VIEW -->
   <div class="reports-view" id="reportsView">
     <div class="reports-subtabs">
-      <button class="reports-subtab active" id="repSubEmployees" onclick="switchReportsSub('employees')">Employees</button>
+      <button class="reports-subtab active" id="repSubSkillsMatrix" onclick="switchReportsSub('skillsmatrix')">Skills Matrix</button>
       <button class="reports-subtab" id="repSubProjects" onclick="switchReportsSub('projects')">Projects</button>
-      <button class="reports-subtab" id="repSubSkillsMatrix" onclick="switchReportsSub('skillsmatrix')">Skills Matrix</button>
     </div>
     <div class="reports-content" id="reportsContent"></div>
   </div>
@@ -2249,8 +2300,35 @@ let rangeStart  = new Date(today); // Monday of current week
   d.setDate(d.getDate()-((d.getDay()+6)%7));
 })();
 
-const COL_W = 220; // px per week column — wider for legibility
+let COL_W = 220; // px per week column — recomputed responsively, see recomputeResponsiveSizing()
 const EXTRA_COLS = 8; // extra columns rendered on each side for smooth scrolling
+
+// ── Responsive sizing: adapt column width, row heights, and layout density to the viewport ──
+// A 13" laptop (~1280–1440px browser width) needs noticeably smaller columns/rows than a
+// wide desktop monitor, or the Gantt becomes nearly unreadable / requires constant scrolling.
+let _isCompactUI = false;
+function recomputeResponsiveSizing() {
+  const w = window.innerWidth;
+  if (w < 1024)      COL_W = 130;
+  else if (w < 1280) COL_W = 155;
+  else if (w < 1440) COL_W = 180;
+  else               COL_W = 220;
+  _isCompactUI = w < 1440;
+  document.documentElement.classList.toggle('rm-compact', _isCompactUI);
+  document.documentElement.classList.toggle('rm-narrow', w < 1024);
+}
+recomputeResponsiveSizing();
+
+// Debounced resize handler — recompute sizing and re-render whatever view is currently showing
+let _resizeDebounceTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeDebounceTimer);
+  _resizeDebounceTimer = setTimeout(() => {
+    recomputeResponsiveSizing();
+    if (currentView === 'schedule')       renderSchedule();
+    else if (currentView === 'projgantt') renderProjGantt();
+  }, 150);
+});
 
 function getNumCols() {
   // Fill the visible scroll area + generous buffer so user can scroll freely
@@ -2320,22 +2398,24 @@ function switchView(v){
   document.getElementById('projGanttView').style.display  = v==='projgantt' ?'flex':'none';
   document.getElementById('dashView').classList.toggle('active', v==='dashboard');
   document.getElementById('portfolioView').classList.toggle('active', v==='portfolio');
+  document.getElementById('peopleView').classList.toggle('active', v==='people');
   document.getElementById('reportsView').classList.toggle('active', v==='reports');
   document.getElementById('profileView').classList.toggle('active', v==='profile');
 
-  // Topbar tabs
-  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPortfolio','portfolio'],['tabReports','reports']].forEach(([id,vv])=>{
-    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='reports'));
+  // Topbar tabs — Employee Profile is reached from the People tab, so treat People as active while viewing a profile
+  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPortfolio','portfolio'],['tabPeopleRpt','people'],['tabReports','reports']].forEach(([id,vv])=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='people'));
   });
   // Sidebar nav
-  [['navPeople','schedule'],['navProjects','projgantt'],['navPortfolio','portfolio'],['navReports','reports']].forEach(([id,vv])=>{
-    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='reports'));
+  [['navSchedule','schedule'],['navProjects','projgantt'],['navPortfolio','portfolio'],['navPeopleRpt','people'],['navReports','reports']].forEach(([id,vv])=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='people'));
   });
 
   if(v==='dashboard')  renderDashboard();
   if(v==='portfolio')  renderPortfolio();
   if(v==='projgantt')  renderProjGantt();
   if(v==='schedule')   renderPeopleFiltersDropdowns();
+  if(v==='people')     renderEmployeeReportsTable();
   if(v==='reports')    renderReportsView();
 }
 
@@ -2349,8 +2429,19 @@ function toggleSidebar() {
   if(btn) btn.title = _sbCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
   try { localStorage.setItem('etRM_sbCollapsed', _sbCollapsed?'1':''); } catch(e){}
 }
-// Restore collapse state
-(function(){ try{ if(localStorage.getItem('etRM_sbCollapsed')) { _sbCollapsed=true; document.getElementById('mainSidebar')?.classList.add('collapsed'); } }catch(e){} })();
+// Restore collapse state — if the user has never explicitly toggled it, default to collapsed
+// on narrower screens (e.g. a 13" laptop) so the timeline has room to breathe.
+(function(){
+  try{
+    const stored = localStorage.getItem('etRM_sbCollapsed');
+    if (stored !== null) {
+      _sbCollapsed = stored === '1';
+    } else {
+      _sbCollapsed = window.innerWidth < 1280;
+    }
+    document.getElementById('mainSidebar')?.classList.toggle('collapsed', _sbCollapsed);
+  }catch(e){}
+})();
 
 // ── People Filters ──
 let _peopleFilters = {};
@@ -2502,9 +2593,9 @@ function renderSchedule(){
     // ── person panel: name row ──
     const ppGroup = document.createElement('div'); ppGroup.className='pr-group';
     // ── Height constants — single source of truth for left panel + timeline sync ──
-    const NAME_ROW_H  = 80;  // exact height of collapsed/expanded name row
-    const SUB_ROW_H   = 44;  // height of each project sub-row — tall enough for legible bars
-    const AVAIL_ROW_H = 32;  // height of available row
+    const NAME_ROW_H  = _isCompactUI ? 62 : 80;  // exact height of collapsed/expanded name row
+    const SUB_ROW_H   = _isCompactUI ? 34 : 44;  // height of each project sub-row — tall enough for legible bars
+    const AVAIL_ROW_H = _isCompactUI ? 24 : 32;  // height of available row
 
     const nameRow = document.createElement('div');
     nameRow.className = 'pr-name-row';
@@ -3024,7 +3115,7 @@ function renderProjGantt(){
   const pgTlEl=document.getElementById('pgTlScroll');
   if(pgTlEl) pgTlEl.onscroll = () => { panelBody.scrollTop=pgTlEl.scrollTop; };
 
-  const ROW_H=90, SUB_H=36;
+  const ROW_H = _isCompactUI ? 68 : 90, SUB_H = _isCompactUI ? 30 : 36;
 
   state.projects.filter(p=>!p._builtin&&!p._ooo).forEach(proj=>{
     const allocs=allocsForProj(proj.id);
@@ -4729,16 +4820,16 @@ function buildUtilizationChart(res) {
 // ══════════════════════════════════════════
 const TUTORIAL_STEPS = [
   { title:'Welcome to Resource Manager', body:'This quick tour covers the key features. Use the arrows to navigate, or press Escape to exit at any time.', targetId:null },
-  { title:'People View', body:'The main timeline shows every team member\'s project assignments. Each colored bar is a project. Hover for details, click a bar for the full info card — you can even edit the allocation % or hours/day right there.', targetId:'tabSchedule' },
+  { title:'Schedule View', body:'The main timeline shows every team member\'s project assignments. Each colored bar is a project. Hover for details, click a bar for the full info card — you can even edit the allocation % or hours/day right there.', targetId:'tabSchedule' },
   { title:'D / W / M Granularity', body:'Switch between Day, Week, and Month views. In Week mode (default), weekend columns are lightly shaded. Use the ‹ › arrows to scroll through time — the app auto-scrolls to keep Today in view.', targetId:'dwmW' },
   { title:'Employee Rows', body:'Click a person\'s name or avatar to open their Snapshot panel — contact info, a 6-month utilization chart, and upcoming/recent project assignments. Right-click a row for quick actions like "New Assignment", or click any empty week to assign a project on the spot.', targetId:'personPanelBody' },
   { title:'Utilization Target Bar', body:'When a person\'s overlapping projects push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
-  { title:'People Filters', body:'Use the sidebar filters to narrow the People view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
+  { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
-  { title:'Reports', body:'The Reports tab has three views: Employees (timesheet/training status, utilization sparklines, and an expandable 6-week schedule + skills summary per person), Projects (coming soon), and the Skills Matrix editor.', targetId:'tabReports' },
-  { title:'Employee Profile', body:'In Reports → Employees, click any name to open their full profile page — tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications.', targetId:null },
-  { title:'Skills Matrix', body:'Reports → Skills Matrix is the master catalog of every trackable skill, organized by category. Add, rename, or remove skills and categories here — changes instantly show up on every employee\'s profile for rating.', targetId:null },
+  { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile.', targetId:'tabPeopleRpt' },
+  { title:'Employee Profile', body:'From the People tab, click any name to open their full profile page — tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications.', targetId:null },
+  { title:'Reports & Skills Matrix', body:'The Reports tab holds the Skills Matrix — the master catalog of every trackable skill, organized by category. Add, rename, or remove skills and categories here — changes instantly show up on every employee\'s profile for rating. Project Reports are coming soon.', targetId:'tabReports' },
   { title:'Utilization Alerts', body:'The bell icon shows who is currently over their utilization target. Click it to see a list — click any person to open their profile.', targetId:'alertBell' },
   { title:'Save & Load Data', body:'"Save Data" exports everything — projects, people, allocations, and the skills matrix — to a JSON file. "Load Data" restores from a saved file, great for backups or moving to another browser.', targetId:null },
   { title:'Undo', body:'Made a mistake? Click Undo (or press Ctrl+Z / Cmd+Z) to step back. Up to 30 actions are remembered per session.', targetId:'undoBtn' },
@@ -5048,12 +5139,11 @@ function buildSparklineHTML(series, targetPct){
 // ══════════════════════════════════════════
 // REPORTS VIEW — Employees table
 // ══════════════════════════════════════════
-let _reportsSub = 'employees';
+let _reportsSub = 'skillsmatrix';
 let _empRepExpanded = new Set();
 
 function switchReportsSub(sub){
   _reportsSub = sub;
-  document.getElementById('repSubEmployees').classList.toggle('active', sub==='employees');
   document.getElementById('repSubProjects').classList.toggle('active', sub==='projects');
   document.getElementById('repSubSkillsMatrix').classList.toggle('active', sub==='skillsmatrix');
   renderReportsView();
@@ -5061,22 +5151,18 @@ function switchReportsSub(sub){
 
 function renderReportsView(){
   const content = document.getElementById('reportsContent');
-  if(_reportsSub==='projects'){
-    content.innerHTML = `<div style="padding:60px 20px;text-align:center;color:var(--txt-muted);">
-      <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--txt-sub);">Project Reports</div>
-      <div style="font-size:13px;">Coming soon — project-level reporting (budget burn, schedule variance, staffing history) will live here.</div>
-    </div>`;
-    return;
-  }
   if(_reportsSub==='skillsmatrix'){
     renderSkillsMatrixEditor();
     return;
   }
-  renderEmployeeReportsTable();
+  content.innerHTML = `<div style="padding:60px 20px;text-align:center;color:var(--txt-muted);">
+    <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--txt-sub);">Project Reports</div>
+    <div style="font-size:13px;">Coming soon — project-level reporting (budget burn, schedule variance, staffing history) will live here.</div>
+  </div>`;
 }
 
 function renderEmployeeReportsTable(){
-  const content = document.getElementById('reportsContent');
+  const content = document.getElementById('peopleContent');
   const resources = getFilteredResources();
 
   let rowsHtml = '';
@@ -5487,8 +5573,8 @@ function openEmployeeProfile(resId){
   renderEmployeeProfile(resId);
 }
 
-function backToReports(){
-  switchView('reports');
+function backToPeople(){
+  switchView('people');
 }
 
 function getTopContributions(resId, n){
@@ -5530,9 +5616,9 @@ function renderEmployeeProfile(resId){
   }).join('') : `<div style="grid-column:1/-1;color:var(--txt-muted);font-size:12px;font-style:italic;">No project assignments yet.</div>`;
 
   content.innerHTML = `
-    <div class="profile-back-link" onclick="backToReports()">
+    <div class="profile-back-link" onclick="backToPeople()">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7,2 3,6 7,10"/></svg>
-      Back to Reports
+      Back to People
     </div>
     <div class="profile-shell">
       <div class="profile-left">
@@ -5563,10 +5649,6 @@ function renderEmployeeProfile(resId){
           <div class="profile-info-row">
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6l4.5-4.5L11 6"/><path d="M3.5 5v6h7V5"/></svg>
             ${res.address||res.resourceCity||'—'}
-          </div>
-          <div class="profile-info-row" style="cursor:pointer;" onclick="messageOnTeams('${res.id}')">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="5.5"/><path d="M4 6h5M4 8.5h3"/></svg>
-            <span class="profile-info-link">Message on Teams</span>
           </div>
         </div>
       </div>
@@ -5863,11 +5945,6 @@ function sendKudos(resId){
   const res = state.resources.find(r=>r.id===resId);
   showToast(`Kudos sent to ${res?res.first:'employee'}! 🎉`, 'success');
 }
-function messageOnTeams(resId){
-  const res = state.resources.find(r=>r.id===resId);
-  if(res && res.email){ window.location.href = 'mailto:'+res.email; }
-  else showToast('No email on file for this person');
-}
 
 // ══════════════════════════════════════════
 // SCROLL SYNC
@@ -5946,6 +6023,7 @@ function render(){
   else if(currentView==='projgantt') renderProjGantt();
   else if(currentView==='dashboard') renderDashboard();
   else if(currentView==='portfolio') renderPortfolio();
+  else if(currentView==='people') renderEmployeeReportsTable();
   else if(currentView==='reports') renderReportsView();
   else if(currentView==='profile' && _profileResId) renderEmployeeProfile(_profileResId);
   renderSidebar();
