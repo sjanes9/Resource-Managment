@@ -233,11 +233,11 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 .pr-edit-btn:hover { background: var(--bg-alt); color: var(--blue); }
 .pr-name-row:hover .pr-edit-btn { display: flex; }
 
-/* available row — height must match AVAIL_ROW_H=30px in JS */
+/* available row — height is set inline per-render to match the timeline's AVAIL_ROW_H exactly */
 .pr-avail-row {
   padding: 0 14px 0 40px; height: 30px;
   font-size: 11px; color: var(--txt-muted); font-style: italic;
-  display: flex; align-items: center; flex-shrink: 0;
+  display: flex; align-items: center; flex-shrink: 0; border-top: 1px solid var(--border);
 }
 
 /* ── TIMELINE SCROLL AREA ── */
@@ -2966,6 +2966,14 @@ function renderSchedule(){
       // Click anywhere on avail row → quick assign picker
       availRow.onclick = e => { e.stopPropagation(); openQuickAssign(e, res.id, null); };
       tlGroup.appendChild(availRow);
+
+      // ── Matching Available row on the person panel side (must be present or the two
+      // independently-scrolling columns drift out of sync for every expanded person) ──
+      const panelAvailRow = document.createElement('div');
+      panelAvailRow.className = 'pr-avail-row';
+      panelAvailRow.style.cssText = `height:${AVAIL_ROW_H}px;min-height:${AVAIL_ROW_H}px;max-height:${AVAIL_ROW_H}px;box-sizing:border-box;`;
+      panelAvailRow.textContent = 'Available:';
+      ppGroup.appendChild(panelAvailRow);
 
     } else {
       // ── COLLAPSED: per-column utilization bar (Smartsheet style) ──
