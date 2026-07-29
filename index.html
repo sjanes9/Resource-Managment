@@ -617,6 +617,8 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
   text-decoration: underline dotted; text-underline-offset: 3px;
 }
 .snap-status-btn:hover { color: #fff; }
+.snap-status-ro { font-size: 12px; color: rgba(255,255,255,.55); font-family: var(--sans); }
+.snap-status-ro.unset { font-style: italic; color: rgba(255,255,255,.4); }
 .snap-close-btn {
   width: 32px; height: 32px; border-radius: 6px; border: none;
   background: rgba(255,255,255,.12); cursor: pointer;
@@ -663,6 +665,12 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 }
 .snap-field-val:hover { border-bottom-color: var(--border); }
 .snap-field-val.plain { color: var(--txt-main); }
+.snap-field-val-ro {
+  font-size: 12px; color: var(--txt-main);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding: 2px 0;
+}
+.snap-field-val-ro a { color: var(--blue); }
 .snap-field-input {
   font-size: 12px; color: var(--txt-main); border: 1px solid var(--blue);
   border-radius: 4px; padding: 3px 6px; outline: none; width: 100%;
@@ -1218,7 +1226,24 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 .profile-back-link:hover { text-decoration: underline; }
 .profile-shell { display: flex; gap: 24px; padding: 16px 24px 40px; align-items: flex-start; }
 .profile-left { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; }
-.profile-photo-wrap { width: 130px; height: 130px; border-radius: 8px; overflow: hidden; background: var(--bg-alt); border: 1px solid var(--border); }
+.profile-photo-wrap { width: 130px; height: 130px; border-radius: 8px; overflow: hidden; background: var(--bg-alt); border: 1px solid var(--border); position: relative; }
+.profile-photo-edit {
+  position: absolute; bottom: 4px; right: 4px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--blue); border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.profile-photo-edit svg { width: 11px; height: 11px; }
+.profile-photo-edit input[type=file] { display: none; }
+.profile-status-row { margin-top: 6px; }
+.profile-status-btn {
+  background: none; border: none; color: var(--txt-sub);
+  font-size: 12px; cursor: pointer; padding: 0; font-family: var(--sans);
+  text-decoration: underline dotted; text-underline-offset: 3px;
+}
+.profile-status-btn:hover { color: var(--blue); }
+.profile-status-btn.unset { font-style: italic; color: var(--txt-muted); }
 .profile-photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
 .profile-photo-initials { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; color: #fff; }
 .profile-name { font-size: 20px; font-weight: 700; color: var(--txt-main); margin-top: 2px; }
@@ -2117,18 +2142,12 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
           <span id="snapInitials"></span>
           <img id="snapPhotoImg" style="display:none">
         </div>
-        <label class="snap-photo-edit" title="Upload photo">
-          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2l2 2-6 6H2V8L8 2z"/></svg>
-          <input type="file" accept="image/*" id="snapPhotoInput" onchange="handleSnapPhoto(event)">
-        </label>
       </div>
       <div class="snap-name-block">
         <div class="snap-name" id="snapName"></div>
         <div class="snap-dept" id="snapDept"></div>
         <div class="snap-status-row">
-          <button class="snap-status-btn" id="snapStatusBtn" onclick="openStatusPicker(event)">
-            <span id="snapStatusLabel">Set a Status</span>
-          </button>
+          <span class="snap-status-ro" id="snapStatusLabel"></span>
         </div>
       </div>
       <button class="snap-close-btn" onclick="closeSnapshot()">×</button>
@@ -2141,7 +2160,7 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
 
   <!-- Body -->
   <div class="snap-body">
-    <!-- Contact sidebar -->
+    <!-- Contact sidebar (read-only — edit on the employee's Profile page under People) -->
     <div class="snap-contact" id="snapContact">
       <div>
         <div class="snap-contact-section-label">Contact Info</div>
@@ -4089,6 +4108,7 @@ const CONTACT_FIELDS = [
   { key:'businessUnit',label:'Business Unit',      link:false },
   { key:'bizParent',   label:'Biz Parent',         link:false },
   { key:'manager',     label:'Manager',            link:false },
+  { key:'address',     label:'Address',            link:false },
 ];
 
 function openSnapshot(resId) {
@@ -4135,9 +4155,11 @@ function renderSnapshot() {
   document.getElementById('snapName').textContent = res.first+' '+res.last;
   document.getElementById('snapDept').textContent = res.dept+': '+res.role;
   document.getElementById('snapInitials').textContent = initials(res);
-  document.getElementById('snapStatusLabel').textContent = res.status || 'Set a Status';
+  const statusEl = document.getElementById('snapStatusLabel');
+  statusEl.textContent = res.status || 'No status set';
+  statusEl.classList.toggle('unset', !res.status);
 
-  // photo
+  // photo (view only — edit on the Profile page)
   const img = document.getElementById('snapPhotoImg');
   const initEl = document.getElementById('snapInitials');
   const photoEl = document.getElementById('snapPhoto');
@@ -4148,7 +4170,7 @@ function renderSnapshot() {
     img.style.display='none'; initEl.style.display='';
   }
 
-  // ── Contact sidebar ──
+  // ── Contact sidebar (read-only) ──
   renderSnapContact(res);
 
   // ── Main ──
@@ -4166,108 +4188,19 @@ function renderSnapContact(res) {
     lbl.className = 'snap-field-label';
     lbl.textContent = f.label;
     const valEl = document.createElement('div');
-    valEl.className = 'snap-field-val' + (f.link ? '' : ' plain');
-    valEl.textContent = val || '—';
-    valEl.title = 'Click to edit';
-
-    // click to edit inline
-    valEl.onclick = () => startFieldEdit(res, f, valEl, fieldEl);
+    valEl.className = 'snap-field-val-ro';
+    if (val && f.key === 'email') {
+      valEl.innerHTML = `<a href="mailto:${val}">${val}</a>`;
+    } else if (val && f.key === 'skillsLink') {
+      const href = /^https?:\/\//i.test(val) ? val : ('https://' + val);
+      valEl.innerHTML = `<a href="${href}" target="_blank" rel="noopener">${val}</a>`;
+    } else {
+      valEl.textContent = val || '—';
+    }
     fieldEl.appendChild(lbl);
     fieldEl.appendChild(valEl);
     container.appendChild(fieldEl);
   });
-}
-
-function startFieldEdit(res, f, valEl, fieldEl) {
-  const input = document.createElement('input');
-  input.className = 'snap-field-input';
-  input.value = res[f.key] || '';
-  input.placeholder = f.label;
-  fieldEl.replaceChild(input, valEl);
-  input.focus(); input.select();
-
-  function commit() {
-    res[f.key] = input.value.trim();
-    save();
-    // restore display
-    const newVal = document.createElement('div');
-    newVal.className = 'snap-field-val' + (f.link ? '' : ' plain');
-    newVal.textContent = res[f.key] || '—';
-    newVal.title = 'Click to edit';
-    newVal.onclick = () => startFieldEdit(res, f, newVal, fieldEl);
-    fieldEl.replaceChild(newVal, input);
-    // update header if title changed
-    if (f.key === 'title' || f.key === 'manager') renderSnapshot();
-  }
-
-  input.addEventListener('blur', commit);
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-    if (e.key === 'Escape') { input.value = res[f.key]||''; input.blur(); }
-  });
-}
-
-function handleSnapPhoto(ev) {
-  const file = ev.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const res = state.resources.find(r=>r.id===_snapResId);
-    if (!res) return;
-    res.photo = e.target.result;
-    save();
-    renderSnapshot();
-  };
-  reader.readAsDataURL(file);
-  ev.target.value = ''; // reset so same file can be re-uploaded
-}
-
-// Status picker
-let _statusPopover = null;
-const STATUS_OPTIONS = ['Available','Busy','Out of Office','On Leave','Remote'];
-function openStatusPicker(ev) {
-  ev.stopPropagation();
-  if (_statusPopover) { _statusPopover.remove(); _statusPopover=null; return; }
-  const pop = document.createElement('div');
-  pop.className = 'status-popover';
-  STATUS_OPTIONS.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'status-opt';
-    btn.textContent = opt;
-    btn.onclick = () => {
-      const res = state.resources.find(r=>r.id===_snapResId);
-      if (res) { res.status=opt; save(); }
-      document.getElementById('snapStatusLabel').textContent = opt;
-      pop.remove(); _statusPopover=null;
-    };
-    pop.appendChild(btn);
-  });
-  // Clear status option
-  const clr = document.createElement('button');
-  clr.className = 'status-opt';
-  clr.style.color = 'var(--txt-muted)'; clr.style.fontStyle='italic';
-  clr.textContent = '✕  Clear status';
-  clr.onclick = () => {
-    const res = state.resources.find(r=>r.id===_snapResId);
-    if (res) { delete res.status; save(); }
-    document.getElementById('snapStatusLabel').textContent = 'Set a Status';
-    pop.remove(); _statusPopover=null;
-  };
-  pop.appendChild(clr);
-
-  const btn = document.getElementById('snapStatusBtn');
-  const rect = btn.getBoundingClientRect();
-  pop.style.cssText = `top:${rect.bottom+6}px;left:${rect.left}px;`;
-  document.body.appendChild(pop);
-  _statusPopover = pop;
-  setTimeout(()=>{
-    function onStatusMouseUp(e) {
-      if (!pop.contains(e.target) && _overlayMousedownTarget && !pop.contains(_overlayMousedownTarget)) {
-        pop.remove(); _statusPopover=null;
-        document.removeEventListener('mouseup', onStatusMouseUp);
-      }
-    }
-    document.addEventListener('mouseup', onStatusMouseUp);
-  }, 0);
 }
 
 function renderSnapMain() {
@@ -5622,35 +5555,30 @@ function renderEmployeeProfile(resId){
     </div>
     <div class="profile-shell">
       <div class="profile-left">
-        <div class="profile-photo-wrap">${photoHtml}</div>
+        <div class="profile-photo-wrap">
+          ${photoHtml}
+          <label class="profile-photo-edit" title="Upload photo">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2l2 2-6 6H2V8L8 2z"/></svg>
+            <input type="file" accept="image/*" onchange="handleProfilePhoto(event)">
+          </label>
+        </div>
         <div>
           <div class="profile-name">${res.first} ${res.last}</div>
           <div class="profile-title">${res.title||res.role||''}</div>
           <div class="profile-tags">${(res.tags||[]).map(t=>`<span class="profile-tag">${t}</span>`).join('')}</div>
           <div class="profile-tenure">Tenure: ${tenureStr}</div>
+          <div class="profile-status-row">
+            <button class="profile-status-btn ${res.status?'':'unset'}" id="profStatusBtn" onclick="openProfStatusPicker(event)">
+              <span id="profStatusLabel">${res.status || 'Set a Status'}</span>
+            </button>
+          </div>
         </div>
         <button class="profile-kudos-btn" onclick="sendKudos('${res.id}')">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 2c1.5-1.5 4 0 4 2 0 2.5-4 5.5-4 5.5s-4-3-4-5.5c0-2 2.5-3.5 4-2z"/></svg>
           Give Kudos
         </button>
-        <div class="profile-info-list">
-          <div class="profile-info-row">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="11" height="9" rx="1"/><path d="M1 3l5.5 4L12 3"/></svg>
-            Office: ${res.location||'—'}
-          </div>
-          <div class="profile-info-row">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="4" r="2.5"/><path d="M2 12c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/></svg>
-            Manager: <span class="profile-info-link" onclick="event.stopPropagation();">${res.manager||'—'}</span>
-          </div>
-          <div class="profile-info-row">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="11" height="9" rx="1"/><path d="M1 3l5.5 4L12 3"/></svg>
-            ${res.email?`<a href="mailto:${res.email}">${res.email}</a>`:'—'}
-          </div>
-          <div class="profile-info-row">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6l4.5-4.5L11 6"/><path d="M3.5 5v6h7V5"/></svg>
-            ${res.address||res.resourceCity||'—'}
-          </div>
-        </div>
+        <div class="snap-contact-section-label" style="padding-top:10px;border-top:1px solid var(--border);">Contact Info</div>
+        <div id="profContactFields" style="display:flex;flex-direction:column;gap:12px;"></div>
       </div>
 
       <div class="profile-main">
@@ -5699,8 +5627,137 @@ function renderEmployeeProfile(resId){
       </div>
     </div>`;
 
+  // Populate the editable Contact Info list (the only place these fields can be edited)
+  renderProfContactFields(res);
+
   // Re-apply any previously-open sections (e.g. after an edit re-render)
   _profOpenSections.forEach(id=>openProfileSectionContent(resId,id));
+}
+
+// ── Editable Contact Info on the Profile page (the single source of truth for this data —
+// the Snapshot slide-over panel only ever displays it read-only) ──
+function renderProfContactFields(res){
+  const container = document.getElementById('profContactFields');
+  if(!container) return;
+  container.innerHTML = '';
+  CONTACT_FIELDS.forEach(f => {
+    const val = res[f.key] || '';
+    const fieldEl = document.createElement('div');
+    fieldEl.className = 'snap-field';
+    const lbl = document.createElement('div');
+    lbl.className = 'snap-field-label';
+    lbl.textContent = f.label;
+    const valEl = document.createElement('div');
+    valEl.className = 'snap-field-val' + (f.link ? '' : ' plain');
+    valEl.textContent = val || '—';
+    valEl.title = 'Click to edit';
+    valEl.onclick = () => startProfFieldEdit(res, f, valEl, fieldEl);
+    fieldEl.appendChild(lbl);
+    fieldEl.appendChild(valEl);
+    container.appendChild(fieldEl);
+  });
+}
+
+function startProfFieldEdit(res, f, valEl, fieldEl){
+  const input = document.createElement('input');
+  input.className = 'snap-field-input';
+  input.value = res[f.key] || '';
+  input.placeholder = f.label;
+  fieldEl.replaceChild(input, valEl);
+  input.focus(); input.select();
+
+  function commit(){
+    res[f.key] = input.value.trim();
+    save();
+    const newVal = document.createElement('div');
+    newVal.className = 'snap-field-val' + (f.link ? '' : ' plain');
+    newVal.textContent = res[f.key] || '—';
+    newVal.title = 'Click to edit';
+    newVal.onclick = () => startProfFieldEdit(res, f, newVal, fieldEl);
+    fieldEl.replaceChild(newVal, input);
+    // Title/manager/location changes show up elsewhere on this page — refresh those bits
+    if (f.key === 'title') {
+      const nameBlockTitle = document.querySelector('.profile-title');
+      if (nameBlockTitle) nameBlockTitle.textContent = res.title || res.role || '';
+    }
+  }
+
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { input.value = res[f.key]||''; input.blur(); }
+  });
+}
+
+// ── Profile photo upload (the only place a photo can be set — Snapshot is view-only) ──
+function handleProfilePhoto(ev){
+  const file = ev.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const res = state.resources.find(r=>r.id===_profileResId);
+    if (!res) return;
+    pushUndo();
+    res.photo = e.target.result;
+    save();
+    renderEmployeeProfile(_profileResId);
+  };
+  reader.readAsDataURL(file);
+  ev.target.value = '';
+}
+
+// ── Profile status picker (the only place status can be set — Snapshot is view-only) ──
+let _statusPopover = null;
+const STATUS_OPTIONS = ['Available','Busy','Out of Office','On Leave','Remote'];
+function openProfStatusPicker(ev){
+  ev.stopPropagation();
+  if (_statusPopover) { _statusPopover.remove(); _statusPopover=null; return; }
+  const resId = _profileResId;
+  const pop = document.createElement('div');
+  pop.className = 'status-popover';
+  STATUS_OPTIONS.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'status-opt';
+    btn.textContent = opt;
+    btn.onclick = () => {
+      const res = state.resources.find(r=>r.id===resId);
+      if (res) { pushUndo(); res.status=opt; save(); }
+      const lbl = document.getElementById('profStatusLabel');
+      const btnEl = document.getElementById('profStatusBtn');
+      if (lbl) lbl.textContent = opt;
+      if (btnEl) btnEl.classList.remove('unset');
+      pop.remove(); _statusPopover=null;
+    };
+    pop.appendChild(btn);
+  });
+  const clr = document.createElement('button');
+  clr.className = 'status-opt';
+  clr.style.color = 'var(--txt-muted)'; clr.style.fontStyle='italic';
+  clr.textContent = '✕  Clear status';
+  clr.onclick = () => {
+    const res = state.resources.find(r=>r.id===resId);
+    if (res) { pushUndo(); delete res.status; save(); }
+    const lbl = document.getElementById('profStatusLabel');
+    const btnEl = document.getElementById('profStatusBtn');
+    if (lbl) lbl.textContent = 'Set a Status';
+    if (btnEl) btnEl.classList.add('unset');
+    pop.remove(); _statusPopover=null;
+  };
+  pop.appendChild(clr);
+
+  const btn = document.getElementById('profStatusBtn');
+  const rect = btn.getBoundingClientRect();
+  pop.style.cssText = `top:${rect.bottom+6}px;left:${rect.left}px;`;
+  document.body.appendChild(pop);
+  _statusPopover = pop;
+  setTimeout(()=>{
+    function onStatusMouseUp(e){
+      if (!pop.contains(e.target) && _overlayMousedownTarget && !pop.contains(_overlayMousedownTarget)) {
+        pop.remove(); _statusPopover=null;
+        document.removeEventListener('mouseup', onStatusMouseUp);
+      }
+    }
+    document.addEventListener('mouseup', onStatusMouseUp);
+  }, 0);
 }
 
 function toggleProfileSection(id){
