@@ -2284,6 +2284,9 @@ function ensureResourceExtras(){
     if (r.employeeType === undefined)  r.employeeType = 'Direct';
     if (r.timesheetOk === undefined)   r.timesheetOk = true;
     if (r.trainings === undefined)     r.trainings = DEFAULT_TRAININGS();
+    // Sales activity is genuine data (dates the person logged sales-related time) rather
+    // than a fabricated series — empty by default, added via the chart's "+ Add" link.
+    if (r.salesActivity === undefined) r.salesActivity = [];
     // Skill ratings are now a sparse map keyed by "Category|||Skill Name" -> {rating, certified, notes}
     // referencing the shared master skills matrix rather than a per-person invented list.
     if (r.skillRatings === undefined)  r.skillRatings = {};
@@ -2538,11 +2541,16 @@ function renderPeopleFiltersDropdowns() {
   fill('filterManager', managers); fill('filterBizUnit', bizUnits); fill('filterCity', cities); fill('filterTitle', titles);
 }
 
+// Set to true only by intentional navigation (Today / Back / Forward / D-W-M switch) —
+// everything else (edits, drags, undo, etc.) re-renders in place without moving the scroll.
+let _forceScrollToToday = true; // true on first load so the initial render lands on Today
+
 function setGranularity(g){
   granularity=g;
   document.querySelectorAll('.dwm-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('dwm'+g).classList.add('active');
   if(g==='D'){ rangeStart.setDate(rangeStart.getDate()-((rangeStart.getDay()+6)%7)); }
+  _forceScrollToToday = true;
   renderSchedule();
 }
 function shiftRange(dir){
@@ -2551,16 +2559,19 @@ function shiftRange(dir){
   if(granularity==='W') rangeStart.setDate(rangeStart.getDate()+dir*7*visibleCols);
   else if(granularity==='D') rangeStart.setDate(rangeStart.getDate()+dir*visibleCols);
   else rangeStart.setMonth(rangeStart.getMonth()+dir*visibleCols);
+  _forceScrollToToday = true;
   renderSchedule();
 }
 function goFirst(){
   rangeStart=new Date(today);
   rangeStart.setDate(rangeStart.getDate()-((rangeStart.getDay()+6)%7));
+  _forceScrollToToday = true;
   renderSchedule();
 }
 function goToday(){
   rangeStart=new Date(today);
   rangeStart.setDate(rangeStart.getDate()-((rangeStart.getDay()+6)%7));
+  _forceScrollToToday = true;
   renderSchedule();
   // Scroll is handled inside renderSchedule via requestAnimationFrame
 }
@@ -2571,6 +2582,11 @@ function goToday(){
 let expandedRes = new Set(state.resources.map(r=>r.id)); // all expanded by default
 
 function renderSchedule(){
+  // Capture the current scroll position BEFORE touching the DOM so an edit-triggered
+  // re-render doesn't yank the view back to Today — only intentional navigation should.
+  const _tlElBefore = document.getElementById('tlScroll');
+  const _prevScrollLeft = _tlElBefore ? _tlElBefore.scrollLeft : null;
+
   const cols = getColumns();
   const TW = totalW(cols);
 
@@ -3081,10 +3097,18 @@ function renderSchedule(){
   renderSummary();
   renderSidebar();
 
-  // Scroll so the EXTRA_COLS buffer is hidden to the left — today appears near the left edge
+  // Scroll positioning: on intentional navigation (Today/Back/Forward/D-W-M), land on
+  // Today with the EXTRA_COLS buffer hidden to the left. Otherwise (e.g. after an edit
+  // just re-rendered the same view), restore exactly where the user was scrolled to.
   requestAnimationFrame(() => {
     const tl = document.getElementById('tlScroll');
-    if (tl) tl.scrollLeft = EXTRA_COLS * COL_W;
+    if (!tl) return;
+    if (_forceScrollToToday) {
+      tl.scrollLeft = EXTRA_COLS * COL_W;
+      _forceScrollToToday = false;
+    } else if (_prevScrollLeft !== null) {
+      tl.scrollLeft = Math.min(_prevScrollLeft, tl.scrollWidth - tl.clientWidth);
+    }
   });
 }
 
@@ -3092,12 +3116,14 @@ function renderSchedule(){
 let pgGranularity = 'W';
 let pgRangeStart  = new Date(today);
 let pgExpandedProjs = new Set();
+let _pgForceScrollToToday = true; // true on first load; edits re-render in place otherwise
 (function(){ pgRangeStart.setDate(pgRangeStart.getDate()-((pgRangeStart.getDay()+6)%7)); })();
 
 function setPgGranularity(g){
   pgGranularity=g;
   document.querySelectorAll('[id^=pgDwm]').forEach(b=>b.classList.remove('active'));
   document.getElementById('pgDwm'+g)?.classList.add('active');
+  _pgForceScrollToToday = true;
   renderProjGantt();
 }
 function pgShift(dir){
@@ -3106,12 +3132,18 @@ function pgShift(dir){
   if(pgGranularity==='W') pgRangeStart.setDate(pgRangeStart.getDate()+dir*7*visCols);
   else if(pgGranularity==='D') pgRangeStart.setDate(pgRangeStart.getDate()+dir*visCols);
   else pgRangeStart.setMonth(pgRangeStart.getMonth()+dir*visCols);
+  _pgForceScrollToToday = true;
   renderProjGantt();
 }
-function pgGoFirst(){ pgRangeStart=new Date(today); pgRangeStart.setDate(pgRangeStart.getDate()-((pgRangeStart.getDay()+6)%7)); renderProjGantt(); }
+function pgGoFirst(){ pgRangeStart=new Date(today); pgRangeStart.setDate(pgRangeStart.getDate()-((pgRangeStart.getDay()+6)%7)); _pgForceScrollToToday = true; renderProjGantt(); }
 function pgGoToday(){ pgGoFirst(); }
 
 function renderProjGantt(){
+  // Capture current scroll position before rebuilding the DOM — same reasoning as
+  // renderSchedule(): an edit-triggered re-render shouldn't move the view.
+  const _pgTlBefore = document.getElementById('pgTlScroll');
+  const _pgPrevScrollLeft = _pgTlBefore ? _pgTlBefore.scrollLeft : null;
+
   // Reuse getColumns logic but with pg prefix
   const origGran=granularity, origStart=new Date(rangeStart);
   granularity=pgGranularity; rangeStart=pgRangeStart;
@@ -3243,10 +3275,17 @@ function renderProjGantt(){
     tlBody.appendChild(tlGroup);
   });
 
-  // Sync scroll
+  // Scroll positioning: same rule as renderSchedule() — only jump to Today on
+  // intentional navigation, otherwise keep the view wherever it was.
   requestAnimationFrame(()=>{
     const tl=document.getElementById('pgTlScroll');
-    if(tl) tl.scrollLeft=EXTRA_COLS*COL_W;
+    if (!tl) return;
+    if (_pgForceScrollToToday) {
+      tl.scrollLeft = EXTRA_COLS*COL_W;
+      _pgForceScrollToToday = false;
+    } else if (_pgPrevScrollLeft !== null) {
+      tl.scrollLeft = Math.min(_pgPrevScrollLeft, tl.scrollWidth - tl.clientWidth);
+    }
   });
 }
 function togglePgProj(id){
@@ -5252,7 +5291,7 @@ function buildEmpRepDetailPanel(resId){
       <div class="emprep-toggle-row">
         <div class="emprep-toggle ${showDetails?'on':''}" onclick="toggleShowDetails('${resId}', this)"></div>
         <span>Show Details</span>
-        <span style="color:var(--txt-muted);font-size:11px;">(adds Training activity and Sales markers to the chart)</span>
+        <a href="#" onclick="event.preventDefault();openUtilCalcModal()" style="color:var(--blue);font-size:11px;margin-left:8px;">How is utilization calculated?</a>
       </div>
       <div class="emprep-stat-grid">
         <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.lastWeek}%</div><div class="emprep-stat-lbl">Last Week</div></div>
@@ -5325,18 +5364,81 @@ function buildBigUtilBarChart(resId, showDetails){
   const yScale = v => chartH - (v/maxPct*chartH);
   const targetY = PAD.t + yScale(target);
 
-  let bars = '';
+  // Map each week to its Training / Sales activity (real per-resource records, not fabricated)
+  function weekHasActivity(list, dateKey){
+    return (list||[]).some(item=>{
+      const raw = item[dateKey];
+      if(!raw || raw === '—') return false;
+      const d = new Date(raw);
+      if(isNaN(d.getTime())) return null;
+      return d;
+    });
+  }
+  function findWeekMatch(list, dateKey, w){
+    return (list||[]).find(item=>{
+      const raw = item[dateKey];
+      if(!raw || raw === '—') return false;
+      const d = new Date(raw);
+      if(isNaN(d.getTime())) return false;
+      return d >= w.wStart && d <= w.wEnd;
+    });
+  }
+
+  // ── Background reference zone: light khaki band from 0% to the target line ──
+  let bg = `<rect x="${PAD.l}" y="${targetY}" width="${chartW}" height="${chartH-(targetY-PAD.t)}" fill="#F5EEDC"/>`;
+
+  // ── Per-week stacked bars: grey/orange "Scheduled" base + teal/red "Utilization" overlay ──
+  let scheduledBars = '', utilBars = '', trainingBars = '', salesBars = '';
   series.forEach((w,i)=>{
     const x = PAD.l + i*(barW+barGap);
-    const isOver = w.pct > target;
-    const barColor = w.isFuture ? '#94A3B8' : (isOver ? '#EF4444' : '#3F6B6B');
-    const bh = chartH - yScale(w.pct);
-    // Future weeks get a khaki background column behind the bar
-    if(w.isFuture || w.isCurrent){
-      bars += `<rect x="${x}" y="${PAD.t}" width="${barW}" height="${chartH}" fill="#F5EEDC"/>`;
+    const schedTopY = targetY; // top of the scheduled reference bar (bottom = chart floor)
+    const schedH = chartH - (targetY - PAD.t);
+
+    const trainingMatch = showDetails ? findWeekMatch(res.trainings, 'lastActivity', w) : null;
+    const salesMatch = showDetails ? findWeekMatch(res.salesActivity, 'date', w) : null;
+
+    // Base "Scheduled" bar (grey), or orange if this week's gap is explained by training
+    const baseColor = trainingMatch ? '#F59E0B' : '#8B95A1';
+    if (trainingMatch) {
+      trainingBars += `<rect x="${x}" y="${schedTopY}" width="${barW}" height="${Math.max(1,schedH)}" fill="${baseColor}" rx="1"><title>${trainingMatch.name} — ${trainingMatch.lastActivity}</title></rect>`;
+    } else {
+      scheduledBars += `<rect x="${x}" y="${schedTopY}" width="${barW}" height="${Math.max(1,schedH)}" fill="${baseColor}" rx="1"/>`;
     }
-    bars += `<rect x="${x}" y="${PAD.t+yScale(w.pct)}" width="${barW}" height="${Math.max(1,bh)}" fill="${barColor}" rx="1"/>`;
+
+    // "Utilization" overlay (teal, red if over target) — only for past/current weeks with real data
+    if (!w.isFuture) {
+      const isOver = w.pct > target;
+      const utilColor = isOver ? '#EF4444' : '#3F6B6B';
+      const utilTopY = PAD.t + yScale(w.pct);
+      const utilH = chartH - yScale(w.pct);
+      utilBars += `<rect x="${x}" y="${utilTopY}" width="${barW}" height="${Math.max(1,utilH)}" fill="${utilColor}" rx="1"><title>Week of ${fmtShort(w.wStart)}: ${w.pct}%</title></rect>`;
+
+      // If training covers this week AND utilization already reaches/exceeds target, there's
+      // no "gap" left for the training color to show — draw a thin orange cap on top instead.
+      if (trainingMatch && w.pct >= target) {
+        trainingBars += `<rect x="${x}" y="${utilTopY-4}" width="${barW}" height="4" fill="#F59E0B"/>`;
+      }
+    }
+
+    // Sales: a small mint spike stacked on top of whatever the bar currently reaches
+    if (salesMatch) {
+      const baseTopY = !w.isFuture ? PAD.t + yScale(w.pct) : schedTopY;
+      const spikeH = 18;
+      salesBars += `<rect x="${x}" y="${baseTopY-spikeH}" width="${barW}" height="${spikeH}" fill="#5EEAD4" rx="1"><title>Sales activity — ${salesMatch.date}</title></rect>`;
+    }
   });
+
+  // ── Real 4-week trailing moving average of Utilization (not a flat target line) ──
+  const pastSeries = series.filter(w=>!w.isFuture);
+  let avgPoints = [];
+  pastSeries.forEach((w,i)=>{
+    const windowVals = pastSeries.slice(Math.max(0,i-3), i+1).map(x=>x.pct);
+    const avg = windowVals.reduce((s,v)=>s+v,0) / windowVals.length;
+    const idx = series.indexOf(w);
+    const x = PAD.l + idx*(barW+barGap) + barW/2;
+    avgPoints.push(`${x},${PAD.t+yScale(avg)}`);
+  });
+  const avgLine = avgPoints.length ? `<polyline points="${avgPoints.join(' ')}" fill="none" stroke="#EF4444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : '';
 
   // Month labels
   let monthLabels = '';
@@ -5349,46 +5451,125 @@ function buildBigUtilBarChart(resId, showDetails){
 
   const yLabels = [0,50,100,150,200].filter(v=>v<=maxPct);
 
-  // ── "Show Details" adds real Training markers (derived from this person's actual
-  // training records) plus a Sales legend entry. There's no sales data model anywhere
-  // in this app yet, so Sales is labeled "Coming soon" rather than showing fabricated numbers. ──
-  let trainingMarkers = '';
-  if (showDetails) {
-    (res.trainings||[]).forEach(t => {
-      if (!t.lastActivity || t.lastActivity === '—') return;
-      const d = new Date(t.lastActivity);
-      if (isNaN(d.getTime())) return;
-      const idx = series.findIndex(w => d >= w.wStart && d <= w.wEnd);
-      if (idx === -1) return;
-      const x = PAD.l + idx*(barW+barGap) + barW/2;
-      trainingMarkers += `<circle cx="${x}" cy="${PAD.t+8}" r="4" fill="#F59E0B" stroke="#fff" stroke-width="1"><title>${t.name} — ${t.lastActivity}</title></circle>`;
-    });
-  }
-
   const legendItems = [
-    `<span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#3F6B6B;display:inline-block;border-radius:2px;"></span>Utilization</span>`,
-    `<span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#F5EEDC;border:1px solid #E2D9BE;display:inline-block;border-radius:2px;"></span>Scheduled</span>`,
-    `<span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:2px;background:#EF4444;display:inline-block;"></span>Target (${target}%)</span>`,
+    { key:'utilization', color:'#3F6B6B', shape:'sq', label:'Utilization' },
+    { key:'scheduled',   color:'#8B95A1', shape:'sq', label:'Scheduled Utilization' },
   ];
   if (showDetails) {
-    legendItems.push(`<span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;background:#F59E0B;border-radius:50%;display:inline-block;"></span>Training</span>`);
-    legendItems.push(`<span style="display:flex;align-items:center;gap:4px;color:var(--txt-muted);font-style:italic;"><span style="width:9px;height:9px;background:#E2E8F0;border:1px dashed #94A3B8;display:inline-block;border-radius:2px;"></span>Sales (coming soon)</span>`);
+    legendItems.push({ key:'training', color:'#F59E0B', shape:'sq', label:'Training' });
+    legendItems.push({ key:'sales',    color:'#5EEAD4', shape:'sq', label:'Sales' });
   }
+  legendItems.push({ key:'average', color:'#EF4444', shape:'ln', label:'4-Week Average Utilization' });
+
+  const svgId = 'utilSvg-' + resId;
+  const legendHtml = legendItems.map(li => `
+    <span class="uc-legend-item" data-series="${li.key}"
+      onmouseenter="highlightUtilSeries('${svgId}','${li.key}')" onmouseleave="clearUtilHighlight('${svgId}')"
+      style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+      <span style="width:9px;height:${li.shape==='ln'?'2px':'9px'};background:${li.color};display:inline-block;border-radius:${li.shape==='ln'?'0':'2px'};"></span>${li.label}
+    </span>`).join('');
+
+  const salesAddLink = showDetails
+    ? `<button class="proj-add-link" style="font-size:10px;margin-left:8px;" onclick="addSalesActivity('${resId}')">+ Add Sales Entry</button>`
+    : '';
 
   return `
     <div style="overflow-x:auto;">
-      <svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:900px;display:block;" xmlns="http://www.w3.org/2000/svg">
+      <svg id="${svgId}" viewBox="0 0 ${W} ${H}" style="width:100%;min-width:900px;display:block;" xmlns="http://www.w3.org/2000/svg">
+        ${bg}
         ${yLabels.map(v=>`<line x1="${PAD.l}" y1="${PAD.t+yScale(v)}" x2="${PAD.l+chartW}" y2="${PAD.t+yScale(v)}" stroke="#E2E8F0" stroke-width="1"/><text x="4" y="${PAD.t+yScale(v)+4}" font-size="10" fill="#94A3B8" font-family="monospace">${v}%</text>`).join('')}
-        ${bars}
-        ${trainingMarkers}
-        <line x1="${PAD.l}" y1="${targetY}" x2="${PAD.l+chartW}" y2="${targetY}" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5,3"/>
-        <text x="${PAD.l+chartW-70}" y="${targetY-5}" font-size="10" fill="#EF4444" font-family="sans-serif" font-weight="700">Utilization Target</text>
+        <g class="uc-series" data-series="scheduled" style="opacity:0.18">${scheduledBars}</g>
+        <g class="uc-series" data-series="training" style="opacity:0.18">${trainingBars}</g>
+        <g class="uc-series" data-series="utilization" style="opacity:1">${utilBars}</g>
+        <g class="uc-series" data-series="sales" style="opacity:0.18">${salesBars}</g>
+        <line x1="${PAD.l}" y1="${targetY}" x2="${PAD.l+chartW}" y2="${targetY}" stroke="#D97706" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+        <g class="uc-tag">
+          <rect x="${PAD.l+chartW-118}" y="${targetY-12}" width="116" height="18" rx="9" fill="#F59E0B"/>
+          <text x="${PAD.l+chartW-60}" y="${targetY+1}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="sans-serif">Utilization Target</text>
+        </g>
+        <g class="uc-series" data-series="average" style="opacity:0.18">${avgLine}</g>
         ${monthLabels}
       </svg>
-      <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--txt-sub);flex-wrap:wrap;">
-        ${legendItems.join('')}
+      <div style="display:flex;align-items:center;gap:16px;margin-top:6px;font-size:11px;color:var(--txt-sub);flex-wrap:wrap;">
+        ${legendHtml}
+        ${salesAddLink}
       </div>
     </div>`;
+}
+
+// ── Legend hover-to-highlight ──
+// Default (nothing hovered): Utilization stays fully visible, everything else is muted
+// as background context — this is what used to only show while hovering "Utilization".
+// Hover "Utilization" itself: reveals every series at full opacity for direct comparison.
+// Hover any other series: isolates that one (Utilization included) the same as before.
+function highlightUtilSeries(svgId, seriesKey){
+  const svg = document.getElementById(svgId); if(!svg) return;
+  svg.querySelectorAll('.uc-series').forEach(g=>{
+    if (seriesKey === 'utilization') {
+      g.style.opacity = '1'; // reveal everything while hovering Utilization
+    } else {
+      g.style.opacity = (g.dataset.series === seriesKey) ? '1' : '0.18';
+    }
+  });
+}
+function clearUtilHighlight(svgId){
+  const svg = document.getElementById(svgId); if(!svg) return;
+  svg.querySelectorAll('.uc-series').forEach(g=>{
+    g.style.opacity = (g.dataset.series === 'utilization') ? '1' : '0.18';
+  });
+}
+
+function addSalesActivity(resId){
+  const dateStr = prompt('Date of sales activity (MM/DD/YYYY):'); if(!dateStr) return;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) { showToast('Enter a valid date', 'error'); return; }
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  pushUndo();
+  res.salesActivity = res.salesActivity || [];
+  res.salesActivity.push({ date: dateStr });
+  save();
+  const wrap = document.getElementById('utilChartWrap-'+resId);
+  if (wrap) wrap.innerHTML = buildBigUtilBarChart(resId, true);
+  showToast('Sales activity added');
+}
+
+// ── "How is utilization calculated?" explainer ──
+function openUtilCalcModal(){
+  closeUtilCalcModal();
+  const pop = document.createElement('div');
+  pop.id = 'utilCalcModal';
+  pop.style.cssText = `
+    position:fixed;z-index:900;left:50%;top:50%;transform:translate(-50%,-50%);
+    background:#fff;border:1px solid var(--border);border-radius:10px;
+    box-shadow:0 16px 48px rgba(0,0,0,.22);width:520px;max-width:92vw;max-height:82vh;overflow-y:auto;
+    padding:20px 22px;font-family:var(--sans);
+  `;
+  pop.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:15px;font-weight:700;color:var(--txt-main);">Utilization Calculations</div>
+      <button onclick="closeUtilCalcModal()" style="border:none;background:none;font-size:18px;color:var(--txt-muted);cursor:pointer;">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--txt-sub);line-height:1.6;">
+      <p style="margin-bottom:10px;">Utilization is calculated with the following formula:</p>
+      <p style="text-align:center;margin-bottom:14px;">
+        <code style="background:var(--bg-alt);padding:4px 10px;border-radius:5px;font-size:12px;">Billable Project Hours ÷ (Workable Hours − Out of Office Hours)</code>
+      </p>
+      <p style="margin-bottom:8px;"><code style="background:var(--bg-alt);padding:1px 6px;border-radius:4px;">Billable Project Hours</code> is time logged against customer/contract projects — it excludes internal sales and proposal work, and only counts approved timesheet hours.</p>
+      <p style="margin-bottom:8px;"><code style="background:var(--bg-alt);padding:1px 6px;border-radius:4px;">Workable Hours</code> is the hours a person would normally be expected to work in a given period — typically 8 hours/day, prorated for part-time schedules. Holidays and weekends count as zero.</p>
+      <p style="margin-bottom:8px;"><code style="background:var(--bg-alt);padding:1px 6px;border-radius:4px;">Out of Office Hours</code> covers vacation, sick time, floating holidays, bereavement, and jury duty.</p>
+      <p style="margin-bottom:8px;">Example: someone takes 2 days off around a holiday, then works 8-hour days for the remaining 3 workable days that week. With the holiday itself excluded, that week has 32 workable hours, so utilization comes out to 24 ÷ 32 = 75%.</p>
+      <p>Utilization is calculated per week. The prior week's number typically finalizes once that week's timesheets are approved.</p>
+    </div>`;
+  document.body.appendChild(pop);
+  const overlay = document.createElement('div');
+  overlay.id = 'utilCalcOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:899;background:rgba(15,23,42,.35);';
+  overlay.onclick = closeUtilCalcModal;
+  document.body.insertBefore(overlay, pop);
+}
+function closeUtilCalcModal(){
+  document.getElementById('utilCalcModal')?.remove();
+  document.getElementById('utilCalcOverlay')?.remove();
 }
 
 // 6-week schedule mini gantt (used in expanded report row and could be reused elsewhere)
@@ -5902,7 +6083,7 @@ function openProfileSectionContent(resId, id){
       <div class="emprep-toggle-row">
         <div class="emprep-toggle ${showDetails?'on':''}" onclick="toggleShowDetails('${resId}', this)"></div>
         <span>Show Details</span>
-        <span style="color:var(--txt-muted);font-size:11px;">(adds Training activity and Sales markers to the chart)</span>
+        <a href="#" onclick="event.preventDefault();openUtilCalcModal()" style="color:var(--blue);font-size:11px;margin-left:8px;">How is utilization calculated?</a>
       </div>
       <div class="emprep-stat-grid">
         <div class="emprep-stat-card"><div class="emprep-stat-val">${stats.lastWeek}%</div><div class="emprep-stat-lbl">Last Week</div></div>
