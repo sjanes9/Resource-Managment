@@ -5392,23 +5392,22 @@ function buildBigUtilBarChart(resId, showDetails){
     const x = PAD.l + i*(barW+barGap);
     const trainingMatch = showDetails ? findWeekMatch(res.trainings, 'lastActivity', w) : null;
     const salesMatch = showDetails ? findWeekMatch(res.salesActivity, 'date', w) : null;
+    const isOver = w.pct > target;
 
-    if (w.isFuture) {
-      // "Scheduled" for a future week reflects whatever's actually booked/allocated for
-      // that week (w.pct) — not the target. A week with nothing assigned should show 0%,
-      // not a flat full bar, so gaps in someone's future pipeline are visible at a glance.
-      if (w.pct > 0) {
-        const schedTopY = PAD.t + yScale(w.pct);
-        const schedH = chartH - yScale(w.pct);
-        const baseColor = trainingMatch ? '#F59E0B' : '#8B95A1';
-        const rect = `<rect x="${x}" y="${schedTopY}" width="${barW}" height="${Math.max(1,schedH)}" fill="${baseColor}" rx="1"/>`;
-        if (trainingMatch) trainingBars += rect; else scheduledBars += rect;
-      }
-      // If w.pct is 0, nothing is drawn at all for this week — an empty column reads as
-      // "nothing booked yet," matching how Available time already reads elsewhere in the app.
+    if (w.pct <= 0) {
+      // Nothing scheduled or worked this week (past or future) — draw an empty column
+      // rather than implying either a full target gap or a phantom sliver of activity.
+    } else if (w.isFuture) {
+      // "Scheduled" for a future week reflects whatever's actually booked/allocated —
+      // colored red if it's already over-committed relative to target, same rule as
+      // an actual over-worked week, just applied ahead of time as an early warning.
+      const schedTopY = PAD.t + yScale(w.pct);
+      const schedH = chartH - yScale(w.pct);
+      const baseColor = isOver ? '#EF4444' : (trainingMatch ? '#F59E0B' : '#8B95A1');
+      const rect = `<rect x="${x}" y="${schedTopY}" width="${barW}" height="${Math.max(1,schedH)}" fill="${baseColor}" rx="1"/>`;
+      if (trainingMatch && !isOver) trainingBars += rect; else scheduledBars += rect;
     } else {
       // "Utilization" bar — green normally, red if it exceeds target
-      const isOver = w.pct > target;
       const utilColor = isOver ? '#EF4444' : '#10B981';
       const utilTopY = PAD.t + yScale(w.pct);
       const utilH = chartH - yScale(w.pct);
@@ -5416,7 +5415,7 @@ function buildBigUtilBarChart(resId, showDetails){
 
       // "Scheduled" (grey) — ONLY drawn for the gap above actual utilization, i.e. only
       // shows up at all when this week's Utilization falls short of the target.
-      if (w.pct < target) {
+      if (!isOver) {
         const gapTop = targetY, gapBottom = utilTopY, gapH = Math.max(0, gapBottom - gapTop);
         if (gapH > 0.5) {
           const baseColor = trainingMatch ? '#F59E0B' : '#8B95A1';
@@ -5456,12 +5455,18 @@ function buildBigUtilBarChart(resId, showDetails){
   });
   const avgLine = avgPoints.length ? `<polyline points="${avgPoints.join(' ')}" fill="none" stroke="#EF4444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : '';
 
-  // Month labels
+  // Month labels — skip a label if it would land too close to the previous one (short
+  // months like Feb can otherwise crowd/overlap their neighbor's text)
   let monthLabels = '';
+  let _lastLabelX = -Infinity;
+  const MIN_LABEL_GAP = 34;
   series.forEach((w,i)=>{
     if(i===0 || w.wStart.getMonth()!==series[i-1].wStart.getMonth()){
       const x = PAD.l + i*(barW+barGap);
-      monthLabels += `<text x="${x}" y="${H-6}" font-size="10" fill="#94A3B8" font-family="sans-serif">${w.wStart.toLocaleDateString('en-US',{month:'short',year:'2-digit'})}</text>`;
+      if (x - _lastLabelX >= MIN_LABEL_GAP) {
+        monthLabels += `<text x="${x}" y="${H-6}" font-size="10" fill="#94A3B8" font-family="sans-serif">${w.wStart.toLocaleDateString('en-US',{month:'short',year:'2-digit'})}</text>`;
+        _lastLabelX = x;
+      }
     }
   });
 
