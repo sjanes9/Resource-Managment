@@ -915,6 +915,15 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 .util-chart-legend { display: flex; gap: 14px; margin-top: 6px; }
 .util-chart-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--txt-sub); }
 .util-chart-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* Utilization chart legend items — dark rounded badge appears behind the hovered label,
+   matching the highlight cue shown when hovering a series name. */
+.uc-legend-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  cursor: pointer; padding: 3px 8px; border-radius: 12px;
+  transition: background .12s, color .12s;
+}
+.uc-legend-item:hover { background: #1E293B; color: #fff; }
 /* ── toast ── */
 @keyframes toastIn  { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
 @keyframes toastOut { from{opacity:1} to{opacity:0} }
@@ -5364,16 +5373,6 @@ function buildBigUtilBarChart(resId, showDetails){
   const yScale = v => chartH - (v/maxPct*chartH);
   const targetY = PAD.t + yScale(target);
 
-  // Map each week to its Training / Sales activity (real per-resource records, not fabricated)
-  function weekHasActivity(list, dateKey){
-    return (list||[]).some(item=>{
-      const raw = item[dateKey];
-      if(!raw || raw === '—') return false;
-      const d = new Date(raw);
-      if(isNaN(d.getTime())) return null;
-      return d;
-    });
-  }
   function findWeekMatch(list, dateKey, w){
     return (list||[]).find(item=>{
       const raw = item[dateKey];
@@ -5387,45 +5386,62 @@ function buildBigUtilBarChart(resId, showDetails){
   // ── Background reference zone: light khaki band from 0% to the target line ──
   let bg = `<rect x="${PAD.l}" y="${targetY}" width="${chartW}" height="${chartH-(targetY-PAD.t)}" fill="#F5EEDC"/>`;
 
-  // ── Per-week stacked bars: grey/orange "Scheduled" base + teal/red "Utilization" overlay ──
-  let scheduledBars = '', utilBars = '', trainingBars = '', salesBars = '';
+  // ── Per-week bars + invisible hover hit-targets ──
+  let scheduledBars = '', utilBars = '', trainingBars = '', salesBars = '', hitRects = '';
   series.forEach((w,i)=>{
     const x = PAD.l + i*(barW+barGap);
-    const schedTopY = targetY; // top of the scheduled reference bar (bottom = chart floor)
-    const schedH = chartH - (targetY - PAD.t);
-
     const trainingMatch = showDetails ? findWeekMatch(res.trainings, 'lastActivity', w) : null;
     const salesMatch = showDetails ? findWeekMatch(res.salesActivity, 'date', w) : null;
 
-    // Base "Scheduled" bar (grey), or orange if this week's gap is explained by training
-    const baseColor = trainingMatch ? '#F59E0B' : '#8B95A1';
-    if (trainingMatch) {
-      trainingBars += `<rect x="${x}" y="${schedTopY}" width="${barW}" height="${Math.max(1,schedH)}" fill="${baseColor}" rx="1"><title>${trainingMatch.name} — ${trainingMatch.lastActivity}</title></rect>`;
+    if (w.isFuture) {
+      // "Scheduled" for a future week reflects whatever's actually booked/allocated for
+      // that week (w.pct) — not the target. A week with nothing assigned should show 0%,
+      // not a flat full bar, so gaps in someone's future pipeline are visible at a glance.
+      if (w.pct > 0) {
+        const schedTopY = PAD.t + yScale(w.pct);
+        const schedH = chartH - yScale(w.pct);
+        const baseColor = trainingMatch ? '#F59E0B' : '#8B95A1';
+        const rect = `<rect x="${x}" y="${schedTopY}" width="${barW}" height="${Math.max(1,schedH)}" fill="${baseColor}" rx="1"/>`;
+        if (trainingMatch) trainingBars += rect; else scheduledBars += rect;
+      }
+      // If w.pct is 0, nothing is drawn at all for this week — an empty column reads as
+      // "nothing booked yet," matching how Available time already reads elsewhere in the app.
     } else {
-      scheduledBars += `<rect x="${x}" y="${schedTopY}" width="${barW}" height="${Math.max(1,schedH)}" fill="${baseColor}" rx="1"/>`;
-    }
-
-    // "Utilization" overlay (teal, red if over target) — only for past/current weeks with real data
-    if (!w.isFuture) {
+      // "Utilization" bar — green normally, red if it exceeds target
       const isOver = w.pct > target;
-      const utilColor = isOver ? '#EF4444' : '#3F6B6B';
+      const utilColor = isOver ? '#EF4444' : '#10B981';
       const utilTopY = PAD.t + yScale(w.pct);
       const utilH = chartH - yScale(w.pct);
-      utilBars += `<rect x="${x}" y="${utilTopY}" width="${barW}" height="${Math.max(1,utilH)}" fill="${utilColor}" rx="1"><title>Week of ${fmtShort(w.wStart)}: ${w.pct}%</title></rect>`;
+      utilBars += `<rect x="${x}" y="${utilTopY}" width="${barW}" height="${Math.max(1,utilH)}" fill="${utilColor}" rx="1"/>`;
 
-      // If training covers this week AND utilization already reaches/exceeds target, there's
-      // no "gap" left for the training color to show — draw a thin orange cap on top instead.
-      if (trainingMatch && w.pct >= target) {
+      // "Scheduled" (grey) — ONLY drawn for the gap above actual utilization, i.e. only
+      // shows up at all when this week's Utilization falls short of the target.
+      if (w.pct < target) {
+        const gapTop = targetY, gapBottom = utilTopY, gapH = Math.max(0, gapBottom - gapTop);
+        if (gapH > 0.5) {
+          const baseColor = trainingMatch ? '#F59E0B' : '#8B95A1';
+          const rect = `<rect x="${x}" y="${gapTop}" width="${barW}" height="${gapH}" fill="${baseColor}" rx="1"/>`;
+          if (trainingMatch) trainingBars += rect; else scheduledBars += rect;
+        }
+      } else if (trainingMatch) {
+        // Already at/above target with no gap to color — show a thin orange cap instead
         trainingBars += `<rect x="${x}" y="${utilTopY-4}" width="${barW}" height="4" fill="#F59E0B"/>`;
       }
     }
 
     // Sales: a small mint spike stacked on top of whatever the bar currently reaches
     if (salesMatch) {
-      const baseTopY = !w.isFuture ? PAD.t + yScale(w.pct) : schedTopY;
+      const baseTopY = w.pct > 0 ? PAD.t + yScale(w.pct) : PAD.t + chartH; // floor if nothing else is drawn
       const spikeH = 18;
-      salesBars += `<rect x="${x}" y="${baseTopY-spikeH}" width="${barW}" height="${spikeH}" fill="#5EEAD4" rx="1"><title>Sales activity — ${salesMatch.date}</title></rect>`;
+      salesBars += `<rect x="${x}" y="${baseTopY-spikeH}" width="${barW}" height="${spikeH}" fill="#5EEAD4" rx="1"/>`;
     }
+
+    // Invisible full-height hit-rect for this week — shows Week of / Scheduled / Actual on hover
+    const tipDate = w.wStart.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'});
+    const scheduledTipVal = w.isFuture ? w.pct+'%' : target+'%';
+    const tipHtml = `<strong>Week of</strong> ${tipDate}<br><strong>Scheduled</strong> ${scheduledTipVal}<br><strong>Actual</strong> ${w.isFuture ? '—' : w.pct+'%'}`
+      .replace(/'/g, "\\'");
+    hitRects += `<rect x="${x}" y="${PAD.t}" width="${barW+barGap}" height="${chartH}" fill="transparent" onmousemove="showTip(event,'${tipHtml}')" onmouseleave="hideTip()" style="cursor:default;"/>`;
   });
 
   // ── Real 4-week trailing moving average of Utilization (not a flat target line) ──
@@ -5452,7 +5468,7 @@ function buildBigUtilBarChart(resId, showDetails){
   const yLabels = [0,50,100,150,200].filter(v=>v<=maxPct);
 
   const legendItems = [
-    { key:'utilization', color:'#3F6B6B', shape:'sq', label:'Utilization' },
+    { key:'utilization', color:'#10B981', shape:'sq', label:'Utilization' },
     { key:'scheduled',   color:'#8B95A1', shape:'sq', label:'Scheduled Utilization' },
   ];
   if (showDetails) {
@@ -5464,8 +5480,7 @@ function buildBigUtilBarChart(resId, showDetails){
   const svgId = 'utilSvg-' + resId;
   const legendHtml = legendItems.map(li => `
     <span class="uc-legend-item" data-series="${li.key}"
-      onmouseenter="highlightUtilSeries('${svgId}','${li.key}')" onmouseleave="clearUtilHighlight('${svgId}')"
-      style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+      onmouseenter="highlightUtilSeries('${svgId}','${li.key}')" onmouseleave="clearUtilHighlight('${svgId}')">
       <span style="width:9px;height:${li.shape==='ln'?'2px':'9px'};background:${li.color};display:inline-block;border-radius:${li.shape==='ln'?'0':'2px'};"></span>${li.label}
     </span>`).join('');
 
@@ -5478,45 +5493,36 @@ function buildBigUtilBarChart(resId, showDetails){
       <svg id="${svgId}" viewBox="0 0 ${W} ${H}" style="width:100%;min-width:900px;display:block;" xmlns="http://www.w3.org/2000/svg">
         ${bg}
         ${yLabels.map(v=>`<line x1="${PAD.l}" y1="${PAD.t+yScale(v)}" x2="${PAD.l+chartW}" y2="${PAD.t+yScale(v)}" stroke="#E2E8F0" stroke-width="1"/><text x="4" y="${PAD.t+yScale(v)+4}" font-size="10" fill="#94A3B8" font-family="monospace">${v}%</text>`).join('')}
-        <g class="uc-series" data-series="scheduled" style="opacity:0.18">${scheduledBars}</g>
-        <g class="uc-series" data-series="training" style="opacity:0.18">${trainingBars}</g>
-        <g class="uc-series" data-series="utilization" style="opacity:1">${utilBars}</g>
-        <g class="uc-series" data-series="sales" style="opacity:0.18">${salesBars}</g>
+        <g class="uc-series" data-series="scheduled">${scheduledBars}</g>
+        <g class="uc-series" data-series="training">${trainingBars}</g>
+        <g class="uc-series" data-series="utilization">${utilBars}</g>
+        <g class="uc-series" data-series="sales">${salesBars}</g>
         <line x1="${PAD.l}" y1="${targetY}" x2="${PAD.l+chartW}" y2="${targetY}" stroke="#D97706" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
         <g class="uc-tag">
           <rect x="${PAD.l+chartW-118}" y="${targetY-12}" width="116" height="18" rx="9" fill="#F59E0B"/>
           <text x="${PAD.l+chartW-60}" y="${targetY+1}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="sans-serif">Utilization Target</text>
         </g>
-        <g class="uc-series" data-series="average" style="opacity:0.18">${avgLine}</g>
+        <g class="uc-series" data-series="average">${avgLine}</g>
         ${monthLabels}
+        ${hitRects}
       </svg>
-      <div style="display:flex;align-items:center;gap:16px;margin-top:6px;font-size:11px;color:var(--txt-sub);flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:var(--txt-sub);flex-wrap:wrap;">
         ${legendHtml}
         ${salesAddLink}
       </div>
     </div>`;
 }
 
-// ── Legend hover-to-highlight ──
-// Default (nothing hovered): Utilization stays fully visible, everything else is muted
-// as background context — this is what used to only show while hovering "Utilization".
-// Hover "Utilization" itself: reveals every series at full opacity for direct comparison.
-// Hover any other series: isolates that one (Utilization included) the same as before.
+// ── Legend hover-to-highlight: isolate the hovered series, dim the rest; back to normal on leave ──
 function highlightUtilSeries(svgId, seriesKey){
   const svg = document.getElementById(svgId); if(!svg) return;
   svg.querySelectorAll('.uc-series').forEach(g=>{
-    if (seriesKey === 'utilization') {
-      g.style.opacity = '1'; // reveal everything while hovering Utilization
-    } else {
-      g.style.opacity = (g.dataset.series === seriesKey) ? '1' : '0.18';
-    }
+    g.style.opacity = (g.dataset.series === seriesKey) ? '1' : '0.18';
   });
 }
 function clearUtilHighlight(svgId){
   const svg = document.getElementById(svgId); if(!svg) return;
-  svg.querySelectorAll('.uc-series').forEach(g=>{
-    g.style.opacity = (g.dataset.series === 'utilization') ? '1' : '0.18';
-  });
+  svg.querySelectorAll('.uc-series').forEach(g=>{ g.style.opacity = '1'; });
 }
 
 function addSalesActivity(resId){
