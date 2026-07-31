@@ -355,6 +355,57 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
 .pop-field-val { color: var(--txt-main); font-weight: 500; flex: 1; }
 .pop-actions { display: flex; gap: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
 
+/* ── Menu-style bar popover (Project/Assignment/Allocation/From-To sections) ── */
+.bar-popover.menu-style { padding: 10px 0; width: 240px; gap: 0; }
+.bar-popover.menu-style .pop-header { padding: 0 14px 8px; margin-bottom: 4px; }
+.pop-menu-section-label {
+  font-size: 11px; font-weight: 600; color: var(--txt-muted);
+  padding: 8px 14px 4px; text-transform: none;
+}
+.pop-menu-section-label:first-of-type { padding-top: 2px; }
+.pop-menu-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 14px; cursor: pointer; font-size: 13px; color: var(--txt-main);
+  transition: background .1s; border: none; background: none; width: 100%; text-align: left;
+  font-family: var(--sans);
+}
+.pop-menu-row:hover { background: var(--bg-alt); }
+.pop-menu-row.selected { background: #E2E8F0; }
+.pop-menu-row.danger { color: var(--red); }
+.pop-menu-row svg { flex-shrink: 0; color: var(--txt-muted); }
+.pop-menu-row.danger svg { color: var(--red); }
+.pop-menu-row-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.pop-menu-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+/* ── Set Allocation sub-modal ── */
+.set-alloc-modal {
+  position: fixed; z-index: 550;
+  background: #fff; border: 1px solid var(--border); border-radius: 10px;
+  width: 300px; box-shadow: 0 8px 30px rgba(0,0,0,.18);
+  padding: 14px 16px;
+}
+.set-alloc-title { font-size: 13px; font-weight: 700; color: var(--txt-main); margin-bottom: 12px; }
+.set-alloc-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.set-alloc-row input[type=radio] { accent-color: var(--blue); flex-shrink: 0; }
+.set-alloc-row label { flex: 1; font-size: 13px; color: var(--txt-main); cursor: pointer; }
+.set-alloc-row input[type=text], .set-alloc-row input[type=number] {
+  width: 60px; padding: 5px 7px; border: 1px solid var(--border); border-radius: 5px;
+  font-size: 12px; text-align: right; font-family: var(--sans);
+}
+.set-alloc-row .unit { font-size: 11px; color: var(--txt-muted); width: 34px; flex-shrink: 0; }
+.set-alloc-update-btn {
+  width: 100%; padding: 8px; background: var(--blue); color: #fff; border: none;
+  border-radius: 6px; font-size: 13px; font-weight: 600; font-family: var(--sans);
+  cursor: pointer; margin: 4px 0 10px;
+}
+.set-alloc-update-btn:hover { background: var(--blue-dk); }
+.set-alloc-action-row {
+  display: flex; align-items: center; gap: 8px; padding: 7px 4px;
+  font-size: 12px; color: var(--txt-sub); cursor: pointer; border-radius: 5px;
+}
+.set-alloc-action-row:hover { background: var(--bg-alt); }
+.set-alloc-action-row svg { flex-shrink: 0; color: var(--txt-muted); }
+
 /* weekend shading in week-mode header cells */
 .tl-week-cell { position: relative; overflow: hidden; }
 .tl-week-cell-weekend-stripe {
@@ -3311,73 +3362,108 @@ function toggleRes(id){
 
 // ── Bar popover ──
 let _popoverEl = null;
+let _popClickedDate = null; // day under the cursor when the bar was clicked, used by Split
+
+function computeClickedDate(ev, p) {
+  try {
+    const rect = ev.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+    const start = parseD(p.start), end = parseD(p.end);
+    const totalDays = daysBetween(start, end) + 1;
+    const dayOffset = Math.round(ratio * (totalDays-1));
+    const clicked = new Date(start); clicked.setDate(clicked.getDate() + dayOffset);
+    return clicked;
+  } catch(e) { return parseD(p.start); }
+}
+
+const POP_STATUS_OPTIONS = [
+  { key:'upcoming', label:'Upcoming' },
+  { key:'active',   label:'Scheduled' },
+  { key:'on-hold',  label:'On Hold' },
+  { key:'complete', label:'Complete' },
+];
+const POP_STATUS_COLOR = { upcoming:'#8B5CF6', active:'#3B82F6', 'on-hold':'#F59E0B', complete:'#10B981' };
+
 function showBarPopover(ev, p, a, res) {
   closeBarPopover();
-  const pop = document.createElement('div');
-  pop.className = 'bar-popover';
-  const projDays = daysBetween(parseD(p.start), parseD(p.end));
-  const hpd2 = (a.pct/100 * res.capacity / 5);
-  const hpdStr2 = (hpd2%1===0?hpd2.toFixed(0):hpd2.toFixed(1))+'h/d';
-  const schedType = p.scheduleType || 'Scheduled - Onsite';
-  const schedColor = schedType.includes('Onsite')?'#065F46':schedType.includes('Remote')?'#1E40AF':'#92400E';
-  const schedBg    = schedType.includes('Onsite')?'#D1FAE5':schedType.includes('Remote')?'#DBEAFE':'#FEF3C7';
+  _popClickedDate = computeClickedDate(ev, p);
 
-  const fmtLong = d => parseD(d).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const pop = document.createElement('div');
+  pop.className = 'bar-popover menu-style';
+  const fmtShortPop = d => parseD(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const hpd = (a.pct/100 * res.capacity / 5);
+  const hpdStr = (hpd%1===0?hpd.toFixed(0):hpd.toFixed(1))+'h/d';
+  const statusInfo = POP_STATUS_OPTIONS.find(s=>s.key===p.status) || POP_STATUS_OPTIONS[1];
+  const statusColor = POP_STATUS_COLOR[p.status] || POP_STATUS_COLOR.active;
 
   pop.innerHTML = `
     <div class="pop-header">
       <div style="flex:1;min-width:0;">
         <div class="pop-person">${res.first} ${res.last}</div>
         <div class="pop-proj-name">${p.name}</div>
-        ${p.desc?`<div style="font-size:11px;color:var(--txt-sub);margin-top:3px;line-height:1.4">${p.desc}</div>`:''}
       </div>
       <button class="pop-close" onclick="closeBarPopover()">×</button>
     </div>
-    <div style="padding:0 0 10px;">
-      <span class="status-badge" style="background:${schedBg};color:${schedColor};font-size:11px;padding:3px 10px;">${schedType}</span>
-    </div>
-    <div class="pop-fields">
-      <div class="pop-field">
-        <span class="pop-field-label">Client</span>
-        <span class="pop-field-val">${p.client||'—'}</span>
-      </div>
-      <div class="pop-field">
-        <span class="pop-field-label">From</span>
-        <span class="pop-field-val">${fmtLong(p.start)}</span>
-      </div>
-      <div class="pop-field">
-        <span class="pop-field-label">To</span>
-        <span class="pop-field-val">${fmtLong(p.end)}</span>
-      </div>
-      <div class="pop-field">
-        <span class="pop-field-label">Allocation</span>
-        <span class="pop-field-val" style="display:flex;align-items:center;gap:6px;">
-          <span id="popAllocDisplay" style="color:var(--blue);font-weight:600;cursor:pointer;border-bottom:1px dashed var(--blue);" 
-            title="Click to edit" onclick="startPopAllocEdit('${a.id}','${res.id}',${a.pct},${res.capacity})">
-            ${a.pct}% · ${hpdStr2} for ${projDays} work days
-          </span>
-        </span>
-      </div>
-      ${p.owner?`<div class="pop-field"><span class="pop-field-label">Project Owner</span><span class="pop-field-val">${p.owner}</span></div>`:''}
-    </div>
-    <div class="pop-actions" style="justify-content:space-between;">
-      <button class="btn btn-danger" style="font-size:11px;padding:5px 10px;" onclick="deleteAllocation('${a.id}')">
-        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:3px;vertical-align:-1px"><polyline points="1,3 10,3"/><path d="M2 3l.7 7h5.6L9 3"/><path d="M4 3V2h3v1"/></svg>
-        Remove Assignment
-      </button>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="closeBarPopover();openProjectEdit('${p.id}')">Edit</button>
-        <button class="btn btn-primary" style="font-size:11px;padding:5px 10px;" onclick="closeBarPopover();openAllocModal('${p.id}')">Allocations</button>
-      </div>
-    </div>`;
+
+    <div class="pop-menu-section-label">Project</div>
+    <button class="pop-menu-row" onclick="closeBarPopover();openProjectEdit('${p.id}')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><path d="M5 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/></svg>
+      ${p.name}
+    </button>
+    <button class="pop-menu-row" onclick="closeBarPopover()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7c1.5-3 3.5-4.5 5-4.5s3.5 1.5 5 4.5c-1.5 3-3.5 4.5-5 4.5s-3.5-1.5-5-4.5z"/><line x1="2" y1="12" x2="12" y2="2"/></svg>
+      Hide Details
+    </button>
+
+    <div class="pop-menu-section-label">Assignment</div>
+    <button class="pop-menu-row" onclick="popDescribeWork('${p.id}')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 2.5l2 2-6 6H3v-2l6.5-6z"/></svg>
+      Describe the work
+    </button>
+    <button class="pop-menu-row" onclick="event.stopPropagation();popStatusDropdown(event,'${p.id}')">
+      <span class="pop-menu-row-swatch" style="background:${statusColor}"></span>
+      ${statusInfo.label}
+    </button>
+    <button class="pop-menu-row danger" onclick="closeBarPopover();deleteAllocation('${a.id}')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,4 12,4"/><path d="M3 4l.8 8h6.4L11 4"/><path d="M5 4V2.5h4V4"/></svg>
+      Remove
+    </button>
+    <button class="pop-menu-row" onclick="popRepeatAssignment('${res.id}','${p.id}','${a.id}')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7a5 5 0 019-3M12 7a5 5 0 01-9 3"/><polyline points="10,2 11,4.5 8.5,5"/><polyline points="4,12 3,9.5 5.5,9"/></svg>
+      Repeat
+    </button>
+    <button class="pop-menu-row" onclick="popReassign('${a.id}','${res.id}')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="4.5" r="2.5"/><path d="M2.5 12c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/></svg>
+      Reassign
+    </button>
+    <button class="pop-menu-row" onclick="closeBarPopover();openQuickAssign(event,'${res.id}',null)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+      New Assignment
+    </button>
+
+    <div class="pop-menu-section-label">Allocation</div>
+    <button class="pop-menu-row selected" onclick="event.stopPropagation();openSetAllocationModal(event,'${a.id}','${res.id}','${p.id}')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4.5" cy="4.5" r="1.5"/><circle cx="9.5" cy="9.5" r="1.5"/><line x1="3" y1="11" x2="11" y2="3"/></svg>
+      ${hpdStr}
+    </button>
+
+    <div class="pop-menu-section-label">From/To</div>
+    <button class="pop-menu-row" onclick="popEditDate('${p.id}','start')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2l-2 2 2 2M1 4h6"/></svg>
+      ${fmtShortPop(p.start)}
+    </button>
+    <button class="pop-menu-row" onclick="popEditDate('${p.id}','end')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l2 2-2 2M13 4H7"/></svg>
+      ${fmtShortPop(p.end)}
+    </button>`;
   document.body.appendChild(pop);
   _popoverEl = pop;
 
   // position near click, keep on screen
-  const rect = { w: 280, h: 240 };
+  const rectDim = { w: 260, h: 460 };
   let x = ev.clientX + 12, y = ev.clientY + 12;
-  if (x + rect.w > window.innerWidth)  x = ev.clientX - rect.w - 4;
-  if (y + rect.h > window.innerHeight) y = ev.clientY - rect.h - 4;
+  if (x + rectDim.w > window.innerWidth)  x = ev.clientX - rectDim.w - 4;
+  if (y + rectDim.h > window.innerHeight) y = Math.max(8, window.innerHeight - rectDim.h - 8);
   pop.style.left = x + 'px';
   pop.style.top  = y + 'px';
 
@@ -3385,7 +3471,7 @@ function showBarPopover(ev, p, a, res) {
     // Close on mouseup outside the popover, but only if mousedown also started outside
     // This prevents drag-selecting text inside the popover from dismissing it
     function onPopoverMouseUp(e) {
-      if (_popoverEl && !_popoverEl.contains(e.target) && _overlayMousedownTarget && !_popoverEl.contains(_overlayMousedownTarget)) {
+      if (_popoverEl && !_popoverEl.contains(e.target) && !document.getElementById('setAllocModal')?.contains(e.target) && _overlayMousedownTarget && !_popoverEl.contains(_overlayMousedownTarget)) {
         closeBarPopover();
         document.removeEventListener('mouseup', onPopoverMouseUp);
       }
@@ -3395,84 +3481,260 @@ function showBarPopover(ev, p, a, res) {
 }
 function closeBarPopover() {
   if (_popoverEl) { _popoverEl.remove(); _popoverEl = null; }
+  closeSetAllocationModal();
 }
 
-// ── Inline allocation editor inside the popover ──
-function startPopAllocEdit(allocId, resId, currentPct, capacity) {
-  const display = document.getElementById('popAllocDisplay');
-  if (!display) return;
-  const res = state.resources.find(r=>r.id===resId);
-  if (!res) return;
-
-  // Replace the display span with an inline editor
-  const editor = document.createElement('div');
-  editor.style.cssText = 'display:flex;align-items:center;gap:6px;flex-wrap:wrap;';
-  editor.innerHTML = `
-    <label style="font-size:11px;color:var(--txt-sub);">%</label>
-    <input id="popAllocPct" type="number" min="1" max="200" value="${currentPct}"
-      style="width:54px;padding:3px 6px;border:1px solid var(--blue);border-radius:4px;font-size:12px;text-align:center;font-family:var(--sans);outline:none;">
-    <span style="font-size:11px;color:var(--txt-muted);">or</span>
-    <label style="font-size:11px;color:var(--txt-sub);">h/d</label>
-    <input id="popAllocHpd" type="number" min="0.5" max="24" step="0.5"
-      value="${(currentPct/100*capacity/5).toFixed(1)}"
-      style="width:54px;padding:3px 6px;border:1px solid var(--blue);border-radius:4px;font-size:12px;text-align:center;font-family:var(--sans);outline:none;">
-    <button onclick="commitPopAllocEdit('${allocId}','${resId}',${capacity})"
-      style="padding:3px 10px;background:var(--blue);color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--sans);cursor:pointer;">
-      Save
-    </button>
-    <button onclick="cancelPopAllocEdit('${allocId}','${resId}',${currentPct},${capacity})"
-      style="padding:3px 8px;border:1px solid var(--border);background:none;border-radius:4px;font-size:11px;font-family:var(--sans);cursor:pointer;color:var(--txt-sub);">
-      ✕
-    </button>`;
-  display.replaceWith(editor);
-
-  const pctInput = document.getElementById('popAllocPct');
-  const hpdInput = document.getElementById('popAllocHpd');
-
-  // Keep pct and h/d in sync as user types
-  pctInput.addEventListener('input', () => {
-    const pct = parseFloat(pctInput.value)||0;
-    hpdInput.value = (pct/100*capacity/5).toFixed(1);
-  });
-  hpdInput.addEventListener('input', () => {
-    const hpd = parseFloat(hpdInput.value)||0;
-    pctInput.value = Math.round(hpd*5/capacity*100);
-  });
-
-  pctInput.focus(); pctInput.select();
-  pctInput.addEventListener('keydown', e => { if(e.key==='Enter') commitPopAllocEdit(allocId, resId, capacity); });
-  hpdInput.addEventListener('keydown', e => { if(e.key==='Enter') commitPopAllocEdit(allocId, resId, capacity); });
+// ── "Hide Details" / row actions ──
+function popDescribeWork(projId){
+  const p = state.projects.find(x=>x.id===projId); if(!p) return;
+  const desc = prompt('Describe the work for this assignment:', p.desc||''); if(desc===null) return;
+  pushUndo();
+  p.desc = desc;
+  save(); closeBarPopover(); render();
 }
 
-function commitPopAllocEdit(allocId, resId, capacity) {
-  const pct = parseInt(document.getElementById('popAllocPct')?.value)||0;
-  if (pct < 1 || pct > 200) { showToast('Enter a value between 1 and 200%', 'error'); return; }
+let _popStatusPop = null;
+function popStatusDropdown(ev, projId){
+  if (_popStatusPop) { _popStatusPop.remove(); _popStatusPop=null; return; }
+  const p = state.projects.find(x=>x.id===projId); if(!p) return;
+  const box = document.createElement('div');
+  box.className = 'status-popover';
+  box.style.zIndex = '600';
+  POP_STATUS_OPTIONS.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'status-opt';
+    btn.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${POP_STATUS_COLOR[opt.key]};margin-right:6px;"></span>${opt.label}`;
+    btn.onclick = () => {
+      pushUndo();
+      p.status = opt.key;
+      save(); box.remove(); _popStatusPop=null;
+      closeBarPopover(); render();
+    };
+    box.appendChild(btn);
+  });
+  const rect = ev.currentTarget.getBoundingClientRect();
+  box.style.cssText += `top:${rect.bottom+4}px;left:${rect.left}px;`;
+  document.body.appendChild(box);
+  _popStatusPop = box;
+  setTimeout(()=>document.addEventListener('click',()=>{ box.remove(); _popStatusPop=null; },{once:true}),0);
+}
+
+function popRepeatAssignment(resId, projId, allocId){
+  const p = state.projects.find(x=>x.id===projId);
+  const a = state.allocations.find(x=>x.id===allocId);
+  if(!p || !a) return;
+  const weeksStr = prompt('Repeat this assignment for how many more weeks (starting right after it ends)?', '4');
+  if(!weeksStr) return;
+  const weeks = Math.max(1, parseInt(weeksStr)||0);
+  if(!weeks) return;
+  pushUndo();
+  const afterEnd = parseD(p.end); afterEnd.setDate(afterEnd.getDate()+1);
+  const startMonday = mondayOf(afterEnd);
+  for(let i=0;i<weeks;i++){
+    const wStart = new Date(startMonday); wStart.setDate(wStart.getDate()+i*7);
+    const wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate()+6);
+    const clone = { id:uid(), name:p.name, client:p.client, color:p.color, status:p.status, projType:p.projType, scheduleType:p.scheduleType, owner:p.owner, desc:p.desc, start:fmt(wStart), end:fmt(wEnd) };
+    state.projects.push(clone);
+    state.allocations.push({ id:uid(), projId:clone.id, resId, pct:a.pct });
+  }
+  save(); closeBarPopover(); render();
+  showToast(`Repeated for ${weeks} more week${weeks!==1?'s':''}`, 'success');
+}
+
+function popReassign(allocId, currentResId){
+  const alloc = state.allocations.find(x=>x.id===allocId); if(!alloc) return;
+  const others = state.resources.filter(r=>r.id!==currentResId);
+  if(!others.length){ showToast('No other team members to reassign to'); return; }
+  const names = others.map((r,i)=>`${i+1}. ${r.first} ${r.last}`).join('\n');
+  const pick = prompt(`Reassign to which team member?\n\n${names}\n\nEnter a number:`);
+  if(!pick) return;
+  const idx = parseInt(pick)-1;
+  if(isNaN(idx) || !others[idx]) { showToast('Not a valid choice', 'error'); return; }
+  pushUndo();
+  alloc.resId = others[idx].id;
+  save(); closeBarPopover(); render();
+  showToast(`Reassigned to ${others[idx].first} ${others[idx].last}`, 'success');
+}
+
+function popEditDate(projId, field){
+  const p = state.projects.find(x=>x.id===projId); if(!p) return;
+  const current = p[field];
+  const input = prompt(`New ${field==='start'?'start':'end'} date (YYYY-MM-DD):`, current);
+  if(!input) return;
+  const d = parseD(input);
+  if(isNaN(d.getTime())) { showToast('Enter a valid date', 'error'); return; }
+  pushUndo();
+  p[field] = input;
+  save(); closeBarPopover(); render();
+}
+
+// ══════════════════════════════════════════
+// SET ALLOCATION MODAL (Percentage / Hours per day / Total hours, all linked)
+// ══════════════════════════════════════════
+let _setAllocEl = null;
+
+function openSetAllocationModal(ev, allocId, resId, projId){
+  closeSetAllocationModal();
+  const a = state.allocations.find(x=>x.id===allocId);
+  const res = state.resources.find(x=>x.id===resId);
+  const p = state.projects.find(x=>x.id===projId);
+  if(!a || !res || !p) return;
+
+  const capacity = res.capacity || 40;
+  const workDays = Math.max(1, daysBetween(parseD(p.start), parseD(p.end)) * 5/7);
+  const hpd = a.pct/100 * capacity / 5;
+  const total = hpd * workDays;
+
+  const box = document.createElement('div');
+  box.className = 'set-alloc-modal';
+  box.id = 'setAllocModal';
+
+  const splitBase = _popClickedDate || parseD(p.start);
+  const splitNext = new Date(splitBase); splitNext.setDate(splitNext.getDate()+1);
+  const fmtShortSplit = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const canSplit = splitBase > parseD(p.start) && splitBase < parseD(p.end);
+
+  box.innerHTML = `
+    <div class="set-alloc-title">Set allocation for this assignment</div>
+    <div class="set-alloc-row">
+      <input type="radio" name="setAllocMode" id="samPct" value="pct" checked>
+      <label for="samPct">Percentage</label>
+      <input type="number" id="samPctInput" value="${Math.round(a.pct)}" min="1" max="200">
+      <span class="unit">%</span>
+    </div>
+    <div class="set-alloc-row">
+      <input type="radio" name="setAllocMode" id="samHpd" value="hpd">
+      <label for="samHpd">Hours per day</label>
+      <input type="number" id="samHpdInput" value="${hpd.toFixed(1)}" min="0.5" max="24" step="0.5">
+      <span class="unit">h/d</span>
+    </div>
+    <div class="set-alloc-row">
+      <input type="radio" name="setAllocMode" id="samTotal" value="total">
+      <label for="samTotal">Total</label>
+      <input type="number" id="samTotalInput" value="${Math.round(total)}" min="1">
+      <span class="unit">hours</span>
+    </div>
+    <button class="set-alloc-update-btn" onclick="commitSetAllocation('${allocId}','${resId}','${projId}')">Update</button>
+    <div class="set-alloc-action-row" onclick="removeOverlappingAssignments('${allocId}','${resId}','${projId}')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="4" height="4"/><rect x="8" y="8" width="4" height="4"/><line x1="2" y1="12" x2="12" y2="2"/></svg>
+      Remove overlapping assignments
+    </div>
+    ${canSplit ? `
+    <div class="set-alloc-action-row" onclick="splitAssignment('${allocId}','${resId}','${projId}')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="1" x2="7" y2="13" stroke-dasharray="2,2"/><rect x="1" y="4" width="5" height="6" rx="1"/><rect x="8" y="4" width="5" height="6" rx="1"/></svg>
+      Split between ${fmtShortSplit(splitBase)} and ${fmtShortSplit(splitNext)}
+    </div>` : ''}
+  `;
+  document.body.appendChild(box);
+  _setAllocEl = box;
+
+  // Position to the right of the clicked menu row, or fall back near the click
+  const rect = ev.currentTarget ? ev.currentTarget.getBoundingClientRect() : { right: ev.clientX, top: ev.clientY, bottom: ev.clientY };
+  let bx = rect.right + 8, by = rect.top;
+  if (bx + 300 > window.innerWidth) bx = rect.left - 308;
+  if (by + 320 > window.innerHeight) by = Math.max(8, window.innerHeight - 328);
+  box.style.left = bx + 'px';
+  box.style.top  = by + 'px';
+
+  // Keep percentage / hours-per-day / total in sync as any one changes
+  const pctIn = document.getElementById('samPctInput');
+  const hpdIn = document.getElementById('samHpdInput');
+  const totIn = document.getElementById('samTotalInput');
+  const radios = { pct: document.getElementById('samPct'), hpd: document.getElementById('samHpd'), total: document.getElementById('samTotal') };
+
+  function syncFromPct(){
+    const pct = parseFloat(pctIn.value)||0;
+    const h = pct/100*capacity/5;
+    hpdIn.value = h.toFixed(1);
+    totIn.value = Math.round(h*workDays);
+  }
+  function syncFromHpd(){
+    const h = parseFloat(hpdIn.value)||0;
+    pctIn.value = Math.round(h*5/capacity*100);
+    totIn.value = Math.round(h*workDays);
+  }
+  function syncFromTotal(){
+    const t = parseFloat(totIn.value)||0;
+    const h = t/workDays;
+    hpdIn.value = h.toFixed(1);
+    pctIn.value = Math.round(h*5/capacity*100);
+  }
+  pctIn.addEventListener('input', ()=>{ radios.pct.checked=true; syncFromPct(); });
+  hpdIn.addEventListener('input', ()=>{ radios.hpd.checked=true; syncFromHpd(); });
+  totIn.addEventListener('input', ()=>{ radios.total.checked=true; syncFromTotal(); });
+
+  setTimeout(()=>{
+    function onSetAllocMouseUp(e){
+      if (_setAllocEl && !_setAllocEl.contains(e.target) && _overlayMousedownTarget && !_setAllocEl.contains(_overlayMousedownTarget)) {
+        closeSetAllocationModal();
+        document.removeEventListener('mouseup', onSetAllocMouseUp);
+      }
+    }
+    document.addEventListener('mouseup', onSetAllocMouseUp);
+  }, 0);
+}
+
+function closeSetAllocationModal(){
+  if (_setAllocEl) { _setAllocEl.remove(); _setAllocEl = null; }
+}
+
+function commitSetAllocation(allocId, resId, projId){
+  const pct = parseInt(document.getElementById('samPctInput')?.value) || 0;
+  if (pct < 1 || pct > 300) { showToast('Enter a valid allocation amount', 'error'); return; }
   pushUndo();
   const idx = state.allocations.findIndex(a=>a.id===allocId);
   if (idx>=0) state.allocations[idx].pct = pct;
   save();
+  closeSetAllocationModal();
   closeBarPopover();
   render();
   showToast(`Allocation updated to ${pct}%`, 'success');
 }
 
-function cancelPopAllocEdit(allocId, resId, currentPct, capacity) {
-  // Restore the display
-  const editor = document.querySelector('#popAllocDisplay')?.parentElement?.querySelector('div');
-  if (!editor) { closeBarPopover(); return; }
-  const res = state.resources.find(r=>r.id===resId);
-  const hpd = (currentPct/100*capacity/5);
-  const hpdStr = (hpd%1===0?hpd.toFixed(0):hpd.toFixed(1))+'h/d';
-  const projDays = 0; // we don't have it here so just show pct
-  const span = document.createElement('span');
-  span.id = 'popAllocDisplay';
-  span.style.cssText = 'color:var(--blue);font-weight:600;cursor:pointer;border-bottom:1px dashed var(--blue);';
-  span.title = 'Click to edit';
-  span.textContent = `${currentPct}% · ${hpdStr}`;
-  span.onclick = () => startPopAllocEdit(allocId, resId, currentPct, capacity);
-  editor.replaceWith(span);
+function removeOverlappingAssignments(allocId, resId, projId){
+  const p = state.projects.find(x=>x.id===projId); if(!p) return;
+  const pStart = parseD(p.start), pEnd = parseD(p.end);
+  const overlapping = state.allocations.filter(a=>{
+    if (a.id === allocId || a.resId !== resId) return false;
+    const op = state.projects.find(x=>x.id===a.projId); if(!op) return false;
+    const oS = parseD(op.start), oE = parseD(op.end);
+    return pStart <= oE && pEnd >= oS;
+  });
+  if (!overlapping.length) { showToast('No overlapping assignments found'); return; }
+  if (!confirm(`Remove ${overlapping.length} other overlapping assignment${overlapping.length!==1?'s':''} for this person during this period?`)) return;
+  pushUndo();
+  const removeIds = new Set(overlapping.map(a=>a.id));
+  state.allocations = state.allocations.filter(a=>!removeIds.has(a.id));
+  save();
+  closeSetAllocationModal();
+  closeBarPopover();
+  render();
+  showToast('Overlapping assignments removed');
 }
 
+function splitAssignment(allocId, resId, projId){
+  const a = state.allocations.find(x=>x.id===allocId);
+  const p = state.projects.find(x=>x.id===projId);
+  if (!a || !p) return;
+  const splitDate = _popClickedDate || parseD(p.start);
+  const origEnd = p.end;
+  const firstEnd = new Date(splitDate); firstEnd.setDate(firstEnd.getDate()-1);
+  if (firstEnd < parseD(p.start)) { showToast('Pick a point further into the assignment to split it', 'error'); return; }
+
+  pushUndo();
+  // Shrink the original project to end the day before the split point
+  p.end = fmt(firstEnd);
+  // Create a new project instance for the second half, same everything else
+  const secondHalf = { id:uid(), name:p.name, client:p.client, color:p.color, status:p.status, projType:p.projType, scheduleType:p.scheduleType, owner:p.owner, desc:p.desc, start:fmt(splitDate), end:origEnd };
+  state.projects.push(secondHalf);
+  state.allocations.push({ id:uid(), projId:secondHalf.id, resId, pct:a.pct });
+
+  save();
+  closeSetAllocationModal();
+  closeBarPopover();
+  render();
+  showToast('Assignment split into two');
+}
 
 
 // ══════════════════════════════════════════
@@ -6176,9 +6438,22 @@ function renderProfSkillsTable(resId){
   const meta = res.skillsMeta || {};
 
   body.innerHTML = `
-    <div style="font-size:12px;color:var(--txt-sub);margin-bottom:4px;"><strong>Recent skills submission:</strong> ${meta.recentSubmission||'None'}</div>
-    <div style="font-size:12px;color:var(--txt-sub);margin-bottom:4px;"><strong>Last approval date:</strong> ${meta.lastApproval||'—'}</div>
-    <div style="font-size:12px;color:var(--txt-sub);margin-bottom:12px;"><strong>Approved by:</strong> ${meta.approvedBy||'—'}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;">
+      <span style="font-size:12px;color:var(--txt-sub);"><strong>Recent skills submission:</strong> ${meta.recentSubmission||'None'}</span>
+      <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;flex-shrink:0;" onclick="submitSkillsForApproval('${resId}')">Submit</button>
+    </div>
+    <div style="font-size:12px;color:var(--txt-sub);margin-bottom:6px;"><strong>Last approval date:</strong> ${meta.lastApproval||'—'}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
+      <span style="font-size:12px;color:var(--txt-sub);display:flex;align-items:center;gap:6px;">
+        <strong>Approved by:</strong>
+        <input type="text" id="skillsApproverInput-${resId}" list="skillsApproverList-${resId}" value="${meta.approvedBy||''}" placeholder="Type or select a name"
+          style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:var(--sans);width:170px;">
+        <datalist id="skillsApproverList-${resId}">
+          ${state.resources.map(r=>`<option value="${r.first} ${r.last}">`).join('')}
+        </datalist>
+      </span>
+      <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;flex-shrink:0;" onclick="approveSkills('${resId}')">Approve</button>
+    </div>
     <div style="font-size:12px;color:var(--txt-sub);margin-bottom:14px;">Total <strong>${totalRated}</strong> skill${totalRated!==1?'s':''} rated, <strong>${totalCertified}</strong> certified (out of ${cats.reduce((s,c)=>s+(state.skillsMatrix[c]||[]).length,0)} in the matrix)</div>
     <div class="skm-cat-nav">
       <label style="font-size:12px;color:var(--txt-sub);">Category:</label>
@@ -6191,6 +6466,37 @@ function renderProfSkillsTable(resId){
     <div id="profSkillCatBody-${resId}"></div>`;
 
   renderProfSkillCategoryBody(resId);
+}
+
+function formatTimestampNow(){
+  const d = new Date();
+  const datePart = d.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'});
+  const timePart = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  return `${datePart}, ${timePart}`;
+}
+
+function submitSkillsForApproval(resId){
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  pushUndo();
+  res.skillsMeta = res.skillsMeta || {};
+  res.skillsMeta.recentSubmission = formatTimestampNow();
+  save();
+  renderProfSkillsTable(resId);
+  showToast('Skills submitted for approval', 'success');
+}
+
+function approveSkills(resId){
+  const input = document.getElementById('skillsApproverInput-'+resId);
+  const name = input ? input.value.trim() : '';
+  if(!name){ showToast('Enter or select an approver name first', 'error'); return; }
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  pushUndo();
+  res.skillsMeta = res.skillsMeta || {};
+  res.skillsMeta.approvedBy = name;
+  res.skillsMeta.lastApproval = formatTimestampNow();
+  save();
+  renderProfSkillsTable(resId);
+  showToast(`Skills approved by ${name}`, 'success');
 }
 
 function setProfSkillCategory(resId, cat){
