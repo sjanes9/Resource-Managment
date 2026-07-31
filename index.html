@@ -2197,6 +2197,98 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
   </div>
 </div>
 
+<!-- CERTIFICATION MODAL -->
+<div class="modal-overlay" id="certModal">
+  <div class="modal" style="width:520px;">
+    <div class="modal-header">
+      <span class="modal-title" id="certModalTitle">Add Certification</span>
+      <button class="modal-close" onclick="closeModal('certModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="certEditId">
+      <input type="hidden" id="certResId">
+      <div class="form-group">
+        <label class="form-label">Certification Name</label>
+        <input class="form-input" id="certName" placeholder="e.g. OSHA 30-Hour">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Certification ID</label>
+          <input class="form-input" id="certCertId" placeholder="ID / license number">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Authorized State</label>
+          <select class="form-select" id="certAuthState">
+            <option value="">N/A</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date Obtained</label>
+          <input class="form-input" type="date" id="certObtained">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Renewal Date</label>
+          <input class="form-input" type="date" id="certLastRenewal">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Validity</label>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:2px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+            <input type="radio" name="certValidity" id="certValidityDateRadio" value="date" checked onchange="toggleCertValidityUI()">
+            Expires on
+            <input class="form-input" type="date" id="certValidityDate" style="width:150px;" onchange="syncCertExpFromValidity()">
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+            <input type="radio" name="certValidity" id="certValidityNeverRadio" value="never" onchange="toggleCertValidityUI()">
+            Does not expire
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Expiration Date</label>
+        <div id="certExpNeverRow" style="display:none;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:13px;color:var(--txt-sub);font-style:italic;" id="certExpNeverLabel">Never Expires</span>
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt-sub);cursor:pointer;margin-left:8px;">
+              <input type="checkbox" id="certExpOverrideCheck" onchange="toggleCertExpOverrideUI()"> Set a specific date anyway
+            </label>
+          </div>
+          <input class="form-input" type="date" id="certExpOverrideDate" style="display:none;width:180px;">
+        </div>
+        <input class="form-input" type="date" id="certExpDate" style="display:block;">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Discipline</label>
+          <input class="form-input" id="certDiscipline" list="certDisciplineList" placeholder="Type or select — ties this cert to a skill area">
+          <datalist id="certDisciplineList"></datalist>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Certificate File</label>
+          <label class="btn btn-ghost" style="font-size:12px;padding:7px 12px;cursor:pointer;display:block;text-align:center;">
+            <span id="certFileLabel">Choose File</span>
+            <input type="file" id="certFileInput" style="display:none" onchange="handleCertFileUpload(event)">
+          </label>
+        </div>
+      </div>
+      <div id="certFilePreview" style="font-size:12px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="certDeleteBtn" style="display:none;" onclick="deleteCertItem()">Delete</button>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="closeModal('certModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCertModal()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- EMPLOYEE SNAPSHOT PANEL -->
 <div class="snapshot-overlay" id="snapshotOverlay"></div>
 <div class="snapshot-panel" id="snapshotPanel">
@@ -2358,6 +2450,7 @@ function ensureResourceExtras(){
 }
 ensureResourceExtras();
 ensureSkillsMatrix();
+ensureCertDisciplines();
 
 function save(){ try{localStorage.setItem('etRM2',JSON.stringify(state));}catch(e){} }
 
@@ -4441,6 +4534,34 @@ let _snapResId = null;
 let _snapTab = 'today';
 
 // Contact field definitions
+// US states (+ DC) for the Certification "Authorized State" dropdown
+const US_STATES = [
+  ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
+  ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],['FL','Florida'],
+  ['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],
+  ['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],
+  ['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],
+  ['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],
+  ['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],
+  ['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],
+  ['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],
+  ['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],
+  ['WY','Wyoming'],
+];
+
+// Certification disciplines — a growing, persisted, app-wide list (not per-employee) so
+// whatever gets typed once shows up as a pick-list option for everyone afterward.
+function ensureCertDisciplines(){
+  if (!state.certDisciplines) {
+    state.certDisciplines = skillCategoryList().slice(); // seed from the Skills Matrix categories
+  }
+}
+function registerCertDiscipline(name){
+  if (!name) return;
+  state.certDisciplines = state.certDisciplines || [];
+  if (!state.certDisciplines.includes(name)) state.certDisciplines.push(name);
+}
+
 const CONTACT_FIELDS = [
   { key:'email',       label:'Email',             link:true  },
   { key:'location',    label:'Location',           link:false },
@@ -6438,12 +6559,12 @@ function renderProfSkillsTable(resId){
   const meta = res.skillsMeta || {};
 
   body.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
       <span style="font-size:12px;color:var(--txt-sub);"><strong>Recent skills submission:</strong> ${meta.recentSubmission||'None'}</span>
       <button class="btn btn-primary" style="font-size:11px;padding:4px 10px;flex-shrink:0;" onclick="submitSkillsForApproval('${resId}')">Submit</button>
     </div>
     <div style="font-size:12px;color:var(--txt-sub);margin-bottom:6px;"><strong>Last approval date:</strong> ${meta.lastApproval||'—'}</div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
       <span style="font-size:12px;color:var(--txt-sub);display:flex;align-items:center;gap:6px;">
         <strong>Approved by:</strong>
         <input type="text" id="skillsApproverInput-${resId}" list="skillsApproverList-${resId}" value="${meta.approvedBy||''}" placeholder="Type or select a name"
@@ -6582,24 +6703,193 @@ function renderProfCertsTable(resId){
   const res = state.resources.find(r=>r.id===resId); if(!res) return;
   const body = document.getElementById('profSection-certs'); if(!body) return;
   const certs = res.certifications||[];
-  let rows = certs.map(c=>`
-    <tr>
+
+  let rows = certs.map(c=>{
+    const validityDisplay = c.validityType==='never' ? 'Does not expire' : (c.validityDate||'—');
+    const expDisplay = c.validityType==='never'
+      ? (c.expOverride && c.expDate ? c.expDate : 'Never Expires')
+      : (c.expDate || c.validityDate || '—');
+    const linkCell = c.fileName ? `<a href="${c.fileData}" download="${c.fileName}" style="color:var(--blue);" onclick="event.stopPropagation()">${c.fileName}</a>` : '—';
+    return `
+    <tr style="cursor:pointer;" onclick="openCertModal('${resId}','${c.id}')">
       <td>${c.name}</td>
       <td>${c.certId||'—'}</td>
       <td>${c.obtained||'—'}</td>
       <td>${c.lastRenewal||'—'}</td>
-      <td>${c.validity||'—'}</td>
-      <td>${c.expDate||'—'}</td>
+      <td>${validityDisplay}</td>
+      <td>${expDisplay}</td>
       <td>${c.discipline||'—'}</td>
       <td>${c.authState||'—'}</td>
-      <td>${c.links?`<a href="${c.links}" target="_blank">Link</a>`:'—'}</td>
-    </tr>`).join('');
+      <td>${linkCell}</td>
+    </tr>`;
+  }).join('');
   if(!rows) rows = `<tr class="prof-empty-row"><td colspan="9">No certifications on file.</td></tr>`;
   body.innerHTML = `
-    <button class="btn btn-ghost prof-add-btn" onclick="addCertItem('${resId}')">+ Add Certification</button>
+    <button class="btn btn-ghost prof-add-btn" onclick="openCertModal('${resId}')">+ Add Certification</button>
     <div style="overflow-x:auto;">
-    <table class="prof-table"><thead><tr><th>Certification</th><th>Certification ID</th><th>Obtained</th><th>Last renewal</th><th>Validity</th><th>Expiration date</th><th>Discipline</th><th>Authorized State</th><th>Links</th></tr></thead><tbody>${rows}</tbody></table>
+    <table class="prof-table"><thead><tr><th>Certification</th><th>Certification ID</th><th>Obtained</th><th>Last renewal</th><th>Validity</th><th>Expiration date</th><th>Discipline</th><th>Authorized State</th><th>File</th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
+}
+
+// ── Certification modal ──
+let _certUploadedFile = null;
+
+function openCertModal(resId, certId){
+  ensureCertDisciplines();
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  document.getElementById('certResId').value = resId;
+  document.getElementById('certEditId').value = certId || '';
+
+  const stateSel = document.getElementById('certAuthState');
+  stateSel.innerHTML = '<option value="">N/A</option>' + US_STATES.map(([abbr,nm])=>`<option value="${abbr}">${nm} (${abbr})</option>`).join('');
+
+  const dl = document.getElementById('certDisciplineList');
+  dl.innerHTML = (state.certDisciplines||[]).map(d=>`<option value="${d.replace(/"/g,'&quot;')}">`).join('');
+
+  const fileLabel = document.getElementById('certFileLabel');
+  const filePreview = document.getElementById('certFilePreview');
+
+  if (certId) {
+    const c = (res.certifications||[]).find(x=>x.id===certId);
+    if (!c) return;
+    document.getElementById('certModalTitle').textContent = 'Edit Certification';
+    document.getElementById('certName').value = c.name||'';
+    document.getElementById('certCertId').value = c.certId||'';
+    document.getElementById('certAuthState').value = c.authState||'';
+    document.getElementById('certObtained').value = c.obtained||'';
+    document.getElementById('certLastRenewal').value = c.lastRenewal||'';
+    document.getElementById('certDiscipline').value = c.discipline||'';
+    document.getElementById('certDeleteBtn').style.display = '';
+
+    const isNever = c.validityType === 'never';
+    document.getElementById('certValidityNeverRadio').checked = isNever;
+    document.getElementById('certValidityDateRadio').checked = !isNever;
+    document.getElementById('certValidityDate').value = isNever ? '' : (c.validityDate||'');
+    document.getElementById('certExpDate').value = isNever ? '' : (c.expDate||c.validityDate||'');
+    document.getElementById('certExpOverrideCheck').checked = !!c.expOverride;
+    document.getElementById('certExpOverrideDate').value = c.expOverride ? (c.expDate||'') : '';
+
+    if (c.fileName) {
+      fileLabel.textContent = 'Replace File';
+      filePreview.innerHTML = `<a href="${c.fileData}" download="${c.fileName}" style="color:var(--blue);">${c.fileName}</a>`;
+    } else {
+      fileLabel.textContent = 'Choose File';
+      filePreview.innerHTML = '';
+    }
+    _certUploadedFile = c.fileName ? { name:c.fileName, data:c.fileData } : null;
+  } else {
+    document.getElementById('certModalTitle').textContent = 'Add Certification';
+    document.getElementById('certName').value = '';
+    document.getElementById('certCertId').value = '';
+    document.getElementById('certAuthState').value = '';
+    document.getElementById('certObtained').value = '';
+    document.getElementById('certLastRenewal').value = '';
+    document.getElementById('certDiscipline').value = '';
+    document.getElementById('certDeleteBtn').style.display = 'none';
+    document.getElementById('certValidityDateRadio').checked = true;
+    document.getElementById('certValidityNeverRadio').checked = false;
+    document.getElementById('certValidityDate').value = '';
+    document.getElementById('certExpDate').value = '';
+    document.getElementById('certExpOverrideCheck').checked = false;
+    document.getElementById('certExpOverrideDate').value = '';
+    fileLabel.textContent = 'Choose File';
+    filePreview.innerHTML = '';
+    _certUploadedFile = null;
+  }
+  toggleCertValidityUI();
+  toggleCertExpOverrideUI();
+  openModal('certModal');
+}
+
+function toggleCertValidityUI(){
+  const isNever = document.getElementById('certValidityNeverRadio').checked;
+  document.getElementById('certExpNeverRow').style.display = isNever ? 'flex' : 'none';
+  document.getElementById('certExpDate').style.display = isNever ? 'none' : 'block';
+  document.getElementById('certValidityDate').disabled = isNever;
+}
+function toggleCertExpOverrideUI(){
+  const checked = document.getElementById('certExpOverrideCheck').checked;
+  document.getElementById('certExpOverrideDate').style.display = checked ? 'block' : 'none';
+  document.getElementById('certExpNeverLabel').style.display = checked ? 'none' : 'inline';
+}
+function syncCertExpFromValidity(){
+  const v = document.getElementById('certValidityDate').value;
+  if (v) document.getElementById('certExpDate').value = v;
+}
+
+function handleCertFileUpload(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    _certUploadedFile = { name: file.name, data: e.target.result };
+    document.getElementById('certFileLabel').textContent = 'Replace File';
+    document.getElementById('certFilePreview').innerHTML = `<span style="color:var(--txt-sub);">${file.name}</span>`;
+  };
+  reader.readAsDataURL(file);
+  ev.target.value = '';
+}
+
+function saveCertModal(){
+  const resId = document.getElementById('certResId').value;
+  const certId = document.getElementById('certEditId').value;
+  const res = state.resources.find(r=>r.id===resId); if(!res) return;
+  const name = document.getElementById('certName').value.trim();
+  if(!name){ document.getElementById('certName').focus(); return; }
+
+  const isNever = document.getElementById('certValidityNeverRadio').checked;
+  const expOverride = document.getElementById('certExpOverrideCheck').checked;
+  let expDate = '';
+  if (isNever) {
+    expDate = expOverride ? document.getElementById('certExpOverrideDate').value : '';
+  } else {
+    expDate = document.getElementById('certExpDate').value;
+  }
+
+  const discipline = document.getElementById('certDiscipline').value.trim();
+  if (discipline) registerCertDiscipline(discipline);
+
+  const existing = certId ? (res.certifications||[]).find(c=>c.id===certId) : null;
+
+  const data = {
+    name,
+    certId: document.getElementById('certCertId').value,
+    authState: document.getElementById('certAuthState').value,
+    obtained: document.getElementById('certObtained').value,
+    lastRenewal: document.getElementById('certLastRenewal').value,
+    validityType: isNever ? 'never' : 'date',
+    validityDate: isNever ? '' : document.getElementById('certValidityDate').value,
+    expOverride: isNever ? expOverride : false,
+    expDate,
+    discipline,
+    fileName: _certUploadedFile ? _certUploadedFile.name : (existing ? existing.fileName||'' : ''),
+    fileData: _certUploadedFile ? _certUploadedFile.data : (existing ? existing.fileData||'' : ''),
+  };
+
+  pushUndo();
+  res.certifications = res.certifications || [];
+  if (certId) {
+    const idx = res.certifications.findIndex(c=>c.id===certId);
+    if (idx>=0) res.certifications[idx] = { id: certId, ...data };
+  } else {
+    res.certifications.push({ id: uid(), ...data });
+  }
+  save();
+  closeModal('certModal');
+  renderProfCertsTable(resId);
+  showToast(certId ? 'Certification updated' : 'Certification added', 'success');
+}
+
+function deleteCertItem(){
+  const resId = document.getElementById('certResId').value;
+  const certId = document.getElementById('certEditId').value;
+  const res = state.resources.find(r=>r.id===resId); if(!res || !certId) return;
+  if(!confirm('Delete this certification?')) return;
+  pushUndo();
+  res.certifications = (res.certifications||[]).filter(c=>c.id!==certId);
+  save();
+  closeModal('certModal');
+  renderProfCertsTable(resId);
+  showToast('Certification deleted');
 }
 
 function addTrainingItem(resId){
@@ -6612,16 +6902,6 @@ function addTrainingItem(resId){
   renderProfTrainingTable(resId);
   renderEmployeeReportsTable();
   showToast('Training added');
-}
-function addCertItem(resId){
-  const name = prompt('Certification name:'); if(!name) return;
-  const res = state.resources.find(r=>r.id===resId); if(!res) return;
-  pushUndo();
-  res.certifications = res.certifications||[];
-  res.certifications.push({ name, authState:'', certId:'', obtained:'', lastRenewal:'', validity:'', expDate:'', discipline:'', links:'' });
-  save();
-  renderProfCertsTable(resId);
-  showToast('Certification added');
 }
 
 function sendKudos(resId){
