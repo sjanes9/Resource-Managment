@@ -958,6 +958,23 @@ html, body { height: 100%; overflow: hidden; font-family: var(--sans); color: va
   font-family: var(--mono); flex-shrink: 0;
 }
 .alert-empty { padding: 20px 16px; text-align: center; font-size: 12px; color: var(--txt-muted); }
+.alert-item-when { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+.alert-item-when.today { background: #FEE2E2; color: #B91C1C; }
+.alert-item-when.upcoming { background: #FEF3C7; color: #92400E; }
+.alert-ack-btn {
+  width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border);
+  background: #fff; color: var(--txt-muted); flex-shrink: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 12px;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.alert-ack-btn:hover { border-color: var(--green); color: var(--green); background: #F0FDF4; }
+.alert-ack-toggle {
+  padding: 8px 16px; text-align: center; font-size: 11px; color: var(--blue);
+  cursor: pointer; border-top: 1px solid var(--border); background: var(--bg-alt);
+}
+.alert-ack-toggle:hover { text-decoration: underline; }
+.alert-item.acknowledged { opacity: .6; }
+.alert-item.acknowledged .alert-item-pct { color: var(--txt-muted); }
 
 /* ── 6-month utilization chart in snapshot ── */
 .util-chart-wrap { padding: 16px 20px; border-bottom: 1px solid var(--border); }
@@ -5037,33 +5054,82 @@ function importData(ev) {
 // ══════════════════════════════════════════
 // UTILIZATION ALERT SYSTEM
 // ══════════════════════════════════════════
+// Utilization alerts look ahead ~60 days, not just today — a conflict that starts in a
+// few days (like two projects overlapping starting next week) is just as worth flagging
+// as one that's active right now, and is exactly the kind of thing a manager wants to
+// catch before it happens rather than after.
+const ALERT_LOOKAHEAD_DAYS = 60;
+
+function dateKey(d){ return d.toISOString().slice(0,10); }
+
+function ensureAlertAcks(){
+  if (!state.alertAcks) state.alertAcks = [];
+}
+
 function getOverTargetResources() {
-  // Returns resources currently over their utilization target today
-  const now = new Date(); now.setHours(0,0,0,0);
-  return state.resources.filter(res => {
+  ensureAlertAcks();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const results = [];
+
+  state.resources.forEach(res => {
     const target = res.target ?? 100;
     const allocs = allocsForRes(res.id);
-    // Sum allocations for projects active today
-    const currentPct = allocs.reduce((sum, a) => {
+    if (!allocs.length) return;
+
+    // Utilization can only change at the start of an allocation or the day after one ends —
+    // check totals at each such point within the lookahead window instead of just today.
+    const points = new Set([today.getTime()]);
+    allocs.forEach(a => {
       const ps = parseD(a.project.start);
       const pe = parseD(a.project.end);
-      if (now >= ps && now <= pe) return sum + a.pct;
-      return sum;
-    }, 0);
-    return currentPct > target;
-  }).map(res => {
-    const allocs = allocsForRes(res.id);
-    const now2 = new Date(); now2.setHours(0,0,0,0);
-    const currentPct = allocs.reduce((sum,a) => {
-      const ps=parseD(a.project.start), pe=parseD(a.project.end);
-      return (now2>=ps && now2<=pe) ? sum+a.pct : sum;
-    }, 0);
-    return { res, currentPct, target: res.target ?? 100 };
+      const peNext = new Date(pe); peNext.setDate(peNext.getDate()+1);
+      [ps, peNext].forEach(d => {
+        const diffDays = (d.getTime()-today.getTime())/86400000;
+        if (diffDays >= 0 && diffDays <= ALERT_LOOKAHEAD_DAYS) points.add(d.getTime());
+      });
+    });
+
+    let peakPct = 0, peakDate = today;
+    points.forEach(t => {
+      const testDate = new Date(t);
+      const pct = allocs.reduce((sum,a) => {
+        const ps=parseD(a.project.start), pe=parseD(a.project.end);
+        return (testDate>=ps && testDate<=pe) ? sum+a.pct : sum;
+      }, 0);
+      if (pct > peakPct) { peakPct = pct; peakDate = testDate; }
+    });
+
+    if (peakPct > target) {
+      const isToday = peakDate.getTime() === today.getTime();
+      const key = dateKey(peakDate);
+      const acked = state.alertAcks.some(a => a.resId===res.id && a.peakDateKey===key && a.peakPct===peakPct);
+      results.push({ res, currentPct: peakPct, target, peakDate, isToday, peakDateKey: key, acked });
+    }
   });
+
+  return results;
+}
+
+function acknowledgeAlert(resId, peakDateKey, peakPct, ev){
+  if (ev) ev.stopPropagation();
+  ensureAlertAcks();
+  state.alertAcks.push({ resId, peakDateKey, peakPct });
+  save();
+  updateAlertBell();
+  renderAlertPanel();
+}
+
+function unacknowledgeAlert(resId, peakDateKey, peakPct, ev){
+  if (ev) ev.stopPropagation();
+  ensureAlertAcks();
+  state.alertAcks = state.alertAcks.filter(a => !(a.resId===resId && a.peakDateKey===peakDateKey && a.peakPct===peakPct));
+  save();
+  updateAlertBell();
+  renderAlertPanel();
 }
 
 function updateAlertBell() {
-  const overTargetList = getOverTargetResources();
+  const overTargetList = getOverTargetResources().filter(a => !a.acked);
   const count = overTargetList.length;
   const badge = document.getElementById('alertBadge');
   const bell  = document.getElementById('alertBell');
@@ -5074,12 +5140,14 @@ function updateAlertBell() {
 }
 
 let _alertPanelOpen = false;
+let _showAckedAlerts = false;
 function toggleAlertPanel() {
   const panel = document.getElementById('alertPanel');
   if (!panel) return;
   _alertPanelOpen = !_alertPanelOpen;
   panel.style.display = _alertPanelOpen ? 'block' : 'none';
   if (_alertPanelOpen) {
+    _showAckedAlerts = false;
     renderAlertPanel();
     setTimeout(() => document.addEventListener('click', closeAlertPanel, {once:true}), 0);
   }
@@ -5089,31 +5157,60 @@ function closeAlertPanel() {
   if (panel) panel.style.display = 'none';
   _alertPanelOpen = false;
 }
-function renderAlertPanel() {
-  const panel = document.getElementById('alertPanel');
-  const overList = getOverTargetResources();
-  if (overList.length === 0) {
-    panel.innerHTML = `<div class="alert-panel-header">Utilization Alerts</div><div class="alert-empty">✓ All team members are within their utilization targets.</div>`;
-    return;
-  }
-  let html = `<div class="alert-panel-header">Utilization Alerts <span>${overList.length} over target</span></div>`;
-  overList.forEach(({res, currentPct, target}) => {
-    const excess = currentPct - target;
-    const color = avColor(res);
-    // Get overlapping project names
-    const now = new Date(); now.setHours(0,0,0,0);
-    const activeProjs = allocsForRes(res.id)
-      .filter(a => { const ps=parseD(a.project.start),pe=parseD(a.project.end); return now>=ps&&now<=pe; })
-      .map(a=>a.project.name).join(', ');
-    html += `<div class="alert-item" onclick="closeAlertPanel();openSnapshot('${res.id}')">
+function toggleShowAckedAlerts(ev){
+  if (ev) ev.stopPropagation();
+  _showAckedAlerts = !_showAckedAlerts;
+  renderAlertPanel();
+}
+
+function buildAlertItemHtml(entry, isAcked){
+  const { res, currentPct, target, peakDate, isToday, peakDateKey } = entry;
+  const excess = currentPct - target;
+  const color = avColor(res);
+  const now = new Date(); now.setHours(0,0,0,0);
+  const activeProjs = allocsForRes(res.id)
+    .filter(a => { const ps=parseD(a.project.start),pe=parseD(a.project.end); return peakDate>=ps&&peakDate<=pe; })
+    .map(a=>a.project.name).join(', ');
+  const whenLabel = isToday
+    ? `<span class="alert-item-when today">Today</span>`
+    : `<span class="alert-item-when upcoming">From ${peakDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`;
+  const ackBtn = isAcked
+    ? `<button class="alert-ack-btn" title="Un-acknowledge" onclick="unacknowledgeAlert('${res.id}','${peakDateKey}',${currentPct},event)">↺</button>`
+    : `<button class="alert-ack-btn" title="Acknowledge" onclick="acknowledgeAlert('${res.id}','${peakDateKey}',${currentPct},event)">✓</button>`;
+  return `<div class="alert-item ${isAcked?'acknowledged':''}" onclick="closeAlertPanel();openSnapshot('${res.id}')">
       <div class="alert-item-av" style="background:${color}">${initials(res)}</div>
       <div class="alert-item-info">
-        <div class="alert-item-name">${res.first} ${res.last}</div>
+        <div class="alert-item-name">${res.first} ${res.last}${whenLabel}</div>
         <div class="alert-item-detail">Target: ${target}% · Projects: ${activeProjs||'—'}</div>
       </div>
       <div class="alert-item-pct">+${excess}%</div>
+      ${ackBtn}
     </div>`;
-  });
+}
+
+function renderAlertPanel() {
+  const panel = document.getElementById('alertPanel');
+  const all = getOverTargetResources();
+  const active = all.filter(a => !a.acked);
+  const acked = all.filter(a => a.acked);
+
+  if (all.length === 0) {
+    panel.innerHTML = `<div class="alert-panel-header">Utilization Alerts</div><div class="alert-empty">✓ All team members are within their utilization targets (next ${ALERT_LOOKAHEAD_DAYS} days).</div>`;
+    return;
+  }
+
+  let html = `<div class="alert-panel-header">Utilization Alerts <span>${active.length} over target</span></div>`;
+  if (active.length === 0) {
+    html += `<div class="alert-empty">✓ No active alerts — ${acked.length} acknowledged.</div>`;
+  } else {
+    active.forEach(entry => { html += buildAlertItemHtml(entry, false); });
+  }
+  if (acked.length > 0) {
+    html += `<div class="alert-ack-toggle" onclick="toggleShowAckedAlerts(event)">${_showAckedAlerts ? '▲ Hide' : '▼ Show'} ${acked.length} acknowledged</div>`;
+    if (_showAckedAlerts) {
+      acked.forEach(entry => { html += buildAlertItemHtml(entry, true); });
+    }
+  }
   panel.innerHTML = html;
 }
 
@@ -5766,6 +5863,20 @@ function buildBigUtilBarChart(resId, showDetails){
     });
   }
 
+  // A person can show up as "Training" for a week two different ways: they logged a real
+  // training-completion activity that week, OR they're actively scheduled on a project whose
+  // name reads as training-related (e.g. an "Internal Training" assignment on the Gantt).
+  // Both are genuine signals and either one should recolor that week.
+  const allAllocs = allocsForRes(res.id);
+  function findWeekTrainingProject(w){
+    return allAllocs.find(a=>{
+      const ps = parseD(a.project.start), pe = parseD(a.project.end);
+      const wMid = new Date((w.wStart.getTime()+w.wEnd.getTime())/2);
+      if (!(wMid >= ps && wMid <= pe)) return false;
+      return /training/i.test(a.project.name);
+    });
+  }
+
   // ── Background reference zone: light khaki band from 0% to the target line ──
   let bg = `<rect x="${PAD.l}" y="${targetY}" width="${chartW}" height="${chartH-(targetY-PAD.t)}" fill="#F5EEDC"/>`;
 
@@ -5773,7 +5884,7 @@ function buildBigUtilBarChart(resId, showDetails){
   let scheduledBars = '', utilBars = '', trainingBars = '', salesBars = '', hitRects = '', warnIcons = '';
   series.forEach((w,i)=>{
     const x = PAD.l + i*(barW+barGap);
-    const trainingMatch = showDetails ? findWeekMatch(res.trainings, 'lastActivity', w) : null;
+    const trainingMatch = showDetails ? (findWeekMatch(res.trainings, 'lastActivity', w) || findWeekTrainingProject(w)) : null;
     const salesMatch = showDetails ? findWeekMatch(res.salesActivity, 'date', w) : null;
     const isOver = w.pct > target;
     let barTopY = null; // tracked so the warning icon can sit just above whatever bar is drawn
