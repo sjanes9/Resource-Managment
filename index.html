@@ -5367,7 +5367,7 @@ function buildBigUtilBarChart(resId, showDetails){
 
   const W = 1400, H = 220, PAD = { t:14, r:10, b:26, l:44 };
   const chartW = W-PAD.l-PAD.r, chartH = H-PAD.t-PAD.b;
-  const maxPct = Math.max(150, ...series.map(w=>w.pct), target+40);
+  const maxPct = Math.max(150, ...series.map(w=>w.pct), target+40) + 20; // +20 headroom for warning icons
   const barGap = 2;
   const barW = chartW/series.length - barGap;
   const yScale = v => chartH - (v/maxPct*chartH);
@@ -5387,31 +5387,32 @@ function buildBigUtilBarChart(resId, showDetails){
   let bg = `<rect x="${PAD.l}" y="${targetY}" width="${chartW}" height="${chartH-(targetY-PAD.t)}" fill="#F5EEDC"/>`;
 
   // ── Per-week bars + invisible hover hit-targets ──
-  let scheduledBars = '', utilBars = '', trainingBars = '', salesBars = '', hitRects = '';
+  let scheduledBars = '', utilBars = '', trainingBars = '', salesBars = '', hitRects = '', warnIcons = '';
   series.forEach((w,i)=>{
     const x = PAD.l + i*(barW+barGap);
     const trainingMatch = showDetails ? findWeekMatch(res.trainings, 'lastActivity', w) : null;
     const salesMatch = showDetails ? findWeekMatch(res.salesActivity, 'date', w) : null;
     const isOver = w.pct > target;
+    let barTopY = null; // tracked so the warning icon can sit just above whatever bar is drawn
 
     if (w.pct <= 0) {
       // Nothing scheduled or worked this week (past or future) — draw an empty column
       // rather than implying either a full target gap or a phantom sliver of activity.
     } else if (w.isFuture) {
-      // "Scheduled" for a future week reflects whatever's actually booked/allocated —
-      // colored red if it's already over-committed relative to target, same rule as
-      // an actual over-worked week, just applied ahead of time as an early warning.
+      // "Scheduled" for a future week reflects whatever's actually booked/allocated.
+      // Colors stay normal even when over target — a small warning icon flags it instead.
       const schedTopY = PAD.t + yScale(w.pct);
       const schedH = chartH - yScale(w.pct);
-      const baseColor = isOver ? '#EF4444' : (trainingMatch ? '#F59E0B' : '#8B95A1');
+      const baseColor = trainingMatch ? '#F59E0B' : '#8B95A1';
       const rect = `<rect x="${x}" y="${schedTopY}" width="${barW}" height="${Math.max(1,schedH)}" fill="${baseColor}" rx="1"/>`;
-      if (trainingMatch && !isOver) trainingBars += rect; else scheduledBars += rect;
+      if (trainingMatch) trainingBars += rect; else scheduledBars += rect;
+      barTopY = schedTopY;
     } else {
-      // "Utilization" bar — green normally, red if it exceeds target
-      const utilColor = isOver ? '#EF4444' : '#10B981';
+      // "Utilization" bar — stays green regardless of target; over-target gets a warning icon
       const utilTopY = PAD.t + yScale(w.pct);
       const utilH = chartH - yScale(w.pct);
-      utilBars += `<rect x="${x}" y="${utilTopY}" width="${barW}" height="${Math.max(1,utilH)}" fill="${utilColor}" rx="1"/>`;
+      utilBars += `<rect x="${x}" y="${utilTopY}" width="${barW}" height="${Math.max(1,utilH)}" fill="#10B981" rx="1"/>`;
+      barTopY = utilTopY;
 
       // "Scheduled" (grey) — ONLY drawn for the gap above actual utilization, i.e. only
       // shows up at all when this week's Utilization falls short of the target.
@@ -5426,6 +5427,16 @@ function buildBigUtilBarChart(resId, showDetails){
         // Already at/above target with no gap to color — show a thin orange cap instead
         trainingBars += `<rect x="${x}" y="${utilTopY-4}" width="${barW}" height="4" fill="#F59E0B"/>`;
       }
+    }
+
+    // Over-target warning icon — a small red triangle with "!" sitting just above the bar
+    if (isOver && barTopY !== null) {
+      const cx = x + barW/2, cy = barTopY - 11;
+      warnIcons += `
+        <g><title>${w.pct}% exceeds ${target}% target</title>
+          <path d="M${cx} ${cy-7} L${cx+7} ${cy+6} L${cx-7} ${cy+6} Z" fill="#EF4444" stroke="#fff" stroke-width="1"/>
+          <text x="${cx}" y="${cy+3.5}" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" font-family="sans-serif">!</text>
+        </g>`;
     }
 
     // Sales: a small mint spike stacked on top of whatever the bar currently reaches
@@ -5443,14 +5454,14 @@ function buildBigUtilBarChart(resId, showDetails){
     hitRects += `<rect x="${x}" y="${PAD.t}" width="${barW+barGap}" height="${chartH}" fill="transparent" onmousemove="showTip(event,'${tipHtml}')" onmouseleave="hideTip()" style="cursor:default;"/>`;
   });
 
-  // ── Real 4-week trailing moving average of Utilization (not a flat target line) ──
-  const pastSeries = series.filter(w=>!w.isFuture);
+  // ── Real 4-week trailing moving average of Utilization, spanning the WHOLE chart ──
+  // w.pct is a genuine computed value for every week regardless of past/future, so there's
+  // no reason to stop the trend line at "today" — it should read across the full timeline.
   let avgPoints = [];
-  pastSeries.forEach((w,i)=>{
-    const windowVals = pastSeries.slice(Math.max(0,i-3), i+1).map(x=>x.pct);
+  series.forEach((w,i)=>{
+    const windowVals = series.slice(Math.max(0,i-3), i+1).map(x=>x.pct);
     const avg = windowVals.reduce((s,v)=>s+v,0) / windowVals.length;
-    const idx = series.indexOf(w);
-    const x = PAD.l + idx*(barW+barGap) + barW/2;
+    const x = PAD.l + i*(barW+barGap) + barW/2;
     avgPoints.push(`${x},${PAD.t+yScale(avg)}`);
   });
   const avgLine = avgPoints.length ? `<polyline points="${avgPoints.join(' ')}" fill="none" stroke="#EF4444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : '';
@@ -5508,6 +5519,7 @@ function buildBigUtilBarChart(resId, showDetails){
           <text x="${PAD.l+chartW-60}" y="${targetY+1}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="sans-serif">Utilization Target</text>
         </g>
         <g class="uc-series" data-series="average">${avgLine}</g>
+        <g pointer-events="none">${warnIcons}</g>
         ${monthLabels}
         ${hitRects}
       </svg>
