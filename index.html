@@ -1650,6 +1650,92 @@ html.rm-narrow .topbar-tab svg { display: none; }
 html.rm-narrow .tb-btn { padding: 6px 7px; font-size: 11px; }
 html.rm-narrow .topbar-right { gap: 4px; padding-right: 6px; }
 
+/* ── v2: reorder grip, assignees, popovers, templates ── */
+.pl-gbody { position: relative; }
+.pl-num { position: relative; cursor: grab; touch-action: none; user-select: none; }
+.pl-num .grip { display: none; color: var(--txt-sub); }
+.pl-row:hover .pl-num .n { display: none; }
+.pl-row:hover .pl-num .grip { display: block; }
+.pl-row.ghost { opacity: .4; }
+body.pl-dragging-row, body.pl-dragging-row * { cursor: grabbing !important; user-select: none; }
+.pl-drop { position: absolute; left: 0; right: 0; height: 3px; background: var(--blue); border-radius: 2px; z-index: 6; pointer-events: none; box-shadow: 0 0 0 1px #fff; }
+.pl-blabel { pointer-events: auto; cursor: grab; }
+.pl-blabel .as { margin-left: 8px; font-size: 10.5px; font-weight: 600; color: var(--blue-dk); background: var(--blue-lt); border-radius: 9px; padding: 3px 8px; }
+.pl-av { width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 9.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; border: 2px solid #fff; margin-left: -6px; flex: 0 0 auto; overflow: hidden; box-sizing: border-box; }
+.pl-av:first-child { margin-left: 0; }
+.pl-av img { width: 100%; height: 100%; object-fit: cover; }
+.pl-c-as { padding: 0 3px; }
+.pl-as { display: flex; align-items: center; width: 100%; height: calc(var(--pl-row) - 8px); border: 1px solid transparent; border-radius: 5px; padding: 0 5px; cursor: pointer; min-width: 0; overflow: hidden; box-sizing: border-box; outline: none; }
+.pl-as:hover:not(.ro), .pl-as:focus-visible { border-color: var(--border); background: #fff; }
+.pl-as.ro { cursor: default; opacity: .85; }
+.pl-asn { margin-left: 7px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400; }
+.pl-as-empty { color: var(--txt-muted); font-size: 12px; font-weight: 400; }
+.pl-more { margin-left: 5px; font-size: 11px; font-weight: 700; color: var(--txt-sub); }
+
+.pl-pop { position: fixed; z-index: 10001; width: 292px; max-height: min(72vh, 460px); overflow: auto; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 34px rgba(15,23,42,.2); padding: 8px; font-family: var(--sans); font-size: 12.5px; color: var(--txt-main); }
+.pl-pop-h { font-weight: 700; font-size: 12px; padding: 4px 6px 8px; }
+.pl-pop-s { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid var(--border); border-radius: 6px; font: inherit; margin-bottom: 6px; outline: none; }
+.pl-pop-s:focus { border-color: var(--blue); }
+.pl-pop-list { max-height: 270px; overflow: auto; }
+.pl-pi { display: flex; align-items: center; gap: 9px; padding: 6px; border-radius: 6px; cursor: pointer; }
+.pl-pi:hover { background: var(--bg-alt); }
+.pl-pi input { margin: 0; flex: 0 0 auto; }
+.pl-pi .pl-av { margin-left: 0; }
+.pl-pi-t { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.pl-pi-t b { font-weight: 600; }
+.pl-pi-t small { color: var(--txt-sub); font-size: 11px; }
+.pl-pi-t .warn { color: #B45309; font-style: normal; font-weight: 600; }
+.pl-pop-n { font-size: 11px; color: var(--txt-sub); padding: 6px; line-height: 1.45; }
+.pl-pop-f { padding: 6px; }
+
+.pl-modal.wide { max-width: 580px; }
+.pl-modal.tall { max-height: 88vh; overflow: auto; }
+.pl-tpls { display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow: auto; margin-bottom: 14px; }
+.pl-tpl { display: flex; gap: 10px; align-items: flex-start; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+.pl-tpl:has(input:checked) { border-color: var(--blue); background: #EFF6FF; }
+.pl-tpl input { margin-top: 3px; }
+.pl-tpl b { display: block; font-size: 13px; }
+.pl-tpl small { color: var(--txt-sub); font-size: 11.5px; line-height: 1.4; display: block; }
+.pl-fr { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.pl-f { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--txt-sub); flex: 1; min-width: 150px; }
+.pl-fi { font: inherit; font-size: 13px; font-weight: 400; color: var(--txt-main); padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; width: 100%; box-sizing: border-box; background: #fff; outline: none; }
+.pl-fi:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,.18); }
+.pl-mh { display: flex; justify-content: space-between; align-items: center; }
+.pl-mh h4 { margin: 0; }
+.pl-x { border: 0; background: transparent; font-size: 22px; line-height: 1; color: var(--txt-sub); cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+.pl-x:hover { background: var(--bg-alt); }
+.pl-tlist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.pl-trow { border: 1px solid var(--border); border-radius: 9px; padding: 10px; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: flex-start; }
+.pl-tmain { flex: 1 1 260px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.pl-tn { font-weight: 700; }
+.pl-td { font-size: 12px; color: var(--txt-sub); }
+.pl-tmain small { color: var(--txt-sub); font-size: 11px; }
+.pl-tact { display: flex; gap: 6px; flex-wrap: wrap; }
+.pl-tprev { flex: 1 0 100%; background: var(--bg-surface); border-radius: 7px; padding: 8px 10px; font-size: 12px; line-height: 1.7; max-height: 190px; overflow: auto; }
+.pl-tprev .d { color: var(--txt-muted); font-size: 11px; margin-left: 6px; }
+.pl-tsave { border-top: 1px solid var(--border); padding-top: 12px; }
+.pl-tsave h5 { margin: 0 0 8px; font-size: 13px; }
+.pl-modal p { margin: 4px 0 14px; }
+
+/* resource edit modal */
+#resourceModal .modal { max-width: 580px; }
+#resourceModal .modal-body { max-height: 68vh; overflow-y: auto; }
+.res-sec { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--txt-muted); margin: 14px 0 -2px; }
+.res-sec:first-of-type { margin-top: 0; }
+.res-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--txt-main); padding-top: 22px; }
+.emprep-edit { margin-left: 6px; width: 24px; height: 24px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--txt-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.emprep-edit:hover { background: var(--bg-alt); border-color: var(--border); color: var(--blue); }
+.emprep-edit svg { width: 13px; height: 13px; }
+
+/* frozen first two columns (row number + task name) so the drag grip and names stay visible while scrolling sideways */
+.pl-row > .pl-num { position: sticky; left: 0; z-index: 3; }
+.pl-row > .pl-c-name { position: sticky; left: 44px; z-index: 3; background: inherit; box-shadow: 1px 0 0 var(--border); }
+.pl-ghead > div:nth-child(1), .pl-ghead > div:nth-child(2) { position: sticky; z-index: 5; background: var(--bg-alt); }
+.pl-ghead > div:nth-child(1) { left: 0; }
+.pl-ghead > div:nth-child(2) { left: 44px; box-shadow: 1px 0 0 var(--border); }
+#resourceModal .form-group { min-width: 0; }
+#resourceModal .form-input { min-width: 0; width: 100%; box-sizing: border-box; }
+
 </style>
 
 </head>
@@ -2041,15 +2127,17 @@ html.rm-narrow .topbar-right { gap: 4px; padding-right: 6px; }
     <div class="pl-root" id="plRoot">
       <div class="pl-toolbar" id="plToolbar">
         <span class="pl-title">Planner</span>
-        <button class="pl-btn primary" data-pl="addEnd" title="Add a task at the bottom of the board">+ Add Task</button>
+        <button class="pl-btn primary" data-pl="addProject" title="Add a project to the board, optionally from a template">+ Add Project</button>
+        <button class="pl-btn" data-pl="addEnd" title="Add a task at the bottom of the board">+ Add Task</button>
+        <button class="pl-btn" data-pl="templates" title="Create and manage project templates">Templates</button>
         <button class="pl-btn danger" data-pl="clear" title="Remove every task from the board">Clear Board</button>
         <span class="pl-sep"></span>
         <div class="pl-seg" id="plZoom" role="group" aria-label="Timeline scale">
           <button data-zoom="day">Daily</button><button data-zoom="week">Weekly</button><button data-zoom="month">Monthly</button>
         </div>
         <button class="pl-btn" data-pl="today" title="Scroll the timeline to today">Today</button>
-        <button class="pl-btn" data-pl="expandAll" title="Expand all parent rows">Expand all</button>
-        <button class="pl-btn" data-pl="collapseAll" title="Collapse all parent rows">Collapse all</button>
+        <button class="pl-btn" data-pl="toggleAll" title="Collapse or expand every parent row">Collapse all</button>
+        <button class="pl-btn" data-pl="columns" title="Choose which grid columns to show">Columns</button>
         <span class="pl-sep"></span>
         <label class="pl-switch" id="plCritSw" title="Highlight the zero-float tasks that decide the project's end date"><span class="trk"></span>Critical Path</label>
         <span class="pl-info" id="plInfo"></span>
@@ -2359,25 +2447,38 @@ html.rm-narrow .topbar-right { gap: 4px; padding-right: 6px; }
     </div>
     <div class="modal-body">
       <input type="hidden" id="resEditId">
+      <div class="res-sec">Basics</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="resFirst" placeholder="Sarah"></div>
         <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="resLast" placeholder="Chen"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Role / Title</label><input class="form-input" id="resRole" placeholder="Controls Engineer"></div>
-        <div class="form-group">
-          <label class="form-label">Department</label>
-          <select class="form-select" id="resDept">
-            <option>Automation</option><option>Electrical</option>
-            <option>Project Management</option><option>Software</option>
-            <option>Mechanical</option><option>Sales</option>
-          </select>
-        </div>
+        <div class="form-group"><label class="form-label">Role (shown on the Schedule)</label><input class="form-input" id="resRole" placeholder="Controls Engineer"></div>
+        <div class="form-group"><label class="form-label">Title (shown on People and Profile)</label><input class="form-input" id="resTitle" placeholder="Same as role if blank"></div>
       </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Department</label><input class="form-input" id="resDept" list="resDeptList" placeholder="Automation"><datalist id="resDeptList"></datalist></div>
+        <div class="form-group"><label class="form-label">Business Unit</label><input class="form-input" id="resBU" placeholder="Same as department if blank"></div>
+      </div>
+      <div class="res-sec">Capacity</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Capacity (hrs/week)</label><input class="form-input" type="number" id="resCapacity" value="40" min="1" max="80"></div>
         <div class="form-group"><label class="form-label">Utilization Target (%)</label><input class="form-input" type="number" id="resTarget" value="100" min="0" max="200" placeholder="100"></div>
       </div>
+      <div class="res-sec">Employment</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Hire Date</label><input class="form-input" type="date" id="resHire"></div>
+        <div class="form-group"><label class="form-label">Employee Type</label><input class="form-input" id="resType" list="resTypeList" placeholder="Direct"><datalist id="resTypeList"><option value="Direct"><option value="Contractor"><option value="Intern"></datalist></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Manager</label><input class="form-input" id="resManager" placeholder="Manager name"></div>
+        <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="resLocation" placeholder="Office or city"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="resEmail" placeholder="name@company.com"></div>
+        <div class="form-group"><label class="res-check"><input type="checkbox" id="resTimesheet" checked> Timesheet is up to date</label></div>
+      </div>
+      <div class="form-group"><label class="form-label">Tags (comma separated)</label><input class="form-input" id="resTags" placeholder="Engineer, Project Delivery"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('resourceModal')">Cancel</button>
@@ -2661,7 +2762,8 @@ ensureResourceExtras();
 ensureSkillsMatrix();
 ensureCertDisciplines();
 
-function save(){ try{localStorage.setItem('etRM2',JSON.stringify(state));}catch(e){} }
+var _schedStale=false, _schedScrollMemo=null;
+function save(){ _schedStale=true; try{localStorage.setItem('etRM2',JSON.stringify(state));}catch(e){} }
 
 // ── helpers ──
 function initials(r){ return (r.first[0]+r.last[0]).toUpperCase(); }
@@ -2783,6 +2885,7 @@ function totalW(cols){ return cols.length * COL_W; }
 // ══════════════════════════════════════════
 let currentView = 'schedule';
 function switchView(v){
+  if(currentView==='schedule' && v!=='schedule'){ const _tl=document.getElementById('tlScroll'); if(_tl) _schedScrollMemo=_tl.scrollLeft; }
   currentView=v;
   document.getElementById('schedView').style.display      = v==='schedule'  ?'flex':'none';
   document.getElementById('projGanttView').style.display  = v==='projgantt' ?'flex':'none';
@@ -2806,7 +2909,10 @@ function switchView(v){
   if(v==='portfolio')  renderPortfolio();
   if(v==='planner')    renderPlanner();
   if(v==='projgantt')  renderProjGantt();
-  if(v==='schedule')   renderPeopleFiltersDropdowns();
+  if(v==='schedule'){
+    renderPeopleFiltersDropdowns();
+    if(_schedStale){ renderSchedule(); const _tl=document.getElementById('tlScroll'); if(_tl && _schedScrollMemo!=null) _tl.scrollLeft=_schedScrollMemo; }
+  }
   if(v==='people')     renderEmployeeReportsTable();
   if(v==='reports')    renderReportsView();
 }
@@ -2946,6 +3052,7 @@ function goToday(){
 let expandedRes = new Set(state.resources.map(r=>r.id)); // all expanded by default
 
 function renderSchedule(){
+  _schedStale=false;
   // Capture the current scroll position BEFORE touching the DOM so an edit-triggered
   // re-render doesn't yank the view back to Today — only intentional navigation should.
   const _tlElBefore = document.getElementById('tlScroll');
@@ -4653,56 +4760,76 @@ function duplicateProject(id){
   showToast('Project duplicated');
 }
 
-// resource modal
+// resource modal (add + edit). Every editable resource field lives here; People and Profile open it too.
+function _resFill(r){
+  const g=id=>document.getElementById(id);
+  const depts=[...new Set(['Automation','Electrical','Project Management','Software','Mechanical','Sales',...state.resources.map(x=>x.dept).filter(Boolean)])];
+  g('resDeptList').innerHTML=depts.map(d=>`<option value="${String(d).replace(/"/g,'&quot;')}">`).join('');
+  g('resFirst').value=r?r.first:''; g('resLast').value=r?r.last:'';
+  g('resRole').value=r?(r.role||''):''; g('resTitle').value=r?(r.title||''):'';
+  g('resDept').value=r?(r.dept||''):'Automation'; g('resBU').value=r?(r.businessUnit||''):'';
+  g('resCapacity').value=r?r.capacity:'40'; g('resTarget').value=r?(r.target??100):'100';
+  g('resHire').value=r&&r.hireDate?r.hireDate:''; g('resType').value=r?(r.employeeType||'Direct'):'Direct';
+  g('resManager').value=r?(r.manager||''):''; g('resLocation').value=r?(r.location||''):'';
+  g('resEmail').value=r?(r.email||''):''; g('resTimesheet').checked=r?r.timesheetOk!==false:true;
+  g('resTags').value=r?(r.tags||[]).join(', '):'';
+}
 function openResourceModal(){
   document.getElementById('resEditId').value='';
   document.getElementById('resModalTitle').textContent='Add Team Member';
-  ['resFirst','resLast','resRole'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('resDept').value='Automation';
-  document.getElementById('resCapacity').value='40';
-  document.getElementById('resTarget').value='100';
+  _resFill(null);
   document.getElementById('resDeleteBtn').style.display='none';
   openModal('resourceModal');
 }
 function openResEdit(id){
   const r=state.resources.find(x=>x.id===id); if(!r) return;
   document.getElementById('resEditId').value=id;
-  document.getElementById('resModalTitle').textContent='Edit Team Member';
-  document.getElementById('resFirst').value=r.first;
-  document.getElementById('resLast').value=r.last;
-  document.getElementById('resRole').value=r.role;
-  document.getElementById('resDept').value=r.dept;
-  document.getElementById('resCapacity').value=r.capacity;
-  document.getElementById('resTarget').value=r.target??100;
+  document.getElementById('resModalTitle').textContent='Edit '+r.first+' '+r.last;
+  _resFill(r);
   document.getElementById('resDeleteBtn').style.display='';
   openModal('resourceModal');
 }
 function saveResource(){
-  const first=document.getElementById('resFirst').value.trim();
-  const last=document.getElementById('resLast').value.trim();
-  if(!first||!last){document.getElementById('resFirst').focus();return;}
-  const id=document.getElementById('resEditId').value;
-  const data={first,last,role:document.getElementById('resRole').value,dept:document.getElementById('resDept').value,capacity:+document.getElementById('resCapacity').value||40,target:+document.getElementById('resTarget').value||100};
+  const g=id=>document.getElementById(id);
+  const first=g('resFirst').value.trim();
+  const last=g('resLast').value.trim();
+  if(!first||!last){(first?g('resLast'):g('resFirst')).focus();return;}
+  const id=g('resEditId').value;
+  const role=g('resRole').value.trim();
+  const dept=g('resDept').value.trim()||'Automation';
+  const data={first,last,role,dept,
+    capacity:+g('resCapacity').value||40,
+    target:+g('resTarget').value||100,
+    title:g('resTitle').value.trim()||role,
+    businessUnit:g('resBU').value.trim()||dept,
+    hireDate:g('resHire').value,
+    employeeType:g('resType').value.trim()||'Direct',
+    manager:g('resManager').value.trim(),
+    location:g('resLocation').value.trim(),
+    email:g('resEmail').value.trim(),
+    timesheetOk:g('resTimesheet').checked,
+    tags:g('resTags').value.split(',').map(t=>t.trim()).filter(Boolean)};
   pushUndo();
   if(id){
     const i=state.resources.findIndex(r=>r.id===id);
-    // Preserve extra contact fields already on the resource
+    // Preserve everything not on this form (photo, status, skills, certifications, trainings...)
     state.resources[i]={...state.resources[i],...data};
-    // Auto-sync snapshot contact fields from modal data
-    if(!state.resources[i].title)    state.resources[i].title    = data.role;
-    if(!state.resources[i].businessUnit) state.resources[i].businessUnit = data.dept;
-    // If snapshot is open for this resource, refresh it
     if(_snapResId === id) renderSnapshot();
   }
-  else{state.resources.push({id:uid(),...data, title:data.role, businessUnit:data.dept});}
+  else{state.resources.push({id:uid(),...data}); ensureResourceExtras();}
   save();closeModal('resourceModal');render();
+  showToast(id?'Saved changes to '+first+' '+last:'Added '+first+' '+last,'success');
 }
 function deleteResource(){
   const id=document.getElementById('resEditId').value;
+  const r=state.resources.find(x=>x.id===id);
+  if(r && !confirm('Delete '+r.first+' '+r.last+'? Their project assignments and Planner task assignments will be removed.')) return;
   pushUndo();
   state.resources=state.resources.filter(r=>r.id!==id);
   state.allocations=state.allocations.filter(a=>a.resId!==id);
-  save();closeModal('resourceModal');render();
+  if(state.planner&&Array.isArray(state.planner.tasks)) state.planner.tasks.forEach(t=>{ if(Array.isArray(t.assign)) t.assign=t.assign.filter(x=>x!==id); });
+  save();closeModal('resourceModal');
+  if(currentView==='profile') switchView('people'); else render();
 }
 
 // alloc modal
@@ -5515,11 +5642,12 @@ const TUTORIAL_STEPS = [
   { title:'Utilization Target Bar', body:'When a person\'s overlapping projects push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
   { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
-  { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent. Parents roll up their children and are read-only. Durations count Monday to Friday only. Toggle Critical Path to highlight the red zero-float chain, and switch Daily, Weekly or Monthly. Planner data is included in Save Data and Undo.', targetId:'tabPlanner' },
+  { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent: parents roll up their children and are read-only. Durations count Monday to Friday only.', targetId:'tabPlanner' },
+  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project drops a whole project on the board, either blank or from a template. Build a project once, then use the row menu (the three dots) and Save as Template, or manage everything under Templates. Drag the number cell on the left of any row, or a task name on the timeline, to move that row (and its children) up or down. Assigned To lets you put one or more people on a task. Columns hides or shows grid columns. Critical Path highlights the red zero-float chain, and Daily, Weekly and Monthly change the scale. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
   { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet.', targetId:null },
-  { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile.', targetId:'tabPeopleRpt' },
-  { title:'Employee Profile', body:'From the People tab, click any name to open their full profile page — tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications. In the Utilization chart, flip "Show Details" to overlay real training-activity markers; a Sales series is listed but marked "Coming Soon" since there\'s no sales data tracked yet.', targetId:null },
+  { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile, or use the pencil beside a name to edit their details (name, role, title, department, hire date, type, manager, email, tags, capacity and target).', targetId:'tabPeopleRpt' },
+  { title:'Employee Profile', body:'From the People tab, click any name to open their full profile page. Use Edit Profile for the core details. Photo, status and contact info can also be changed right on the page. It shows tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications. In the Utilization chart, flip "Show Details" to overlay real training-activity markers; a Sales series is listed but marked "Coming Soon" since there\'s no sales data tracked yet.', targetId:null },
   { title:'Reports & Skills Matrix', body:'The Reports tab holds the Skills Matrix — the master catalog of every trackable skill, organized by category. Add, rename, or remove skills and categories here — changes instantly show up on every employee\'s profile for rating. Project Reports are coming soon.', targetId:'tabReports' },
   { title:'Utilization Alerts', body:'The bell icon shows who is currently over their utilization target. Click it to see a list — click any person to open their profile.', targetId:'alertBell' },
   { title:'Save & Load Data', body:'"Save Data" exports everything — projects, people, allocations, the skills matrix, and the Planner tasks — to a JSON file. "Load Data" restores from a saved file, great for backups or moving to another browser.', targetId:null },
@@ -5911,6 +6039,7 @@ function renderEmployeeReportsTable(){
             </button>
             <div class="emprep-avatar" style="background:${avColor(res)}">${photoHtml}</div>
             <span class="emprep-name-link" onclick="event.stopPropagation();openEmployeeProfile('${res.id}')">${res.first} ${res.last}</span>
+            <button class="emprep-edit" title="Edit ${res.first} ${res.last}" aria-label="Edit ${res.first} ${res.last}" onclick="event.stopPropagation();openResEdit('${res.id}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/></svg></button>
           </div>
         </td>
         <td class="emprep-td"><span class="emprep-status-icon ${res.timesheetOk?'emprep-status-ok':'emprep-status-warn'}">${res.timesheetOk?'✓':'⚠'}</span></td>
@@ -6572,6 +6701,10 @@ function renderEmployeeProfile(resId){
             </button>
           </div>
         </div>
+        <button class="profile-kudos-btn" onclick="openResEdit('${res.id}')">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/></svg>
+          Edit Profile
+        </button>
         <button class="profile-kudos-btn" onclick="sendKudos('${res.id}')">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6.5 2c1.5-1.5 4 0 4 2 0 2.5-4 5.5-4 5.5s-4-3-4-5.5c0-2 2.5-3.5 4-2z"/></svg>
           Give Kudos
@@ -7336,7 +7469,7 @@ const PLE = (function(){
   const todayDn = () => { const n = new Date(); return Math.round(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / MS); };
 
   function makeTask(over){
-    return Object.assign({ id: uid(), name: 'New task', start: '', finish: '', duration: 1, pct: 0, preds: [], indent: 0 }, over || {});
+    return Object.assign({ id: uid(), name: 'New task', start: '', finish: '', duration: 1, pct: 0, preds: [], indent: 0, assign: [] }, over || {});
   }
 
   // ── structure ──
@@ -7629,7 +7762,76 @@ const PLE = (function(){
     return finish(tasks);
   }
 
-  return { toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
+
+  // ── reordering ──
+  // Move a row (with its children) so it sits at array index `at` (0..n, measured before the move).
+  function moveBlock(tasks, id, at){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const e = subtreeEnd(tasks, i);
+    if (at >= i && at <= e) return { ok: true, warnings: [], noop: true };
+    const block = tasks.splice(i, e - i);
+    if (at > i) at -= block.length;
+    at = Math.max(0, Math.min(tasks.length, at));
+    // Keep the row's own level when possible, but never deeper than the row above + 1 and never shallower than the row below (so a drop between two siblings joins them).
+    const minIndent = at < tasks.length ? tasks[at].indent : 0;
+    const newIndent = at === 0 ? 0 : Math.min(Math.max(block[0].indent, minIndent), tasks[at-1].indent + 1);
+    const delta = newIndent - block[0].indent;
+    block.forEach(t => { t.indent += delta; });
+    tasks.splice(at, 0, ...block);
+    return finish(tasks);
+  }
+  // Move a row up or down past its previous or next sibling (children travel with it).
+  function moveSibling(tasks, id, dir){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const ind = tasks[i].indent;
+    if (dir < 0){
+      let j = i - 1;
+      while (j >= 0 && tasks[j].indent > ind) j--;
+      if (j < 0 || tasks[j].indent < ind) return fail('This task is already first in its group.');
+      return moveBlock(tasks, id, j);
+    }
+    const e = subtreeEnd(tasks, i);
+    if (e >= tasks.length || tasks[e].indent < ind) return fail('This task is already last in its group.');
+    return moveBlock(tasks, id, subtreeEnd(tasks, e));
+  }
+
+  // ── assignments ──
+  function setAssign(tasks, id, list){
+    const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    const seen = new Set(); r.t.assign = (Array.isArray(list) ? list : []).filter(x => x && !seen.has(x) && seen.add(x));
+    return { ok: true, warnings: [] };
+  }
+
+  // ── templates ──
+  // A template stores a project's rows relative to each other: indent, duration, unlinked start offset
+  // (working days from the earliest start) and predecessors as row positions inside the template.
+  function extractTemplate(tasks, id, name, desc){
+    const i = find(tasks, id); if (i < 0) return null;
+    const e = subtreeEnd(tasks, i), block = tasks.slice(i, e), m = meta(tasks);
+    const base = block[0].indent;
+    let minS = Infinity; block.forEach(t => { minS = Math.min(minS, toDn(t.start)); });
+    const pos = new Map(); block.forEach((t, k) => pos.set(t.id, k + 1));
+    const rows = block.map((t, k) => ({
+      name: t.name, indent: t.indent - base,
+      duration: m.isParent[i + k] ? 1 : t.duration,
+      off: wi(toDn(t.start)) - wi(minS),
+      preds: t.preds.filter(p => pos.has(p.id)).map(p => ({ row: pos.get(p.id), lag: p.lag || 0 }))
+    }));
+    return { id: uid(), name: String(name || block[0].name || 'Template').slice(0, 80), desc: String(desc || '').slice(0, 300), created: new Date().toISOString().slice(0, 10), rows };
+  }
+  // Build fresh tasks from a template. Returns the new task objects (not yet inserted).
+  function instantiateTemplate(tpl, projectName, startDn){
+    const s0 = nextWork(startDn);
+    const out = tpl.rows.map(r => makeTask({
+      name: r.name, indent: Math.max(0, r.indent || 0), duration: Math.max(0, r.duration | 0), pct: 0,
+      start: toStr(fromWi(wi(s0) + Math.max(0, r.off | 0)))
+    }));
+    tpl.rows.forEach((r, k) => { out[k].preds = (r.preds || []).filter(p => p.row >= 1 && p.row <= out.length && p.row - 1 !== k).map(p => ({ id: out[p.row - 1].id, lag: p.lag || 0 })); });
+    if (out.length && projectName) out[0].name = projectName;
+    return out;
+  }
+
+  return { moveBlock, moveSibling, setAssign, extractTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
            meta, subtreeEnd, isAncestor, hasCycle, recalc, setName, setPct, setDuration, setStart, setFinish, setPreds,
            parsePreds, insertAt, removeTask, changeIndent, find };
 })();
@@ -7649,14 +7851,15 @@ const PLU = (function(){
   const HDR = 56, ADDH = 48;
   const LS = 'etRM_pl';
   const V = { zoom: 'week', critical: false, gridW: 0, origin: null, end: null, selected: null, drag: null, focusId: null,
-              inited: false, rowH: 34, pos: new Map(), vis: [], crit: new Set(), floatOf: new Map(), meta: null };
+              inited: false, rowH: 34, pos: new Map(), vis: [], crit: new Set(), floatOf: new Map(), meta: null, hidden: [], reorder: null, reveal: null };
   try {
     const o = JSON.parse(localStorage.getItem(LS) || '{}');
     if (o.zoom && PPD[o.zoom]) V.zoom = o.zoom;
     V.critical = !!o.critical;
     if (o.gridW > 0) V.gridW = o.gridW;
+    if (Array.isArray(o.hidden)) V.hidden = o.hidden;
   } catch (e) {}
-  const persist = () => { try { localStorage.setItem(LS, JSON.stringify({ zoom: V.zoom, critical: V.critical, gridW: V.gridW })); } catch (e) {} };
+  const persist = () => { try { localStorage.setItem(LS, JSON.stringify({ zoom: V.zoom, critical: V.critical, gridW: V.gridW, hidden: V.hidden })); } catch (e) {} };
   const $ = id => document.getElementById(id);
   const P = () => state.planner;
   const pesc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -7696,12 +7899,33 @@ const PLU = (function(){
     rows.forEach((r, i) => { ts[i].preds = r[4].map(n => ({ id: ts[n-1].id, lag: 0 })); });
     return ts;
   }
+  // Illustrative starter templates. Durations are placeholders to edit, not company standards.
+  function starterTemplates(){
+    const mk = (name, desc, spec) => ({ id: PLE.uid(), name, desc, starter: true, created: toStr(PLE.todayDn()),
+      rows: spec.map(r => ({ name: r[0], indent: r[1], duration: r[2], off: 0, preds: (r[3] || []).map(n => ({ row: n, lag: 0 })) })) });
+    return [
+      mk('Standard Project', 'Generic kickoff to closeout plan with three phases.', [
+        ['Project', 0, 1], ['Initiation', 1, 1], ['Kickoff meeting', 2, 1], ['Define scope and requirements', 2, 3, [3]], ['Plan approved', 2, 0, [4]],
+        ['Execution', 1, 1], ['Phase 1 work', 2, 10, [5]], ['Phase 2 work', 2, 10, [7]], ['Review and testing', 2, 4, [8]],
+        ['Closeout', 1, 1], ['Deliver to customer', 2, 2, [9]], ['Lessons learned', 2, 1, [11]], ['Project complete', 2, 0, [12]]]),
+      mk('Controls Panel Design and Build', 'Engineering, panel build, software, FAT and commissioning. Edit durations to match your projects.', [
+        ['Project', 0, 1], ['Engineering', 1, 1], ['Kickoff and scope review', 2, 1], ['Electrical schematics', 2, 8, [3]], ['Panel layout and enclosure selection', 2, 4, [3]],
+        ['BOM and long-lead orders', 2, 3, [4, 5]], ['Design approved', 2, 0, [6]],
+        ['Build', 1, 1], ['Panel fabrication', 2, 5, [7]], ['Wiring', 2, 6, [9]], ['Power-up and checkout', 2, 2, [10]],
+        ['Software', 1, 1], ['PLC program', 2, 10, [7]], ['HMI screens', 2, 6, [7]], ['Factory acceptance test', 2, 2, [11, 13, 14]],
+        ['Delivery', 1, 1], ['Ship to site', 2, 3, [15]], ['Installation', 2, 4, [17]], ['Startup and commissioning', 2, 5, [18]], ['Closeout and as-builts', 2, 3, [19]]])
+    ];
+  }
   function ensure(){
     if (!state.planner || !Array.isArray(state.planner.tasks)){
       state.planner = { tasks: seedTasks(), collapsed: [] };
       save();
     }
     const p = state.planner;
+    if (!Array.isArray(p.templates)) p.templates = [];
+    if (!p.startersAdded){ p.templates = p.templates.concat(starterTemplates()); p.startersAdded = true; save(); }
+    const resIds = new Set((state.resources || []).map(r => r.id));
+    p.tasks.forEach(t => { t.assign = Array.isArray(t.assign) ? t.assign.filter(id => resIds.has(id)) : []; });
     if (!Array.isArray(p.collapsed)) p.collapsed = [];
     p.tasks.forEach(t => {
       if (!t.id) t.id = PLE.uid();
@@ -7749,6 +7973,7 @@ const PLU = (function(){
     pushUndo();
     let r;
     try { r = fn(P().tasks); } catch (err){ r = { ok: false, msg: 'Unexpected error: ' + err.message }; }
+    if (r.ok && r.noop){ UNDO_STACK.pop(); updateUndoBtn(); return r; }
     if (!r.ok){
       state.planner = JSON.parse(snap);
       UNDO_STACK.pop(); updateUndoBtn();
@@ -7781,46 +8006,94 @@ const PLU = (function(){
   const ICON_OUT = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h10M6 7h6M2 11h10M4 5.5L2 7l2 1.5"/></svg>';
   const ICON_MORE = '<svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor"><circle cx="3" cy="7" r="1.3"/><circle cx="7" cy="7" r="1.3"/><circle cx="11" cy="7" r="1.3"/></svg>';
 
+  const GRIP = '<svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor"><circle cx="3.5" cy="3" r="1.2"/><circle cx="8.5" cy="3" r="1.2"/><circle cx="3.5" cy="7" r="1.2"/><circle cx="8.5" cy="7" r="1.2"/><circle cx="3.5" cy="11" r="1.2"/><circle cx="8.5" cy="11" r="1.2"/></svg>';
+  // grid columns. "lock" columns can never be hidden.
+  const COLS = [
+    { k: 'num',      label: '#',            w: 44,  lock: true },
+    { k: 'name',     label: 'Task Name',    w: 262, lock: true },
+    { k: 'start',    label: 'Start Date',   w: 128 },
+    { k: 'finish',   label: 'Finish Date',  w: 128 },
+    { k: 'duration', label: 'Duration',     w: 80, title: 'Working days (Monday to Friday)' },
+    { k: 'pct',      label: '% Complete',   w: 96 },
+    { k: 'preds',    label: 'Predecessors', w: 108 },
+    { k: 'assign',   label: 'Assigned To',  w: 160 },
+    { k: 'act',      label: '',             w: 92,  lock: true }
+  ];
+  const visCols = () => COLS.filter(c => c.lock || !V.hidden.includes(c.k));
+
+  // resources ----
+  const resById = id => (state.resources || []).find(r => r.id === id);
+  function avHTML(r){
+    const inner = r.photo ? `<img src="${r.photo}" alt="">` : pesc(initials(r));
+    return `<span class="pl-av" style="background:${avColor(r)}" title="${pesc(r.first + ' ' + r.last)}">${inner}</span>`;
+  }
+  // assigned resources for a row. Parent rows show everyone assigned beneath them (read-only).
+  function assigneesOf(i){
+    const ts = P().tasks, m = V.meta, ids = [];
+    const add = id => { if (!ids.includes(id)) ids.push(id); };
+    if (m && m.isParent[i]){ const e = PLE.subtreeEnd(ts, i); for (let k = i + 1; k < e; k++) if (!m.isParent[k]) (ts[k].assign || []).forEach(add); }
+    else (ts[i].assign || []).forEach(add);
+    return ids.map(resById).filter(Boolean);
+  }
+  function assignCell(i){
+    const parent = V.meta.isParent[i], list = assigneesOf(i);
+    const chips = list.slice(0, 3).map(avHTML).join('') + (list.length > 3 ? `<span class="pl-more">+${list.length - 3}</span>` : '');
+    const label = list.length === 1 ? `<span class="pl-asn">${pesc(list[0].first + ' ' + list[0].last)}</span>` : '';
+    if (parent) return `<div class="pl-as ro" title="${list.length ? 'Everyone assigned to tasks in this group' : 'Assign people on the individual tasks'}">${chips || ''}${label}</div>`;
+    return `<div class="pl-as" data-act="assign" tabindex="0" role="button" aria-label="Assign resources to row ${i + 1}">${chips}${label}${list.length ? '' : '<span class="pl-as-empty">Assign…</span>'}</div>`;
+  }
+
+  function cellHTML(k, i, t, parent, coll){
+    const tasks = P().tasks, dis = parent ? ' disabled' : '';
+    const dtitle = parent ? ' title="Calculated from child tasks"' : '';
+    switch (k){
+      case 'num': return `<div class="pl-c pl-num" title="Row ${i + 1}. Drag to move this row, with its children, up or down. Use this number in Predecessors."><span class="n">${i + 1}</span><span class="grip">${GRIP}</span></div>`;
+      case 'name': {
+        return `<div class="pl-c pl-c-name" style="padding-left:${4 + t.indent * 18}px">
+        ${parent ? `<button class="pl-caret${coll ? ' closed' : ''}" data-act="caret" title="${coll ? 'Expand' : 'Collapse'}" aria-label="${coll ? 'Expand' : 'Collapse'} ${pesc(t.name)}">${CARET}</button>` : '<span class="pl-caret-sp"></span>'}
+        <input class="pl-in" data-f="name" value="${pesc(t.name)}" maxlength="200" aria-label="Task name for row ${i + 1}" placeholder="Task name"></div>`;
+      }
+      case 'start':    return `<div class="pl-c"><input class="pl-in" type="date" data-f="start" value="${t.start}"${dis}${dtitle} aria-label="Start date for row ${i + 1}"></div>`;
+      case 'finish':   return `<div class="pl-c"><input class="pl-in" type="date" data-f="finish" value="${t.finish}"${dis}${dtitle} aria-label="Finish date for row ${i + 1}"></div>`;
+      case 'duration': return `<div class="pl-c"><input class="pl-in" type="number" min="0" step="1" data-f="duration" value="${t.duration}"${dis}${dtitle} aria-label="Duration in working days for row ${i + 1}"></div>`;
+      case 'pct':      return `<div class="pl-c"><div class="pl-pct" style="--p:${t.pct}%"><input class="pl-in" type="number" min="0" max="100" step="1" data-f="pct" value="${t.pct}"${dis}${dtitle} aria-label="Percent complete for row ${i + 1}"></div></div>`;
+      case 'preds':    return `<div class="pl-c"><input class="pl-in" type="text" data-f="preds" value="${pesc(predText(tasks, t))}"${dis} ${parent ? 'title="Parent rows cannot have predecessors"' : 'title="Row numbers separated by commas. Optional lag in working days: 3+2"'} placeholder="${parent ? '' : 'e.g. 2,3'}" aria-label="Predecessors for row ${i + 1}"></div>`;
+      case 'assign':   return `<div class="pl-c pl-c-as" data-col="assign">${assignCell(i)}</div>`;
+      case 'act': {
+        const canIn = i > 0 && tasks[i-1].indent >= t.indent, canOut = t.indent > 0;
+        return `<div class="pl-c pl-c-act">
+        <button class="pl-ib" data-act="outdent" title="Outdent"${canOut ? '' : ' disabled'} aria-label="Outdent row ${i + 1}">${ICON_OUT}</button>
+        <button class="pl-ib" data-act="indent" title="Indent"${canIn ? '' : ' disabled'} aria-label="Indent row ${i + 1}">${ICON_IN}</button>
+        <button class="pl-ib" data-act="menu" title="More actions" aria-label="More actions for row ${i + 1}">${ICON_MORE}</button></div>`;
+      }
+    }
+    return '';
+  }
   function rowHTML(i, m){
     const tasks = P().tasks, t = tasks[i], parent = m.isParent[i], coll = P().collapsed.includes(t.id);
-    const canIn = i > 0 && tasks[i-1].indent >= t.indent, canOut = t.indent > 0;
-    const dis = parent ? ' disabled' : '';
-    const dtitle = parent ? ' title="Calculated from child tasks"' : '';
     const cls = 'pl-row' + (parent ? ' parent' : '') + (V.selected === t.id ? ' sel' : '') + (V.critical && V.crit.has(t.id) ? ' crit' : '');
-    return `<div class="${cls}" data-id="${t.id}">
-      <div class="pl-c pl-num" title="Row ${i+1}. Use this number in the Predecessors column.">${i+1}</div>
-      <div class="pl-c pl-c-name" style="padding-left:${4 + t.indent * 18}px">
-        ${parent ? `<button class="pl-caret${coll ? ' closed' : ''}" data-act="caret" title="${coll ? 'Expand' : 'Collapse'}" aria-label="${coll ? 'Expand' : 'Collapse'} ${pesc(t.name)}">${CARET}</button>` : '<span class="pl-caret-sp"></span>'}
-        <input class="pl-in" data-f="name" value="${pesc(t.name)}" maxlength="200" aria-label="Task name for row ${i+1}" placeholder="Task name">
-      </div>
-      <div class="pl-c"><input class="pl-in" type="date" data-f="start" value="${t.start}"${dis}${dtitle} aria-label="Start date for row ${i+1}"></div>
-      <div class="pl-c"><input class="pl-in" type="date" data-f="finish" value="${t.finish}"${dis}${dtitle} aria-label="Finish date for row ${i+1}"></div>
-      <div class="pl-c"><input class="pl-in" type="number" min="0" step="1" data-f="duration" value="${t.duration}"${dis}${dtitle} aria-label="Duration in working days for row ${i+1}"></div>
-      <div class="pl-c"><div class="pl-pct" style="--p:${t.pct}%"><input class="pl-in" type="number" min="0" max="100" step="1" data-f="pct" value="${t.pct}"${dis}${dtitle} aria-label="Percent complete for row ${i+1}"></div></div>
-      <div class="pl-c"><input class="pl-in" type="text" data-f="preds" value="${pesc(predText(tasks, t))}"${dis} ${parent ? 'title="Parent rows cannot have predecessors"' : 'title="Row numbers separated by commas. Optional lag in working days: 3+2"'} placeholder="${parent ? '' : 'e.g. 2,3'}" aria-label="Predecessors for row ${i+1}"></div>
-      <div class="pl-c pl-c-act">
-        <button class="pl-ib" data-act="outdent" title="Outdent"${canOut ? '' : ' disabled'} aria-label="Outdent row ${i+1}">${ICON_OUT}</button>
-        <button class="pl-ib" data-act="indent" title="Indent"${canIn ? '' : ' disabled'} aria-label="Indent row ${i+1}">${ICON_IN}</button>
-        <button class="pl-ib" data-act="menu" title="More actions" aria-label="More actions for row ${i+1}">${ICON_MORE}</button>
-      </div>
-    </div>`;
+    return `<div class="${cls}" data-id="${t.id}">${visCols().map(c => cellHTML(c.k, i, t, parent, coll)).join('')}</div>`;
   }
   function renderGrid(){
-    const tasks = P().tasks, m = V.meta;
-    let h = `<div class="pl-ghead"><div>#</div><div>Task Name</div><div>Start Date</div><div>Finish Date</div><div title="Working days (Monday to Friday)">Duration</div><div>% Complete</div><div>Predecessors</div><div style="border-right:0"></div></div><div class="pl-gbody">`;
-    V.vis.forEach(i => { h += rowHTML(i, m); });
+    const cols = visCols(), gin = $('plGridIn');
+    gin.style.setProperty('--pl-cols', cols.map(c => c.w + 'px').join(' '));
+    gin.style.minWidth = cols.reduce((n, c) => n + c.w, 0) + 'px';
+    let h = `<div class="pl-ghead">${cols.map((c, n) => `<div${c.title ? ` title="${pesc(c.title)}"` : ''}${n === cols.length - 1 ? ' style="border-right:0"' : ''}>${c.k === 'num' ? '#' : pesc(c.label)}</div>`).join('')}</div><div class="pl-gbody">`;
+    V.vis.forEach(i => { h += rowHTML(i, V.meta); });
     h += `<div class="pl-addrow"><button data-act="addEnd">+ Add task</button></div></div>`;
-    $('plGridIn').innerHTML = h;
+    gin.innerHTML = h;
   }
   // refresh values in place so a focused input keeps focus while other cells update
   function syncGrid(){
     const tasks = P().tasks;
     $('plGridIn').querySelectorAll('.pl-row').forEach(row => {
-      const t = tasks.find(x => x.id === row.dataset.id); if (!t) return;
+      const i = tasks.findIndex(x => x.id === row.dataset.id); if (i < 0) return;
+      const t = tasks[i];
       const set = (f, v) => { const el = row.querySelector(`[data-f="${f}"]`); if (el && el.value !== String(v)) el.value = v; };
       set('name', t.name); set('start', t.start); set('finish', t.finish); set('duration', t.duration); set('pct', t.pct);
       set('preds', predText(tasks, t));
       const pc = row.querySelector('.pl-pct'); if (pc) pc.style.setProperty('--p', t.pct + '%');
+      const ac = row.querySelector('[data-col="assign"]'); if (ac) ac.innerHTML = assignCell(i);
       row.classList.toggle('crit', V.critical && V.crit.has(t.id));
       row.querySelectorAll('.bad').forEach(el => el.classList.remove('bad'));
     });
@@ -7885,6 +8158,11 @@ const PLU = (function(){
     const xm = gap >= 16 ? x1 + 8 : x1 + Math.max(2, gap / 2);
     return `M${x1},${y1} H${xm} V${y2} H${x2 - 1}`;
   }
+  function lblHTML(t, i, cls, left, top){
+    const names = assigneesOf(i).map(r => r.first + ' ' + r.last.charAt(0) + '.');
+    const who = names.length ? `<span class="as">${pesc(names.slice(0, 2).join(', '))}${names.length > 2 ? ' +' + (names.length - 2) : ''}</span>` : '';
+    return `<div class="pl-blabel ${cls}" data-for="${t.id}" title="Drag to move this row up or down" style="left:${left}px;top:${top}px"><span class="nm">${pesc(t.name)}</span>${who}</div>`;
+  }
   function drawChart(){
     const tasks = P().tasks, m = V.meta, RH = V.rowH, chart = $('plChart');
     const { ppd, o, e, shift } = computeRange(tasks);
@@ -7931,14 +8209,14 @@ const PLU = (function(){
       if (b.parent){
         const w = Math.max(6, b.xe - b.xs);
         body += `<div class="pl-sum${cls}" data-id="${t.id}" data-tip="t:${t.id}" style="left:${b.xs}px;top:${top + (RH - 9) / 2}px;width:${w}px"><div class="pl-prog" style="width:${pc}%"></div></div>`;
-        body += `<div class="pl-blabel sum" data-for="${t.id}" style="left:${b.xs + w + 8}px;top:${top}px">${pesc(t.name)}</div>`;
+        body += lblHTML(t, i, 'sum', b.xs + w + 8, top);
       } else if (b.ms){
         body += `<div class="pl-ms pl-bar-ms${cls}" data-id="${t.id}" data-tip="t:${t.id}" style="left:${x(b.s) + ppd / 2 - 8}px;top:${top + (RH - 16) / 2}px"></div>`;
-        body += `<div class="pl-blabel" data-for="${t.id}" style="left:${b.xe + 8}px;top:${top}px">${pesc(t.name)}</div>`;
+        body += lblHTML(t, i, '', b.xe + 8, top);
       } else {
         const w = Math.max(4, b.xe - b.xs);
         body += `<div class="pl-bar${cls}" data-id="${t.id}" data-tip="t:${t.id}" style="left:${b.xs}px;top:${top + 7}px;width:${w}px"><div class="pl-prog${pc >= 100 ? ' full' : ''}" style="width:${pc}%"></div><div class="pl-h pl-h-l"></div><div class="pl-h pl-h-r"></div></div>`;
-        body += `<div class="pl-blabel" data-for="${t.id}" style="left:${b.xs + w + 8}px;top:${top}px">${pesc(t.name)}</div>`;
+        body += lblHTML(t, i, '', b.xs + w + 8, top);
       }
     });
     if (!V.vis.length) body += `<div class="pl-empty" style="position:absolute;left:0;top:0;width:100%"></div>`;
@@ -7975,11 +8253,16 @@ const PLU = (function(){
     const leaves = tasks.filter((t, i) => !V.meta.isParent[i]).length;
     info.textContent = `${leaves} task${leaves === 1 ? '' : 's'}  |  ${fmtS(s)} to ${fmtS(f)}, ${dparts(f).y}  |  ${PLE.workDays(s, f)} working days`;
   }
+  const root_ = () => $('plRoot');
   function syncToolbar(){
     $('plZoom').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.zoom === V.zoom));
     $('plCritSw').classList.toggle('on', V.critical);
     $('plRoot').classList.toggle('crit-on', V.critical);
     $('plLegend').classList.toggle('show', V.critical);
+    const hid = COLS.filter(c => !c.lock && V.hidden.includes(c.k)).length;
+    const cb = root_().querySelector('[data-pl="columns"]'); if (cb) cb.textContent = hid ? `Columns (${hid} hidden)` : 'Columns';
+    const ta = root_().querySelector('[data-pl="toggleAll"]');
+    if (ta && V.meta){ const parents = P().tasks.filter((t, i) => V.meta.isParent[i]).length; ta.textContent = parents && P().collapsed.length >= parents ? 'Expand all' : 'Collapse all'; }
   }
 
   // ── render entry points ──
@@ -8020,6 +8303,11 @@ const PLU = (function(){
       V.inited = true;
       let s = Infinity; tasks.forEach(t => { s = Math.min(s, toDn(t.start)); });
       scrollToDn(isFinite(s) ? Math.min(s, PLE.todayDn()) : PLE.todayDn(), 40);
+    }
+    if (V.reveal){
+      const b = V.pos.get(V.reveal), g = $('plChart');
+      if (b){ setSelected(V.reveal); g.scrollTop = Math.max(0, b.r * V.rowH - 60); scrollToDn(b.s, 60); }
+      V.reveal = null;
     }
     if (V.focusId){
       const el = $('plGridIn').querySelector(`.pl-row[data-id="${V.focusId}"] [data-f="name"]`);
@@ -8079,7 +8367,7 @@ const PLU = (function(){
     const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
     const canIn = i > 0 && ts[i-1].indent >= ts[i].indent, canOut = ts[i].indent > 0;
     menuEl = document.createElement('div'); menuEl.className = 'pl-menu';
-    menuEl.innerHTML = `<button data-m="above">Add Task Above</button><button data-m="below">Add Task Below</button><hr><button data-m="indent"${canIn ? '' : ' disabled'}>Indent</button><button data-m="outdent"${canOut ? '' : ' disabled'}>Outdent</button><hr><button data-m="delete" class="danger">Delete Task</button>`;
+    menuEl.innerHTML = `<button data-m="above">Add Task Above</button><button data-m="below">Add Task Below</button><hr><button data-m="up">Move Up</button><button data-m="down">Move Down</button><button data-m="indent"${canIn ? '' : ' disabled'}>Indent</button><button data-m="outdent"${canOut ? '' : ' disabled'}>Outdent</button><hr><button data-m="tpl">Save as Template...</button><hr><button data-m="delete" class="danger">Delete Task</button>`;
     document.body.appendChild(menuEl); menuEl.style.display = 'block';
     const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
     menuEl.style.left = Math.max(6, Math.min(x, window.innerWidth - w - 6)) + 'px';
@@ -8090,6 +8378,9 @@ const PLU = (function(){
       if (a === 'above') addAbove(id); else if (a === 'below') addBelow(id);
       else if (a === 'indent') doOp(t => PLE.changeIndent(t, id, 1), { structural: true });
       else if (a === 'outdent') doOp(t => PLE.changeIndent(t, id, -1), { structural: true });
+      else if (a === 'up') doOp(t => PLE.moveSibling(t, id, -1), { structural: true });
+      else if (a === 'down') doOp(t => PLE.moveSibling(t, id, 1), { structural: true });
+      else if (a === 'tpl') openSaveTemplate(id);
       else if (a === 'delete') del(id);
     });
   }
@@ -8106,6 +8397,8 @@ const PLU = (function(){
     h += `<span class="k">% Complete:</span> ${t.pct}%`;
     if (parent) h += `<br><span class="k">Summary of ${V.meta.children[i].length} child row${V.meta.children[i].length === 1 ? '' : 's'}</span>`;
     if (t.preds.length) h += `<br><span class="k">Predecessors:</span> ${pesc(predText(ts, t))}`;
+    const who = assigneesOf(i).map(r => r.first + ' ' + r.last);
+    if (who.length) h += `<br><span class="k">${parent ? 'Team:' : 'Assigned:'}</span> ${pesc(who.join(', '))}`;
     if (V.critical && V.crit.has(id)) h += `<br><span class="crit">Critical path (zero float)</span>`;
     else if (V.floatOf.has(id) && !parent && (t.preds.length || ts.some(x => x.preds.some(p => p.id === id)))) h += `<br><span class="k">Float:</span> ${V.floatOf.get(id)} working day${V.floatOf.get(id) === 1 ? '' : 's'}`;
     return h;
@@ -8170,6 +8463,246 @@ const PLU = (function(){
   }
   function onDragCancel(){ const D = V.drag; if (!D) return; cleanupDrag(D); drawChart(); }
 
+  // ══ popovers (Columns menu, resource picker) ══
+  let popEl = null, popKey = null;
+  function closePop(){ if (popEl){ popEl.remove(); popEl = null; popKey = null; } }
+  function openPop(key, anchor, html){
+    if (popEl && popKey === key){ closePop(); return null; }
+    closePop();
+    popEl = document.createElement('div'); popEl.className = 'pl-pop'; popEl.innerHTML = html; popKey = key;
+    document.body.appendChild(popEl);
+    const r = anchor.getBoundingClientRect(), w = popEl.offsetWidth, h = popEl.offsetHeight;
+    let L = Math.min(r.left, window.innerWidth - w - 8), T = r.bottom + 6;
+    if (T + h > window.innerHeight - 8) T = Math.max(8, r.top - h - 6);
+    popEl.style.left = Math.max(8, L) + 'px'; popEl.style.top = T + 'px';
+    return popEl;
+  }
+  function modalBox(html, cls){
+    const ov = document.createElement('div'); ov.className = 'pl-modal-ov';
+    ov.innerHTML = `<div class="pl-modal ${cls || ''}" role="dialog" aria-modal="true">${html}</div>`;
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey, true); };
+    const onKey = e => { if (e.key === 'Escape'){ e.stopPropagation(); close(); } };
+    let down = false;
+    ov.addEventListener('mousedown', e => { down = e.target === ov; });
+    ov.addEventListener('click', e => { if (e.target === ov && down) close(); });
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(ov);
+    return { ov, close, el: ov.firstElementChild };
+  }
+
+  // ══ columns show/hide ══
+  function openColumns(btn){
+    const items = COLS.filter(c => !c.lock).map(c => `<label class="pl-pi"><input type="checkbox" data-col="${c.k}"${V.hidden.includes(c.k) ? '' : ' checked'}><span class="pl-pi-t"><b>${pesc(c.label)}</b></span></label>`).join('');
+    const p = openPop('cols', btn, `<div class="pl-pop-h">Show columns</div>${items}<div class="pl-pop-f"><button class="pl-btn" data-x="all">Show all</button></div><div class="pl-pop-n">Task Name, the row number and the row buttons are always shown. Hidden columns keep working in the background.</div>`);
+    if (!p) return;
+    p.addEventListener('change', e => {
+      const k = e.target.dataset.col; if (!k) return;
+      if (e.target.checked) V.hidden = V.hidden.filter(x => x !== k); else if (!V.hidden.includes(k)) V.hidden.push(k);
+      persist(); renderGrid(); syncToolbar();
+    });
+    p.addEventListener('click', e => {
+      if (e.target.dataset.x === 'all'){ V.hidden = []; persist(); renderGrid(); syncToolbar(); p.querySelectorAll('input').forEach(i => { i.checked = true; }); }
+    });
+  }
+
+  // ══ resource assignment ══
+  function busyCount(resId, selfId, s, f){
+    const ts = P().tasks, m = V.meta; let n = 0;
+    ts.forEach((t, i) => {
+      if (t.id === selfId || m.isParent[i] || t.duration === 0 || !(t.assign || []).includes(resId)) return;
+      if (toDn(t.start) <= f && toDn(t.finish) >= s) n++;
+    });
+    return n;
+  }
+  function openAssign(anchor, id){
+    const ts = P().tasks, i = PLE.find(ts, id); if (i < 0 || V.meta.isParent[i]) return;
+    const t = ts[i], res = state.resources || [], s = toDn(t.start), f = toDn(t.finish);
+    const rows = res.map(r => {
+      const b = busyCount(r.id, id, s, f);
+      return `<label class="pl-pi" data-q="${pesc((r.first + ' ' + r.last + ' ' + (r.role || '') + ' ' + (r.dept || '')).toLowerCase())}"><input type="checkbox" data-r="${r.id}"${(t.assign || []).includes(r.id) ? ' checked' : ''}>${avHTML(r)}<span class="pl-pi-t"><b>${pesc(r.first + ' ' + r.last)}</b><small>${pesc(r.role || '')}${b ? ` <i class="warn">already on ${b} overlapping task${b === 1 ? '' : 's'}</i>` : ''}</small></span></label>`;
+    }).join('');
+    const p = openPop('assign:' + id, anchor, `<div class="pl-pop-h">Assign to row ${i + 1}: ${pesc(t.name)}</div>${res.length ? `<input class="pl-pop-s" placeholder="Search people" aria-label="Search people"><div class="pl-pop-list">${rows}</div>` : '<div class="pl-pop-n">No resources yet. Add people with + Add Resource.</div>'}<div class="pl-pop-n">Planner assignments are not yet counted in utilization or alerts (coming soon).</div>`);
+    if (!p) return;
+    const q = p.querySelector('.pl-pop-s');
+    if (q){ q.focus(); q.addEventListener('input', () => { const v = q.value.trim().toLowerCase(); p.querySelectorAll('.pl-pi').forEach(l => { l.style.display = !v || l.dataset.q.includes(v) ? '' : 'none'; }); }); }
+    p.addEventListener('change', e => {
+      if (!e.target.dataset.r) return;
+      const list = [...p.querySelectorAll('input[data-r]:checked')].map(x => x.dataset.r);
+      doOp(tt => PLE.setAssign(tt, id, list));
+    });
+  }
+
+  // ══ drag a row up or down (grip in the # column, or the task label on the timeline) ══
+  function startReorder(e, id){
+    if (e.button !== 0 || V.drag) return;
+    const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
+    setSelected(id);
+    const R = { id, i, end: PLE.subtreeEnd(ts, i), y0: e.clientY, lastY: e.clientY, active: false, at: null, raf: 0, ids: new Set(ts.slice(i, PLE.subtreeEnd(ts, i)).map(t => t.id)) };
+    V.reorder = R;
+    const mv = ev => { R.lastY = ev.clientY; R.lastX = ev.clientX; if (!R.active){ if (Math.abs(ev.clientY - R.y0) < 5) return; beginReorder(R); } updateReorder(R); };
+    const done = commit => {
+      document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+      document.removeEventListener('pointercancel', cancel); document.removeEventListener('keydown', key, true);
+      cancelAnimationFrame(R.raf); V.reorder = null;
+      document.body.classList.remove('pl-dragging-row');
+      document.querySelectorAll('.pl-drop').forEach(x => x.remove());
+      document.querySelectorAll('.pl-row.ghost').forEach(x => x.classList.remove('ghost'));
+      hideTip();
+      if (R.active && commit && R.at != null) doOp(tt => PLE.moveBlock(tt, R.id, R.at), { structural: true });
+    };
+    const up = () => done(true), cancel = () => done(false);
+    const key = ev => { if (ev.key === 'Escape'){ ev.stopPropagation(); done(false); } };
+    document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+    document.addEventListener('pointercancel', cancel); document.addEventListener('keydown', key, true);
+    e.preventDefault();
+  }
+  function beginReorder(R){
+    R.active = true; hideTip(); closePop();
+    document.body.classList.add('pl-dragging-row');
+    $('plGridIn').querySelectorAll('.pl-row').forEach(r => { if (R.ids.has(r.dataset.id)) r.classList.add('ghost'); });
+    const gb = $('plGridIn').querySelector('.pl-gbody'), cb = $('plCBody');
+    [gb, cb].forEach(c => { if (c){ const d = document.createElement('div'); d.className = 'pl-drop'; d.style.display = 'none'; c.appendChild(d); } });
+    const loop = () => {
+      if (V.reorder !== R || !R.active) return;
+      const chart = $('plChart'), cr = chart.getBoundingClientRect(), top = cr.top + HDR + 26, bot = cr.bottom - 40;
+      let d = 0;
+      if (R.lastY < top) d = -Math.ceil((top - R.lastY) / 4); else if (R.lastY > bot) d = Math.ceil((R.lastY - bot) / 4);
+      if (d){ chart.scrollTop += d; updateReorder(R); }
+      R.raf = requestAnimationFrame(loop);
+    };
+    R.raf = requestAnimationFrame(loop);
+  }
+  function updateReorder(R){
+    const ts = P().tasks, gb = $('plGridIn').querySelector('.pl-gbody'); if (!gb) return;
+    const y = R.lastY - gb.getBoundingClientRect().top;
+    const slot = Math.max(0, Math.min(V.vis.length, Math.round(y / V.rowH)));
+    const at = slot < V.vis.length ? V.vis[slot] : ts.length;
+    const valid = !(at >= R.i && at <= R.end);
+    R.at = valid ? at : null;
+    document.querySelectorAll('.pl-drop').forEach(d => { d.style.display = valid ? 'block' : 'none'; d.style.top = (slot * V.rowH - 1) + 'px'; });
+    const n = R.end - R.i;
+    showTip(`<b>Move ${pesc(ts[R.i].name || 'row')}</b>${n > 1 ? `with its ${n - 1} child row${n - 1 === 1 ? '' : 's'}<br>` : ''}${valid ? 'Release to drop here' : 'Drop on another row position'}`, R.lastX || (document.body.clientWidth / 2), R.lastY);
+  }
+
+  // ══ project templates ══
+  function tplSpan(tpl){
+    try {
+      const rows = PLE.instantiateTemplate(tpl, null, PLE.todayDn()); PLE.recalc(rows);
+      let s = Infinity, f = -Infinity; rows.forEach(t => { s = Math.min(s, toDn(t.start)); f = Math.max(f, toDn(t.finish)); });
+      return { rows: rows.length, days: PLE.workDays(s, f) };
+    } catch (e) { return { rows: (tpl.rows || []).length, days: 0 }; }
+  }
+  function blankProject(name, startDn){
+    const root = PLE.makeTask({ name, indent: 0, duration: 1, start: toStr(PLE.nextWork(startDn)) });
+    const kid = PLE.makeTask({ name: 'Task 1', indent: 1, duration: 1, start: toStr(PLE.nextWork(startDn)) });
+    return [root, kid];
+  }
+  function openAddProject(){
+    const tpls = P().templates || [];
+    const spans = new Map(tpls.map(t => [t.id, tplSpan(t)]));
+    const list = `<label class="pl-tpl"><input type="radio" name="plTpl" value="blank" checked><span><b>Blank project</b><small>A project row with one task to start from</small></span></label>` +
+      tpls.map(t => { const sp = spans.get(t.id); return `<label class="pl-tpl"><input type="radio" name="plTpl" value="${t.id}"><span><b>${pesc(t.name)}</b><small>${sp.rows} rows, about ${sp.days} working days${t.desc ? '. ' + pesc(t.desc) : ''}</small></span></label>`; }).join('');
+    const { el, close } = modalBox(`<h4>Add Project</h4><p>Pick a template, name the project and choose when it starts. The tasks are added to the bottom of the board with their dependencies.</p>
+      <div class="pl-tpls" role="radiogroup" aria-label="Template">${list}</div>
+      <div class="pl-fr"><label class="pl-f">Project name<input id="plApName" class="pl-fi" maxlength="120" value="New Project"></label>
+      <label class="pl-f">Start date<input id="plApStart" class="pl-fi" type="date" value="${toStr(PLE.nextWork(PLE.todayDn()))}"></label></div>
+      <div class="row"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok">Add Project</button></div>`, 'wide');
+    const nameI = el.querySelector('#plApName'), dateI = el.querySelector('#plApStart');
+    let touched = false, curName = 'New Project';
+    nameI.addEventListener('input', () => { touched = true; });
+    el.addEventListener('change', e => {
+      if (e.target.name !== 'plTpl') return;
+      if (!touched || nameI.value === curName){
+        const t = tpls.find(x => x.id === e.target.value);
+        curName = t ? t.name : 'New Project'; nameI.value = curName; touched = false;
+      }
+    });
+    const submit = () => {
+      const sel = el.querySelector('input[name="plTpl"]:checked').value;
+      const name = nameI.value.trim() || 'New Project';
+      const sd = toDn(dateI.value), y = +dateI.value.slice(0, 4);
+      if (isNaN(sd) || y < 1990 || y > 2100){ toast('Choose a valid start date.', 'error'); dateI.focus(); return; }
+      const tpl = tpls.find(x => x.id === sel);
+      const rows = tpl ? PLE.instantiateTemplate(tpl, name, sd) : blankProject(name, sd);
+      close();
+      V.reveal = rows[0].id;
+      doOp(ts => { ts.push(...rows); PLE.recalc(ts); return { ok: true, warnings: [] }; }, { structural: true });
+      toast(`Added "${name}"` + (tpl ? ` from template "${tpl.name}"` : ''), 'success');
+    };
+    el.addEventListener('click', e => { const x = e.target.dataset.x; if (x === 'no') close(); else if (x === 'ok') submit(); });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'radio'){ e.preventDefault(); submit(); } });
+    nameI.focus(); nameI.select();
+  }
+  function tplOp(fn){ pushUndo(); fn(P().templates); save(); }
+  function openSaveTemplate(id){
+    const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
+    const n = PLE.subtreeEnd(ts, i) - i;
+    const { el, close } = modalBox(`<h4>Save as Template</h4><p>Saves "${pesc(ts[i].name)}" and its ${n - 1} sub-row${n - 1 === 1 ? '' : 's'} as a reusable template. Durations, indents and dependencies inside the project are kept. Dates, % complete and assigned people are not.</p>
+      <label class="pl-f">Template name<input id="plStName" class="pl-fi" maxlength="80" value="${pesc(ts[i].name)}"></label>
+      <label class="pl-f" style="margin-top:10px">Description (optional)<input id="plStDesc" class="pl-fi" maxlength="300"></label>
+      <div class="row" style="margin-top:16px"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok">Save Template</button></div>`);
+    const nameI = el.querySelector('#plStName');
+    const submit = () => {
+      const name = nameI.value.trim(); if (!name){ nameI.focus(); return; }
+      const tpl = PLE.extractTemplate(P().tasks, id, name, el.querySelector('#plStDesc').value.trim());
+      if (!tpl){ close(); return; }
+      close(); tplOp(t => t.push(tpl)); toast(`Template "${name}" saved. Use it from + Add Project.`, 'success');
+    };
+    el.addEventListener('click', e => { const x = e.target.dataset.x; if (x === 'no') close(); else if (x === 'ok') submit(); });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT'){ e.preventDefault(); submit(); } });
+    nameI.focus(); nameI.select();
+  }
+  function openTemplates(){
+    const box = modalBox('', 'wide tall'); const open = new Set();
+    const paint = () => {
+      const tpls = P().templates || [], ts = P().tasks, m = V.meta;
+      const parents = []; ts.forEach((t, i) => { if (m.isParent[i]) parents.push({ id: t.id, label: `Row ${i + 1}: ${t.name}`, indent: t.indent }); });
+      const rowsHtml = tpls.map(t => {
+        const sp = tplSpan(t);
+        const prev = open.has(t.id) ? `<div class="pl-tprev">${t.rows.map(r => `<div style="padding-left:${r.indent * 16}px">${pesc(r.name)} <span class="d">${r.duration === 0 ? 'milestone' : r.duration + 'd'}${(r.preds || []).length ? ', after ' + r.preds.map(p => p.row).join(', ') : ''}</span></div>`).join('')}</div>` : '';
+        return `<div class="pl-trow" data-id="${t.id}"><div class="pl-tmain"><input class="pl-fi pl-tn" data-f="name" value="${pesc(t.name)}" maxlength="80" aria-label="Template name"><input class="pl-fi pl-td" data-f="desc" value="${pesc(t.desc || '')}" maxlength="300" placeholder="Description" aria-label="Template description"><small>${sp.rows} rows, about ${sp.days} working days${t.starter ? ', starter template' : ''}</small></div>
+          <div class="pl-tact"><button class="pl-btn" data-x="prev">${open.has(t.id) ? 'Hide' : 'Preview'}</button><button class="pl-btn" data-x="dup">Duplicate</button><button class="pl-btn danger" data-x="del">Delete</button></div>${prev}</div>`;
+      }).join('') || '<div class="pl-pop-n" style="padding:14px 4px">No templates yet. Save a project from the board below.</div>';
+      box.el.innerHTML = `<div class="pl-mh"><h4>Project Templates</h4><button class="pl-x" data-x="close" aria-label="Close">&times;</button></div>
+        <p>Templates are reusable task lists. Choose one from + Add Project to drop a fresh copy on the board.</p>
+        <div class="pl-tlist">${rowsHtml}</div>
+        <div class="pl-tsave"><h5>Create a template from the board</h5>
+          ${parents.length ? `<div class="pl-fr"><label class="pl-f">Project or group<select id="plTsSel" class="pl-fi">${parents.map(p => `<option value="${p.id}">${pesc(p.label)}</option>`).join('')}</select></label>
+          <label class="pl-f">Template name<input id="plTsName" class="pl-fi" maxlength="80" placeholder="Name" value="${pesc(parents[0].label.replace(/^Row \d+: /, ''))}"></label></div>
+          <button class="pl-btn primary" data-x="save" style="margin-top:10px">Save as template</button>` : '<div class="pl-pop-n">There is no project on the board yet. Build one (indent tasks under a parent row), then come back to save it.</div>'}
+        </div>
+        <div class="row" style="margin-top:14px"><button class="pl-btn" data-x="close">Close</button></div>`;
+    };
+    paint();
+    box.el.addEventListener('change', e => {
+      const row = e.target.closest('.pl-trow');
+      if (e.target.id === 'plTsSel'){ const o = e.target.selectedOptions[0]; $('plTsName') ? null : null; const nm = box.el.querySelector('#plTsName'); if (nm) nm.value = o.textContent.replace(/^Row \d+: /, ''); return; }
+      if (!row || !e.target.dataset.f) return;
+      const id = row.dataset.id, f = e.target.dataset.f, v = e.target.value.trim();
+      if (f === 'name' && !v){ paint(); return; }
+      tplOp(t => { const x = t.find(y => y.id === id); if (x) x[f] = v; });
+    });
+    box.el.addEventListener('click', e => {
+      const x = e.target.dataset.x; if (!x) return;
+      if (x === 'close'){ box.close(); return; }
+      if (x === 'save'){
+        const id = box.el.querySelector('#plTsSel').value, name = box.el.querySelector('#plTsName').value.trim();
+        if (!name){ box.el.querySelector('#plTsName').focus(); return; }
+        const tpl = PLE.extractTemplate(P().tasks, id, name, '');
+        if (tpl){ tplOp(t => t.push(tpl)); toast(`Template "${name}" saved.`, 'success'); paint(); }
+        return;
+      }
+      const row = e.target.closest('.pl-trow'); if (!row) return;
+      const id = row.dataset.id;
+      if (x === 'prev'){ if (open.has(id)) open.delete(id); else open.add(id); paint(); }
+      else if (x === 'dup'){ tplOp(t => { const s = t.find(y => y.id === id); if (s){ const c = JSON.parse(JSON.stringify(s)); c.id = PLE.uid(); c.name = s.name + ' (copy)'; c.starter = false; t.push(c); } }); paint(); }
+      else if (x === 'del'){
+        const t = P().templates.find(y => y.id === id);
+        confirmBox('Delete template?', `"${t ? t.name : ''}" will be removed from the template list. Projects already on the board are not affected.`, 'Delete', () => { tplOp(a => { const k = a.findIndex(y => y.id === id); if (k >= 0) a.splice(k, 1); }); paint(); });
+      }
+    });
+  }
+
   // ── wiring ──
   let wired = false;
   function wire(){
@@ -8185,8 +8718,14 @@ const PLU = (function(){
       if (a === 'addEnd') addEnd();
       else if (a === 'clear') clearBoard();
       else if (a === 'today') scrollToDn(PLE.todayDn(), chart.clientWidth / 2);
-      else if (a === 'expandAll'){ P().collapsed = []; save(); render_(); }
-      else if (a === 'collapseAll'){ P().collapsed = P().tasks.filter((t, i) => V.meta.isParent[i]).map(t => t.id); save(); render_(); }
+      else if (a === 'toggleAll'){
+        const parents = P().tasks.filter((t, i) => V.meta.isParent[i]).map(t => t.id);
+        P().collapsed = P().collapsed.length >= parents.length && parents.length ? [] : parents;
+        save(); render_();
+      }
+      else if (a === 'addProject') openAddProject();
+      else if (a === 'templates') openTemplates();
+      else if (a === 'columns') openColumns(b);
     });
 
     // grid: edits
@@ -8209,7 +8748,9 @@ const PLU = (function(){
     gridIn.addEventListener('keydown', e => {
       if (e.key === 'Enter' && e.target.classList.contains('pl-in')){ e.preventDefault(); e.target.blur(); }
       else if (e.key === 'Escape' && e.target.classList.contains('pl-in')){ syncGrid(); e.target.blur(); }
+      else if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('pl-as') && e.target.dataset.act === 'assign'){ e.preventDefault(); openAssign(e.target, e.target.closest('.pl-row').dataset.id); }
     });
+    gridIn.addEventListener('pointerdown', e => { const n = e.target.closest('.pl-num'); if (n) startReorder(e, n.closest('.pl-row').dataset.id); });
     // grid: buttons, selection, context menu
     gridIn.addEventListener('click', e => {
       const row = e.target.closest('.pl-row');
@@ -8223,6 +8764,7 @@ const PLU = (function(){
         if (a === 'indent') doOp(ts => PLE.changeIndent(ts, id, 1), { structural: true });
         else if (a === 'outdent') doOp(ts => PLE.changeIndent(ts, id, -1), { structural: true });
         else if (a === 'caret') toggleCaret(id);
+        else if (a === 'assign') openAssign(btn, id);
         else if (a === 'menu'){ const r = btn.getBoundingClientRect(); openMenu(r.left, r.bottom + 4, id); }
         return;
       }
@@ -8231,7 +8773,8 @@ const PLU = (function(){
     gridIn.addEventListener('focusin', e => { const row = e.target.closest('.pl-row'); if (row) setSelected(row.dataset.id); });
     gridIn.addEventListener('contextmenu', e => { const row = e.target.closest('.pl-row'); if (!row) return; e.preventDefault(); setSelected(row.dataset.id); openMenu(e.clientX, e.clientY, row.dataset.id); });
     document.addEventListener('click', e => { if (menuEl && !e.target.closest('.pl-menu') && !e.target.closest('[data-act="menu"]')) closeMenu(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape'){ closeMenu(); closePop(); } });
+    document.addEventListener('click', e => { if (popEl && !popEl.contains(e.target) && !e.target.closest('[data-act="assign"], [data-pl="columns"]')) closePop(); });
     window.addEventListener('wheel', closeMenu, { passive: true, capture: true });
 
     // vertical scroll sync (the timeline owns the vertical scrollbar)
@@ -8245,9 +8788,9 @@ const PLU = (function(){
     }, { passive: false });
 
     // timeline: drag + tooltips
-    chartIn.addEventListener('pointerdown', startDrag);
+    chartIn.addEventListener('pointerdown', e => { const l = e.target.closest('.pl-blabel'); if (l){ startReorder(e, l.dataset.for); return; } startDrag(e); });
     chartIn.addEventListener('pointermove', e => {
-      if (V.drag) return;
+      if (V.drag || V.reorder) return;
       const el = e.target.closest('[data-tip]');
       if (!el){ hideTip(); return; }
       const k = el.dataset.tip;
