@@ -1493,6 +1493,163 @@ html.rm-compact .bar-popover { width: 270px; }
 html.rm-narrow .pg-proj-name-cell .pg-proj-dates { display: none; }
 html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
 
+/* ══════════ PLANNER (Smartsheet-style Gantt) ══════════ */
+#plannerView { background: var(--bg-surface); }
+.pl-root { --pl-row: 34px; --pl-hdr: 56px; --pl-bar: #60A5FA; --pl-bar-dk: #1D4ED8; --pl-crit: #EF4444; --pl-crit-dk: #991B1B;
+  flex: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; font-family: var(--sans); color: var(--txt-main); }
+.pl-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 9px 16px; background: var(--bg-white); border-bottom: 1px solid var(--border); }
+.pl-title { font-size: 14px; font-weight: 700; margin-right: 6px; white-space: nowrap; }
+.pl-sep { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+.pl-btn { font: inherit; font-size: 12px; font-weight: 600; color: var(--txt-sub); background: var(--bg-white); border: 1px solid var(--border); border-radius: 7px; padding: 6px 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.pl-btn:hover { background: var(--bg-alt); color: var(--txt-main); }
+.pl-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.pl-btn.primary:hover { background: var(--blue-dk); }
+.pl-btn.danger:hover { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
+.pl-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.pl-seg button { font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border: 0; background: var(--bg-white); color: var(--txt-sub); cursor: pointer; }
+.pl-seg button + button { border-left: 1px solid var(--border); }
+.pl-seg button.on { background: var(--blue-lt); color: var(--blue-dk); }
+.pl-switch { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--txt-sub); cursor: pointer; user-select: none; }
+.pl-switch .trk { width: 32px; height: 18px; border-radius: 9px; background: #CBD5E1; position: relative; transition: background .15s; }
+.pl-switch .trk::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.pl-switch.on .trk { background: var(--pl-crit); }
+.pl-switch.on .trk::after { left: 16px; }
+.pl-switch.on { color: #B91C1C; }
+.pl-info { margin-left: auto; font-size: 12px; color: var(--txt-sub); white-space: nowrap; }
+.pl-legend { display: none; align-items: center; gap: 10px; font-size: 11px; color: var(--txt-sub); padding: 5px 16px; background: #FEF2F2; border-bottom: 1px solid #FECACA; }
+.pl-legend.show { display: flex; }
+.pl-legend i { display: inline-block; width: 22px; height: 9px; border-radius: 3px; background: var(--pl-crit); vertical-align: middle; margin-right: 5px; }
+
+.pl-split { flex: 1; display: flex; min-height: 0; min-width: 0; background: var(--bg-white); }
+.pl-grid { flex: 0 0 auto; width: 560px; min-width: 0; overflow-x: scroll; overflow-y: hidden; position: relative; background: var(--bg-white); }
+.pl-divider { flex: 0 0 7px; cursor: col-resize; background: var(--bg-alt); border-left: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; touch-action: none; z-index: 3; }
+.pl-divider::after { content: ''; position: absolute; left: 1px; top: 50%; width: 3px; height: 34px; margin-top: -17px; border-radius: 2px; background: #94A3B8; }
+.pl-divider:hover, .pl-divider.drag, .pl-divider:focus-visible { background: var(--blue-lt); outline: none; }
+.pl-divider:hover::after, .pl-divider.drag::after { background: var(--blue); }
+.pl-chart { flex: 1 1 0; min-width: 0; overflow: scroll; position: relative; background: var(--bg-white); }
+body.pl-resizing { cursor: col-resize !important; user-select: none; }
+body.pl-resizing * { cursor: col-resize !important; }
+
+/* grid */
+.pl-grid-in { --pl-cols: 44px 262px 128px 128px 80px 96px 108px 92px; min-width: 938px; }
+.pl-ghead { display: grid; grid-template-columns: var(--pl-cols); height: var(--pl-hdr); position: sticky; top: 0; z-index: 4; background: var(--bg-alt); border-bottom: 1px solid var(--border); }
+.pl-ghead > div { display: flex; align-items: flex-end; padding: 0 8px 9px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--txt-sub); border-right: 1px solid var(--border); white-space: nowrap; }
+.pl-ghead > div:first-child { justify-content: center; padding: 0 0 9px; }
+.pl-row { display: grid; grid-template-columns: var(--pl-cols); height: var(--pl-row); min-height: var(--pl-row); max-height: var(--pl-row); box-sizing: border-box; border-bottom: 1px solid var(--border); align-items: stretch; background: var(--bg-white); }
+.pl-row:hover { background: #F8FAFC; }
+.pl-row.sel { background: #EFF6FF; }
+.pl-row.parent { background: #F8FAFC; font-weight: 700; }
+.pl-row.parent.sel { background: #EFF6FF; }
+.pl-c { display: flex; align-items: center; min-width: 0; border-right: 1px solid var(--border); padding: 0 5px; box-sizing: border-box; overflow: hidden; }
+.pl-num { justify-content: center; padding: 0; font-size: 11px; font-weight: 600; color: var(--txt-muted); background: var(--bg-alt); font-family: var(--mono); cursor: default; }
+.pl-row.crit .pl-num { background: #FEE2E2; color: #B91C1C; }
+.pl-in { width: 100%; min-width: 0; height: calc(var(--pl-row) - 8px); box-sizing: border-box; font: inherit; font-size: 12.5px; color: var(--txt-main); background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 0 6px; outline: none; }
+.pl-row.parent .pl-in { font-weight: 700; }
+.pl-in:hover:not(:disabled) { border-color: var(--border); background: #fff; }
+.pl-in:focus { border-color: var(--blue); background: #fff; box-shadow: 0 0 0 2px rgba(59,130,246,.18); }
+.pl-in:disabled { color: var(--txt-sub); cursor: not-allowed; opacity: 1; -webkit-text-fill-color: var(--txt-sub); }
+.pl-in[type=number] { text-align: right; -moz-appearance: textfield; appearance: textfield; }
+.pl-in[type=date] { font-family: var(--mono); font-size: 11.5px; padding: 0 3px; }
+.pl-in.bad { border-color: var(--red); background: #FEF2F2; }
+.pl-pct { position: relative; width: 100%; display: flex; align-items: center; }
+.pl-pct .pl-in { background: linear-gradient(90deg, rgba(59,130,246,.2) var(--p, 0%), transparent var(--p, 0%)); padding-right: 16px; }
+.pl-pct .pl-in:focus { background: #fff; }
+.pl-pct::after { content: '%'; position: absolute; right: 6px; font-size: 11px; color: var(--txt-muted); pointer-events: none; }
+.pl-c-name { padding-left: 0; }
+.pl-caret { flex: 0 0 18px; width: 18px; height: 18px; border: 0; background: transparent; color: var(--txt-sub); cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; }
+.pl-caret:hover { background: var(--border); }
+.pl-caret svg { transition: transform .12s; }
+.pl-caret.closed svg { transform: rotate(-90deg); }
+.pl-caret-sp { flex: 0 0 18px; }
+.pl-c-act { gap: 2px; justify-content: flex-start; padding: 0 4px; border-right: 0; }
+.pl-ib { width: 24px; height: 24px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--txt-sub); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.pl-ib:hover:not(:disabled) { background: var(--bg-alt); border-color: var(--border); color: var(--txt-main); }
+.pl-ib:disabled { opacity: .28; cursor: not-allowed; }
+.pl-addrow { height: 48px; display: flex; align-items: center; padding: 0 10px; box-sizing: border-box; }
+.pl-addrow button { font: inherit; font-size: 12px; font-weight: 600; color: var(--blue-dk); background: transparent; border: 1px dashed #93C5FD; border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+.pl-addrow button:hover { background: var(--blue-lt); }
+
+/* chart */
+.pl-chart-in { position: relative; }
+.pl-chead { position: sticky; top: 0; z-index: 4; height: var(--pl-hdr); background: var(--bg-alt); border-bottom: 1px solid var(--border); }
+.pl-hrow { position: relative; height: 28px; box-sizing: border-box; }
+.pl-hrow + .pl-hrow { border-top: 1px solid var(--border); }
+.pl-hc { position: absolute; top: 0; bottom: 0; box-sizing: border-box; border-right: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--txt-sub); white-space: nowrap; overflow: hidden; }
+.pl-hrow.top .pl-hc { display: block; overflow: visible; color: var(--txt-main); }
+.pl-hrow.top .lb { position: sticky; left: 8px; display: inline-block; max-width: calc(100% - 8px); overflow: hidden; line-height: 27px; vertical-align: top; padding-left: 8px; margin-left: 0; box-sizing: border-box; }
+.pl-hc.we { background: rgba(148,163,184,.14); }
+.pl-hc.today { background: var(--blue-lt); color: var(--blue-dk); }
+.pl-hc.d2 { flex-direction: column; line-height: 1.05; font-size: 10.5px; gap: 1px; }
+.pl-hc.d2 small { font-size: 8.5px; font-weight: 700; opacity: .7; }
+.pl-cbody { position: relative; }
+.pl-vlines, .pl-links { position: absolute; left: 0; top: 0; pointer-events: none; }
+.pl-vl { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); }
+.pl-today { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--red); opacity: .7; pointer-events: none; z-index: 2; }
+.pl-links { z-index: 1; }
+.pl-links path.hit { pointer-events: stroke; stroke: transparent; stroke-width: 9px; fill: none; cursor: help; }
+
+.pl-bar, .pl-sum, .pl-ms { position: absolute; z-index: 3; box-sizing: border-box; }
+.pl-bar { height: calc(var(--pl-row) - 14px); border-radius: 5px; background: var(--pl-bar); cursor: grab; overflow: hidden; touch-action: none; box-shadow: 0 1px 2px rgba(15,23,42,.15); }
+.pl-bar:active { cursor: grabbing; }
+.pl-prog { position: absolute; left: 0; top: 0; bottom: 0; background: var(--pl-bar-dk); pointer-events: none; border-radius: 5px 0 0 5px; }
+.pl-prog.full { border-radius: 5px; }
+.pl-h { position: absolute; top: 0; bottom: 0; width: 7px; cursor: ew-resize; z-index: 2; }
+.pl-h-l { left: 0; } .pl-h-r { right: 0; }
+.pl-h:hover { background: rgba(255,255,255,.4); }
+.pl-sum { height: 9px; border-radius: 2px; background: #94A3B8; cursor: default; overflow: visible; }
+.pl-sum .pl-prog { background: #1E293B; border-radius: 2px 0 0 2px; }
+.pl-sum::before, .pl-sum::after { content: ''; position: absolute; top: 6px; border-top: 7px solid #475569; border-left: 5px solid transparent; border-right: 5px solid transparent; }
+.pl-sum::before { left: 0; border-left-width: 0; } .pl-sum::after { right: 0; border-right-width: 0; }
+.pl-ms { width: 16px; height: 16px; background: #6B7280; transform: rotate(45deg); border-radius: 2px; cursor: grab; touch-action: none; box-shadow: 0 1px 2px rgba(15,23,42,.25); }
+.pl-ms:active { cursor: grabbing; }
+.pl-blabel { position: absolute; z-index: 2; font-size: 11.5px; color: var(--txt-sub); white-space: nowrap; pointer-events: none; line-height: 1; display: flex; align-items: center; height: var(--pl-row); }
+.pl-blabel.sum { font-weight: 700; color: var(--txt-main); }
+
+.pl-root.crit-on .pl-bar.dim, .pl-root.crit-on .pl-ms.dim, .pl-root.crit-on .pl-sum.dim { opacity: .38; }
+.pl-root.crit-on .pl-bar.crit { background: var(--pl-crit); }
+.pl-root.crit-on .pl-bar.crit .pl-prog { background: var(--pl-crit-dk); }
+.pl-root.crit-on .pl-ms.crit { background: var(--pl-crit); }
+.pl-root.crit-on .pl-sum.crit { background: #FCA5A5; }
+.pl-root.crit-on .pl-sum.crit .pl-prog { background: var(--pl-crit-dk); }
+.pl-root.crit-on .pl-sum.crit::before, .pl-root.crit-on .pl-sum.crit::after { border-top-color: var(--pl-crit-dk); }
+.pl-selmark { position: absolute; left: 0; right: 0; background: rgba(59,130,246,.07); pointer-events: none; }
+
+.pl-empty { padding: 56px 24px; text-align: center; color: var(--txt-sub); font-size: 13px; }
+.pl-empty h3 { font-size: 15px; color: var(--txt-main); margin: 0 0 6px; }
+.pl-empty .pl-btn { margin: 10px 4px 0; }
+
+.pl-tip { position: fixed; z-index: 10000; display: none; pointer-events: none; max-width: 300px; background: #0F172A; color: #F8FAFC; border-radius: 8px; padding: 9px 11px; font-size: 12px; line-height: 1.45; box-shadow: 0 8px 24px rgba(15,23,42,.3); }
+.pl-tip b { font-weight: 700; display: block; margin-bottom: 2px; font-size: 12.5px; }
+.pl-tip .k { color: #94A3B8; }
+.pl-tip .crit { color: #FCA5A5; font-weight: 700; }
+.pl-menu { position: fixed; z-index: 10001; min-width: 180px; background: #fff; border: 1px solid var(--border); border-radius: 9px; box-shadow: 0 10px 30px rgba(15,23,42,.18); padding: 5px; display: none; font-family: var(--sans); }
+.pl-menu button { display: flex; width: 100%; align-items: center; gap: 9px; font: inherit; font-size: 12.5px; color: var(--txt-main); background: transparent; border: 0; border-radius: 6px; padding: 7px 10px; cursor: pointer; text-align: left; }
+.pl-menu button:hover:not(:disabled) { background: var(--bg-alt); }
+.pl-menu button:disabled { opacity: .35; cursor: not-allowed; }
+.pl-menu button.danger { color: #B91C1C; }
+.pl-menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px 2px; }
+.pl-modal-ov { position: fixed; inset: 0; z-index: 10002; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.pl-modal { background: #fff; border-radius: 12px; padding: 20px 22px; width: 100%; max-width: 380px; box-shadow: 0 20px 50px rgba(15,23,42,.3); font-family: var(--sans); }
+.pl-modal h4 { margin: 0 0 6px; font-size: 15px; }
+.pl-modal p { margin: 0 0 16px; font-size: 13px; color: var(--txt-sub); line-height: 1.5; }
+.pl-modal .row { display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (max-width: 900px) {
+  .pl-toolbar { padding: 8px 10px; }
+  .pl-info { display: none; }
+  .pl-title { display: none; }
+}
+
+/* Top bar fit: the Planner tab adds a sixth tab, so tighten spacing on smaller screens */
+@media (max-width: 1500px) { .topbar-tab { padding: 0 16px; } }
+html.rm-compact .topbar-tab { padding: 0 10px; gap: 5px; }
+html.rm-compact .topbar-right { gap: 6px; padding-right: 10px; }
+html.rm-compact .tb-btn { padding: 6px 9px; }
+html.rm-narrow .topbar-tab { padding: 0 7px; gap: 0; }
+html.rm-narrow .topbar-tab svg { display: none; }
+html.rm-narrow .tb-btn { padding: 6px 7px; font-size: 11px; }
+html.rm-narrow .topbar-right { gap: 4px; padding-right: 6px; }
+
 </style>
 
 </head>
@@ -1522,6 +1679,10 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
       <button class="nav-item" id="navProjects" onclick="switchView('projgantt')">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="2.5" rx="1"/><rect x="3" y="7" width="9" height="2.5" rx="1"/><rect x="1" y="11" width="12" height="2.5" rx="1"/></svg>
         <span class="nav-item-text">Projects</span>
+      </button>
+      <button class="nav-item" id="navPlanner" onclick="switchView('planner')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2.5" width="6" height="2.5" rx="1"/><rect x="6" y="6.8" width="8" height="2.5" rx="1"/><rect x="3" y="11" width="6" height="2.5" rx="1"/><path d="M4 5v1.8M9 9.3V11"/></svg>
+        <span class="nav-item-text">Planner</span>
       </button>
       <button class="nav-item" id="navPortfolio" onclick="switchView('portfolio')">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="11" rx="1.5"/><path d="M6 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
@@ -1659,6 +1820,10 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
       <button class="topbar-tab" id="tabProjGantt" onclick="switchView('projgantt')">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2.5" width="12" height="2" rx=".8"/><rect x="3" y="6" width="7" height="2" rx=".8"/><rect x="1" y="9.5" width="10" height="2" rx=".8"/></svg>
         Projects
+      </button>
+      <button class="topbar-tab" id="tabPlanner" onclick="switchView('planner')">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="5" height="2" rx=".8"/><rect x="5" y="6" width="7" height="2" rx=".8"/><rect x="2.5" y="10" width="5" height="2" rx=".8"/><path d="M3.5 4v2M8.5 8v2"/></svg>
+        Planner
       </button>
       <button class="topbar-tab" id="tabPortfolio" onclick="switchView('portfolio')">
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><path d="M5 3V2a1 1 0 011-1h2a1 1 0 011 1v1"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
@@ -1869,6 +2034,33 @@ html.rm-narrow .sb-filters-scroll .sb-filter-group { margin-bottom: 6px; }
       <button class="reports-subtab" id="repSubProjects" onclick="switchReportsSub('projects')">Projects</button>
     </div>
     <div class="reports-content" id="reportsContent"></div>
+  </div>
+
+  <!-- PLANNER VIEW (Smartsheet-style Gantt: data grid + timeline) -->
+  <div class="reports-view" id="plannerView">
+    <div class="pl-root" id="plRoot">
+      <div class="pl-toolbar" id="plToolbar">
+        <span class="pl-title">Planner</span>
+        <button class="pl-btn primary" data-pl="addEnd" title="Add a task at the bottom of the board">+ Add Task</button>
+        <button class="pl-btn danger" data-pl="clear" title="Remove every task from the board">Clear Board</button>
+        <span class="pl-sep"></span>
+        <div class="pl-seg" id="plZoom" role="group" aria-label="Timeline scale">
+          <button data-zoom="day">Daily</button><button data-zoom="week">Weekly</button><button data-zoom="month">Monthly</button>
+        </div>
+        <button class="pl-btn" data-pl="today" title="Scroll the timeline to today">Today</button>
+        <button class="pl-btn" data-pl="expandAll" title="Expand all parent rows">Expand all</button>
+        <button class="pl-btn" data-pl="collapseAll" title="Collapse all parent rows">Collapse all</button>
+        <span class="pl-sep"></span>
+        <label class="pl-switch" id="plCritSw" title="Highlight the zero-float tasks that decide the project's end date"><span class="trk"></span>Critical Path</label>
+        <span class="pl-info" id="plInfo"></span>
+      </div>
+      <div class="pl-legend" id="plLegend"><span><i></i>Critical path: linked tasks with zero float. Delaying any of them delays the project end date.</span></div>
+      <div class="pl-split" id="plSplit">
+        <div class="pl-grid" id="plGrid"><div class="pl-grid-in" id="plGridIn"></div></div>
+        <div class="pl-divider" id="plDivider" role="separator" aria-orientation="vertical" aria-label="Drag to resize the grid and timeline" tabindex="0" title="Drag to resize (double-click to reset)"></div>
+        <div class="pl-chart" id="plChart"><div class="pl-chart-in" id="plChartIn"></div></div>
+      </div>
+    </div>
   </div>
 
   <!-- EMPLOYEE PROFILE VIEW (full page) -->
@@ -2596,21 +2788,23 @@ function switchView(v){
   document.getElementById('projGanttView').style.display  = v==='projgantt' ?'flex':'none';
   document.getElementById('dashView').classList.toggle('active', v==='dashboard');
   document.getElementById('portfolioView').classList.toggle('active', v==='portfolio');
+  document.getElementById('plannerView').classList.toggle('active', v==='planner');
   document.getElementById('peopleView').classList.toggle('active', v==='people');
   document.getElementById('reportsView').classList.toggle('active', v==='reports');
   document.getElementById('profileView').classList.toggle('active', v==='profile');
 
   // Topbar tabs — Employee Profile is reached from the People tab, so treat People as active while viewing a profile
-  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPortfolio','portfolio'],['tabPeopleRpt','people'],['tabReports','reports']].forEach(([id,vv])=>{
+  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPlanner','planner'],['tabPortfolio','portfolio'],['tabPeopleRpt','people'],['tabReports','reports']].forEach(([id,vv])=>{
     const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='people'));
   });
   // Sidebar nav
-  [['navSchedule','schedule'],['navProjects','projgantt'],['navPortfolio','portfolio'],['navPeopleRpt','people'],['navReports','reports']].forEach(([id,vv])=>{
+  [['navSchedule','schedule'],['navProjects','projgantt'],['navPlanner','planner'],['navPortfolio','portfolio'],['navPeopleRpt','people'],['navReports','reports']].forEach(([id,vv])=>{
     const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='people'));
   });
 
   if(v==='dashboard')  renderDashboard();
   if(v==='portfolio')  renderPortfolio();
+  if(v==='planner')    renderPlanner();
   if(v==='projgantt')  renderProjGantt();
   if(v==='schedule')   renderPeopleFiltersDropdowns();
   if(v==='people')     renderEmployeeReportsTable();
@@ -5034,6 +5228,7 @@ function importData(ev) {
       state.projects    = data.projects    || [];
       state.resources   = data.resources   || [];
       state.allocations = data.allocations || [];
+      if (data.planner && Array.isArray(data.planner.tasks)) state.planner = data.planner;
       save();
       // Restore org name if present
       if (data.org) {
@@ -5320,13 +5515,14 @@ const TUTORIAL_STEPS = [
   { title:'Utilization Target Bar', body:'When a person\'s overlapping projects push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
   { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
+  { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent. Parents roll up their children and are read-only. Durations count Monday to Friday only. Toggle Critical Path to highlight the red zero-float chain, and switch Daily, Weekly or Monthly. Planner data is included in Save Data and Undo.', targetId:'tabPlanner' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
   { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet.', targetId:null },
   { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile.', targetId:'tabPeopleRpt' },
   { title:'Employee Profile', body:'From the People tab, click any name to open their full profile page — tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications. In the Utilization chart, flip "Show Details" to overlay real training-activity markers; a Sales series is listed but marked "Coming Soon" since there\'s no sales data tracked yet.', targetId:null },
   { title:'Reports & Skills Matrix', body:'The Reports tab holds the Skills Matrix — the master catalog of every trackable skill, organized by category. Add, rename, or remove skills and categories here — changes instantly show up on every employee\'s profile for rating. Project Reports are coming soon.', targetId:'tabReports' },
   { title:'Utilization Alerts', body:'The bell icon shows who is currently over their utilization target. Click it to see a list — click any person to open their profile.', targetId:'alertBell' },
-  { title:'Save & Load Data', body:'"Save Data" exports everything — projects, people, allocations, and the skills matrix — to a JSON file. "Load Data" restores from a saved file, great for backups or moving to another browser.', targetId:null },
+  { title:'Save & Load Data', body:'"Save Data" exports everything — projects, people, allocations, the skills matrix, and the Planner tasks — to a JSON file. "Load Data" restores from a saved file, great for backups or moving to another browser.', targetId:null },
   { title:'Undo', body:'Made a mistake? Click Undo (or press Ctrl+Z / Cmd+Z) to step back. Up to 30 actions are remembered per session.', targetId:'undoBtn' },
   { title:'You\'re all set!', body:'Tip: drag either edge of a project bar to change its start or end date, or drag the middle to move the whole thing. Right-click a bar for quick Edit/Duplicate/Delete options.', targetId:null },
 ];
@@ -7097,12 +7293,1011 @@ function render(){
   else if(currentView==='projgantt') renderProjGantt();
   else if(currentView==='dashboard') renderDashboard();
   else if(currentView==='portfolio') renderPortfolio();
+  else if(currentView==='planner') renderPlanner();
   else if(currentView==='people') renderEmployeeReportsTable();
   else if(currentView==='reports') renderReportsView();
   else if(currentView==='profile' && _profileResId) renderEmployeeProfile(_profileResId);
   renderSidebar();
   renderSummary();
 }
+
+// ══════════════════════════════════════════
+// PLANNER ENGINE  (Smartsheet-style Gantt scheduling, no DOM access)
+// Dates are handled as integer "day numbers" (days since 1970-01-01, UTC) so
+// daylight-saving changes can never shift a date.
+// Working week = Monday to Friday. No holiday calendar.
+// ══════════════════════════════════════════
+const PLE = (function(){
+  const MS = 86400000;
+  const pad = (n,l=2) => String(n).padStart(l,'0');
+  function toDn(s){
+    if (typeof s !== 'string') return NaN;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+    if (!m) return NaN;
+    return Math.round(Date.UTC(+m[1], +m[2]-1, +m[3]) / MS);
+  }
+  function toStr(dn){
+    const d = new Date(dn * MS);
+    return pad(d.getUTCFullYear(),4) + '-' + pad(d.getUTCMonth()+1) + '-' + pad(d.getUTCDate());
+  }
+  // 1970-01-05 (day number 4) is a Monday. rem(): 0=Mon ... 4=Fri, 5=Sat, 6=Sun
+  const rem      = dn => (((dn - 4) % 7) + 7) % 7;
+  const isWork   = dn => rem(dn) < 5;
+  // working-day index: weekends map to the index of the following Monday
+  const wi       = dn => Math.floor((dn - 4) / 7) * 5 + Math.min(rem(dn), 5);
+  const fromWi   = w  => { const wk = Math.floor(w / 5); return 4 + wk * 7 + (w - wk * 5); };
+  const nextWork = dn => isWork(dn) ? dn : dn + (7 - rem(dn));
+  const prevWork = dn => isWork(dn) ? dn : dn - (rem(dn) - 4);
+  const nearestWork = dn => isWork(dn) ? dn : (rem(dn) === 5 ? dn - 1 : dn + 1);
+  // Duration = (Finish - Start) + 1, counting working days only
+  const workDays = (s, f) => wi(f) - wi(s) + 1;
+  const finishFor = (s, d) => d <= 0 ? s : fromWi(wi(s) + d - 1);
+  const uid = () => 't' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
+  const todayDn = () => { const n = new Date(); return Math.round(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / MS); };
+
+  function makeTask(over){
+    return Object.assign({ id: uid(), name: 'New task', start: '', finish: '', duration: 1, pct: 0, preds: [], indent: 0 }, over || {});
+  }
+
+  // ── structure ──
+  function normalizeIndents(tasks){
+    tasks.forEach((t, i) => {
+      t.indent = Math.max(0, Math.floor(+t.indent || 0));
+      if (i === 0) t.indent = 0;
+      else t.indent = Math.min(t.indent, tasks[i-1].indent + 1);
+    });
+  }
+  function meta(tasks){
+    const n = tasks.length;
+    const idx = new Map(), isParent = new Array(n).fill(false), parent = new Array(n).fill(-1), children = tasks.map(() => []);
+    tasks.forEach((t, i) => idx.set(t.id, i));
+    const stack = [];
+    for (let i = 0; i < n; i++){
+      while (stack.length && tasks[stack[stack.length-1]].indent >= tasks[i].indent) stack.pop();
+      if (stack.length){ const p = stack[stack.length-1]; parent[i] = p; children[p].push(i); isParent[p] = true; }
+      stack.push(i);
+    }
+    return { idx, isParent, parent, children };
+  }
+  const subtreeEnd = (tasks, i) => { let j = i + 1; while (j < tasks.length && tasks[j].indent > tasks[i].indent) j++; return j; };
+  const isAncestor = (m, a, d) => { let p = m.parent[d]; while (p !== -1){ if (p === a) return true; p = m.parent[p]; } return false; };
+
+  // Topological order over "inputs": predecessors plus (for parent rows) their children.
+  // Returns {order, leftover} where leftover are nodes stuck in a cycle.
+  function topo(tasks, m){
+    const n = tasks.length, indeg = new Array(n).fill(0), outs = tasks.map(() => []);
+    for (let i = 0; i < n; i++){
+      const inputs = [];
+      tasks[i].preds.forEach(p => { const j = m.idx.get(p.id); if (j !== undefined) inputs.push(j); });
+      m.children[i].forEach(c => inputs.push(c));
+      indeg[i] = inputs.length;
+      inputs.forEach(j => outs[j].push(i));
+    }
+    const q = [], order = [];
+    for (let i = 0; i < n; i++) if (indeg[i] === 0) q.push(i);
+    while (q.length){
+      const v = q.shift(); order.push(v);
+      outs[v].forEach(w => { if (--indeg[w] === 0) q.push(w); });
+    }
+    const done = new Set(order);
+    const leftover = []; for (let i = 0; i < n; i++) if (!done.has(i)) leftover.push(i);
+    return { order, leftover };
+  }
+  function hasCycle(tasks){ const m = meta(tasks); return topo(tasks, m).leftover.length > 0; }
+
+  // Remove invalid links (unknown ids, parent rows with predecessors, links to an ancestor, cycles).
+  function sanitize(tasks, m){
+    const warnings = [];
+    tasks.forEach((t, i) => {
+      if (!Array.isArray(t.preds)) t.preds = [];
+      if (m.isParent[i] && t.preds.length){
+        t.preds = [];
+        warnings.push(`Row ${i+1} is now a summary row, so its predecessors were removed.`);
+        return;
+      }
+      const seen = new Set(), keep = [];
+      t.preds.forEach(p => {
+        const j = m.idx.get(p.id);
+        if (j === undefined || j === i || seen.has(p.id)) return;
+        if (isAncestor(m, j, i)){ warnings.push(`Row ${i+1} cannot depend on its own parent (Row ${j+1}); link removed.`); return; }
+        seen.add(p.id);
+        keep.push({ id: p.id, lag: Math.max(0, Math.floor(+p.lag || 0)) });
+      });
+      t.preds = keep;
+    });
+    let guard = 0;
+    for (;;){
+      const { leftover } = topo(tasks, m);
+      if (!leftover.length || guard++ > 200) break;
+      const stuck = new Set(leftover);
+      let removed = false;
+      for (let k = leftover.length - 1; k >= 0 && !removed; k--){
+        const i = leftover[k];
+        const before = tasks[i].preds.length;
+        tasks[i].preds = tasks[i].preds.filter(p => !stuck.has(m.idx.get(p.id)));
+        if (tasks[i].preds.length !== before){ removed = true; warnings.push(`Circular dependency removed at Row ${i+1}.`); }
+      }
+      if (!removed) break;
+    }
+    return warnings;
+  }
+
+  // ── scheduling ──
+  function recalc(tasks, opts){
+    opts = opts || {};
+    const fallback = nextWork(opts.todayDn != null ? opts.todayDn : todayDn());
+    normalizeIndents(tasks);
+    const m = meta(tasks);
+    const warnings = sanitize(tasks, m);
+    const { order } = topo(tasks, m);
+    const n = tasks.length;
+    const S = new Array(n).fill(0), F = new Array(n).fill(0), D = new Array(n).fill(0), PC = new Array(n).fill(0);
+
+    order.forEach(i => {
+      const t = tasks[i];
+      if (m.isParent[i]){
+        let s = Infinity, f = -Infinity;
+        m.children[i].forEach(c => { s = Math.min(s, S[c]); f = Math.max(f, F[c]); });
+        S[i] = s; F[i] = f; D[i] = workDays(s, f);
+        let sw = 0, sp = 0, sm = 0;
+        m.children[i].forEach(c => { sw += D[c]; sp += PC[c] * D[c]; sm += PC[c]; });
+        PC[i] = sw > 0 ? Math.round(sp / sw) : Math.round(sm / m.children[i].length);
+      } else {
+        const d = Math.max(0, Math.floor(+t.duration || 0));
+        let s = toDn(t.start); s = isNaN(s) ? fallback : nextWork(s);
+        if (t.preds.length){
+          s = -Infinity;
+          t.preds.forEach(p => { const j = m.idx.get(p.id); s = Math.max(s, fromWi(wi(F[j]) + 1 + (p.lag || 0))); });
+        }
+        S[i] = s; D[i] = d; F[i] = finishFor(s, d);
+        PC[i] = Math.min(100, Math.max(0, Math.round(+t.pct || 0)));
+      }
+      t.start = toStr(S[i]); t.finish = toStr(F[i]); t.duration = D[i]; t.pct = PC[i];
+    });
+
+    const crit = criticalPath(tasks, m, order, S, F, D);
+    return { warnings, critical: crit.critical, projectEnd: crit.projectEnd, floatOf: crit.floatOf, meta: m };
+  }
+
+  // Critical path method on working-day indexes. A task is critical when its total float is 0
+  // and it belongs to a chain of dependencies. Parent rows are critical if any child is.
+  function criticalPath(tasks, m, order, S, F, D){
+    const n = tasks.length, critical = new Set(), floatOf = new Map();
+    if (!n) return { critical, projectEnd: null, floatOf };
+    const b = i => wi(F[i]) + 1;                   // exclusive end boundary
+    const len = i => b(i) - wi(S[i]);              // milestones occupy one slot
+    let projectEnd = -Infinity;
+    for (let i = 0; i < n; i++) projectEnd = Math.max(projectEnd, b(i));
+    const hasSucc = new Array(n).fill(false);
+    tasks.forEach(t => t.preds.forEach(p => { const j = m.idx.get(p.id); if (j !== undefined) hasSucc[j] = true; }));
+    const linked = new Array(n).fill(false);
+    for (let i = 0; i < n; i++){
+      linked[i] = tasks[i].preds.length > 0 || hasSucc[i] || (m.parent[i] !== -1 && linked[m.parent[i]]);
+    }
+    const LB = new Array(n).fill(Infinity);
+    for (let k = order.length - 1; k >= 0; k--){
+      const i = order[k];
+      if (LB[i] === Infinity) LB[i] = projectEnd;
+      if (!m.isParent[i]){
+        const ls = LB[i] - len(i);
+        tasks[i].preds.forEach(p => { const j = m.idx.get(p.id); LB[j] = Math.min(LB[j], ls - (p.lag || 0)); });
+      } else {
+        m.children[i].forEach(c => { LB[c] = Math.min(LB[c], LB[i]); });
+      }
+    }
+    for (let i = 0; i < n; i++){
+      const fl = LB[i] - b(i);
+      floatOf.set(tasks[i].id, fl);
+      if (!m.isParent[i] && linked[i] && fl === 0) critical.add(tasks[i].id);
+    }
+    for (let k = 0; k < order.length; k++){
+      const i = order[k];
+      if (m.isParent[i] && m.children[i].some(c => critical.has(tasks[c].id))) critical.add(tasks[i].id);
+    }
+    return { critical, projectEnd, floatOf };
+  }
+
+  // ── edit operations. Each returns {ok, msg?, note?, warnings?} and leaves tasks recalculated ──
+  const find = (tasks, id) => tasks.findIndex(t => t.id === id);
+  const fail = msg => ({ ok: false, msg });
+  function finish(tasks, extra){
+    const r = recalc(tasks);
+    return Object.assign({ ok: true, warnings: r.warnings }, extra || {});
+  }
+  function leafOrFail(tasks, id){
+    const i = find(tasks, id);
+    if (i < 0) return { err: fail('Task not found.') };
+    if (meta(tasks).isParent[i]) return { err: fail(`Row ${i+1} is a parent row. Its dates, duration and % complete are calculated from its children and cannot be edited directly.`) };
+    return { i, t: tasks[i] };
+  }
+
+  function setName(tasks, id, name){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    tasks[i].name = String(name == null ? '' : name).slice(0, 200);
+    return { ok: true, warnings: [] };
+  }
+  function setPct(tasks, id, v){
+    const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    const n = Number(v);
+    if (!isFinite(n)) return fail('% Complete must be a number from 0 to 100.');
+    r.t.pct = Math.min(100, Math.max(0, Math.round(n)));
+    return finish(tasks, n < 0 || n > 100 ? { note: '% Complete was limited to 0 to 100.' } : null);
+  }
+  function setDuration(tasks, id, v){
+    const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    const n = Number(v);
+    if (v === '' || !Number.isInteger(n) || n < 0) return fail('Duration must be a whole number of working days (0 or more). Use 0 for a milestone.');
+    r.t.duration = n;
+    return finish(tasks);
+  }
+  // mode 'move' keeps Duration (Finish follows); mode 'trim' keeps Finish (Duration is recalculated).
+  // Tasks with predecessors cannot start before them; moving later is stored as lag on the driving link.
+  function setStart(tasks, id, str, mode){
+    const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    const t = r.t, m = meta(tasks);
+    let want = toDn(str); if (isNaN(want)) return fail('That is not a valid date.');
+    let note = '';
+    const snapped = nextWork(want); if (snapped !== want) note = 'Start fell on a weekend and moved to the next working day.';
+    want = snapped;
+    const curFinish = toDn(t.finish);
+    if (mode === 'trim' && want > curFinish) want = curFinish;
+    let s = want;
+    if (t.preds.length){
+      const req = t.preds.map(p => { const j = m.idx.get(p.id); const base = fromWi(wi(toDn(tasks[j].finish)) + 1); return { p, base, r: fromWi(wi(base) + (p.lag || 0)) }; });
+      let drv = 0; req.forEach((q, k) => { if (q.r > req[drv].r) drv = k; });
+      let othersMax = -Infinity; req.forEach((q, k) => { if (k !== drv) othersMax = Math.max(othersMax, q.r); });
+      s = Math.max(want, othersMax, req[drv].base);
+      if (s > want) note = 'Start cannot be earlier than the next working day after its predecessor finishes, so it was adjusted.';
+      req[drv].p.lag = Math.max(0, wi(s) - wi(req[drv].base));
+    }
+    t.start = toStr(s);
+    if (mode === 'trim') t.duration = Math.max(1, workDays(s, curFinish));
+    return finish(tasks, { note });
+  }
+  function setFinish(tasks, id, str){
+    const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    const t = r.t;
+    let f = toDn(str); if (isNaN(f)) return fail('That is not a valid date.');
+    const s = toDn(t.start);
+    if (f < s) return fail('Finish cannot be earlier than Start.');
+    let note = '';
+    const snapped = prevWork(f); if (snapped !== f) note = 'Finish fell on a weekend and moved to the previous working day.';
+    f = snapped;
+    t.duration = workDays(s, f);
+    return finish(tasks, { note });
+  }
+
+  function parsePreds(text){
+    const out = [];
+    const toks = String(text || '').split(/[,;]/).map(s => s.trim()).filter(Boolean);
+    for (const tok of toks){
+      const mm = /^(\d+)\s*(?:FS)?\s*(?:\+\s*(\d+)\s*d?)?$/i.exec(tok);
+      if (!mm) return { err: `"${tok}" is not valid. Enter row numbers separated by commas, for example 2,3 (an optional lag is written 2+3).` };
+      out.push({ row: +mm[1], lag: mm[2] ? +mm[2] : 0 });
+    }
+    return { list: out };
+  }
+  function setPreds(tasks, id, text){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const m = meta(tasks);
+    if (m.isParent[i]) return fail(`Row ${i+1} is a parent row and cannot have predecessors. Link its child tasks instead.`);
+    const parsed = parsePreds(text); if (parsed.err) return fail(parsed.err);
+    const keep = tasks[i].preds;
+    const next = [], seen = new Set();
+    for (const q of parsed.list){
+      if (q.row < 1 || q.row > tasks.length) return fail(`Row ${q.row} does not exist. Valid rows are 1 to ${tasks.length}.`);
+      if (q.row === i + 1) return fail('A task cannot depend on itself.');
+      if (seen.has(q.row)) continue; seen.add(q.row);
+      const j = q.row - 1;
+      if (isAncestor(m, j, i)) return fail(`Row ${q.row} is the parent of Row ${i+1}, so it cannot be a predecessor.`);
+      tasks[i].preds = next.concat([{ id: tasks[j].id, lag: q.lag }]);
+      if (hasCycle(tasks)){
+        tasks[i].preds = keep;
+        return fail(`Circular dependency: Row ${i+1} cannot depend on Row ${q.row}, because Row ${q.row} already depends on Row ${i+1} (directly, through other tasks, or through a parent row).`);
+      }
+      next.push({ id: tasks[j].id, lag: q.lag });
+    }
+    tasks[i].preds = next;
+    return finish(tasks);
+  }
+
+  // ── row operations ──
+  function insertAt(tasks, i, indent, over){
+    const t = makeTask(Object.assign({ indent: indent || 0 }, over || {}));
+    i = Math.max(0, Math.min(tasks.length, i));
+    tasks.splice(i, 0, t);
+    const r = finish(tasks);
+    return Object.assign(r, { id: t.id });
+  }
+  function removeTask(tasks, id){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const e = subtreeEnd(tasks, i);
+    const gone = new Set(tasks.slice(i, e).map(t => t.id));
+    tasks.splice(i, e - i);
+    tasks.forEach(t => { t.preds = t.preds.filter(p => !gone.has(p.id)); });
+    const r = finish(tasks);
+    r.removed = gone.size;
+    return r;
+  }
+  function changeIndent(tasks, id, delta){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    if (delta > 0){
+      if (i === 0 || tasks[i-1].indent < tasks[i].indent) return fail('A task can only be indented under the task directly above it.');
+    } else if (tasks[i].indent === 0) return fail('This task is already at the top level.');
+    const e = subtreeEnd(tasks, i);
+    for (let k = i; k < e; k++) tasks[k].indent += delta;
+    return finish(tasks);
+  }
+
+  return { toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
+           meta, subtreeEnd, isAncestor, hasCycle, recalc, setName, setPct, setDuration, setStart, setFinish, setPreds,
+           parsePreds, insertAt, removeTask, changeIndent, find };
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = PLE;
+
+// ══════════════════════════════════════════
+// PLANNER UI  (data grid on the left, Gantt timeline on the right, synced both ways)
+// All planner data lives in state.planner = { tasks:[...], collapsed:[ids] }, so Save Data,
+// Load Data and Undo (Ctrl+Z) cover it automatically.
+// Row numbers shown in the grid are positions in the array. Predecessors are stored against
+// stable task ids and displayed as row numbers, so links survive inserts and deletes.
+// ══════════════════════════════════════════
+const PLU = (function(){
+  const MS = 86400000;
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const PPD = { day: 34, week: 16, month: 4.2 };       // pixels per calendar day
+  const HDR = 56, ADDH = 48;
+  const LS = 'etRM_pl';
+  const V = { zoom: 'week', critical: false, gridW: 0, origin: null, end: null, selected: null, drag: null, focusId: null,
+              inited: false, rowH: 34, pos: new Map(), vis: [], crit: new Set(), floatOf: new Map(), meta: null };
+  try {
+    const o = JSON.parse(localStorage.getItem(LS) || '{}');
+    if (o.zoom && PPD[o.zoom]) V.zoom = o.zoom;
+    V.critical = !!o.critical;
+    if (o.gridW > 0) V.gridW = o.gridW;
+  } catch (e) {}
+  const persist = () => { try { localStorage.setItem(LS, JSON.stringify({ zoom: V.zoom, critical: V.critical, gridW: V.gridW })); } catch (e) {} };
+  const $ = id => document.getElementById(id);
+  const P = () => state.planner;
+  const pesc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const toDn = PLE.toDn, toStr = PLE.toStr;
+  const mondayOf = dn => dn - ((((dn - 4) % 7) + 7) % 7);
+  const dparts = dn => { const d = new Date(dn * MS); return { y: d.getUTCFullYear(), m: d.getUTCMonth(), d: d.getUTCDate() }; };
+  const fmtS = dn => { const p = dparts(dn); return MON[p.m] + ' ' + p.d; };
+  const fmtL = dn => new Date(dn * MS).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const firstOfMonth = dn => { const p = dparts(dn); return Math.round(Date.UTC(p.y, p.m, 1) / MS); };
+  const monthEnd = dn => { const p = dparts(dn); return Math.round(Date.UTC(p.y, p.m + 1, 0) / MS); };
+  const yearEnd = dn => { const p = dparts(dn); return Math.round(Date.UTC(p.y, 11, 31) / MS); };
+  const rowH = () => (window.innerHeight < 820 ? 30 : 34);
+
+  // ── data ──
+  function seedTasks(){
+    const mon = mondayOf(PLE.todayDn());
+    // [name, indent, duration, pct, predecessor rows, unlinked start offset in working days]
+    const rows = [
+      ['Website Redesign', 0, 1, 0, [], 0],
+      ['Discovery', 1, 1, 0, [], 0],
+      ['Kickoff meeting', 2, 1, 100, [], 0],
+      ['Gather requirements', 2, 4, 100, [3], 0],
+      ['Stakeholder interviews', 2, 3, 60, [3], 0],
+      ['Requirements sign-off', 2, 0, 0, [4, 5], 0],
+      ['Design', 1, 1, 0, [], 0],
+      ['Wireframes', 2, 5, 40, [6], 0],
+      ['Visual design', 2, 7, 10, [8], 0],
+      ['Design review', 2, 2, 0, [9], 0],
+      ['Build', 1, 1, 0, [], 0],
+      ['Front-end development', 2, 10, 0, [10], 0],
+      ['Back-end development', 2, 12, 0, [10], 0],
+      ['QA testing', 2, 5, 0, [12, 13], 0],
+      ['Launch', 1, 0, 0, [14], 0],
+      ['Marketing materials', 1, 6, 0, [], 10]
+    ];
+    const ts = rows.map(r => PLE.makeTask({ name: r[0], indent: r[1], duration: r[2], pct: r[3], start: toStr(PLE.fromWi(PLE.wi(mon) + r[5])) }));
+    rows.forEach((r, i) => { ts[i].preds = r[4].map(n => ({ id: ts[n-1].id, lag: 0 })); });
+    return ts;
+  }
+  function ensure(){
+    if (!state.planner || !Array.isArray(state.planner.tasks)){
+      state.planner = { tasks: seedTasks(), collapsed: [] };
+      save();
+    }
+    const p = state.planner;
+    if (!Array.isArray(p.collapsed)) p.collapsed = [];
+    p.tasks.forEach(t => {
+      if (!t.id) t.id = PLE.uid();
+      if (!Array.isArray(t.preds)) t.preds = [];
+      if (typeof t.name !== 'string') t.name = '';
+      if (typeof t.indent !== 'number') t.indent = 0;
+    });
+    PLE.recalc(p.tasks);
+    return p;
+  }
+  const task = id => P().tasks.find(t => t.id === id);
+  const predText = (tasks, t) => t.preds.map(p => { const n = tasks.findIndex(x => x.id === p.id) + 1; return p.lag ? n + '+' + p.lag : String(n); }).join(', ');
+
+  // ── tiny UI helpers ──
+  function toast(msg, type){ if (typeof showToast === 'function') showToast(msg, type || 'info'); }
+  let tipEl = null, menuEl = null;
+  function tip(){ if (!tipEl){ tipEl = document.createElement('div'); tipEl.className = 'pl-tip'; document.body.appendChild(tipEl); } return tipEl; }
+  function showTip(html, x, y){
+    const t = tip(); t.innerHTML = html; t.style.display = 'block';
+    const w = t.offsetWidth, h = t.offsetHeight;
+    let L = x + 14, T = y + 16;
+    if (L + w > window.innerWidth - 8) L = x - w - 14;
+    if (T + h > window.innerHeight - 8) T = y - h - 12;
+    t.style.left = Math.max(8, L) + 'px'; t.style.top = Math.max(8, T) + 'px';
+  }
+  function hideTip(){ if (tipEl) tipEl.style.display = 'none'; }
+  function confirmBox(title, msg, okLabel, cb){
+    const ov = document.createElement('div'); ov.className = 'pl-modal-ov';
+    ov.innerHTML = `<div class="pl-modal" role="dialog" aria-modal="true"><h4>${pesc(title)}</h4><p>${pesc(msg)}</p><div class="row"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok" style="background:#DC2626;border-color:#DC2626">${pesc(okLabel)}</button></div></div>`;
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey, true); };
+    const onKey = e => { if (e.key === 'Escape'){ e.stopPropagation(); close(); } };
+    ov.addEventListener('click', e => {
+      if (e.target === ov || e.target.dataset.x === 'no') close();
+      else if (e.target.dataset.x === 'ok'){ close(); cb(); }
+    });
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(ov);
+    ov.querySelector('[data-x="no"]').focus();
+  }
+
+  // ── operations wrapper: undo snapshot, engine call, rollback on error ──
+  function doOp(fn, o){
+    o = o || {};
+    const snap = JSON.stringify(P());
+    pushUndo();
+    let r;
+    try { r = fn(P().tasks); } catch (err){ r = { ok: false, msg: 'Unexpected error: ' + err.message }; }
+    if (!r.ok){
+      state.planner = JSON.parse(snap);
+      UNDO_STACK.pop(); updateUndoBtn();
+      if (r.msg) toast(r.msg, 'error');
+      refresh();
+      return r;
+    }
+    if (r.id) V.focusId = r.id;
+    save();
+    if (r.warnings && r.warnings.length) toast(r.warnings[0]);
+    else if (r.note) toast(r.note);
+    if (o.structural) render_(); else refresh();
+    return r;
+  }
+
+  // ── layout ──
+  function layout(){
+    const split = $('plSplit'); if (!split) return false;
+    const W = split.clientWidth; if (!W) return false;
+    if (!V.gridW) V.gridW = Math.max(360, Math.min(700, Math.round(W * 0.46)));
+    const maxW = Math.max(160, W - 180);
+    const w = Math.max(Math.min(200, maxW), Math.min(V.gridW, maxW));
+    $('plGrid').style.width = w + 'px';
+    return true;
+  }
+
+  // ── grid ──
+  const CARET = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5l3 3 3-3"/></svg>';
+  const ICON_IN = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h10M6 7h6M2 11h10M2 5.5L4 7 2 8.5"/></svg>';
+  const ICON_OUT = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h10M6 7h6M2 11h10M4 5.5L2 7l2 1.5"/></svg>';
+  const ICON_MORE = '<svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor"><circle cx="3" cy="7" r="1.3"/><circle cx="7" cy="7" r="1.3"/><circle cx="11" cy="7" r="1.3"/></svg>';
+
+  function rowHTML(i, m){
+    const tasks = P().tasks, t = tasks[i], parent = m.isParent[i], coll = P().collapsed.includes(t.id);
+    const canIn = i > 0 && tasks[i-1].indent >= t.indent, canOut = t.indent > 0;
+    const dis = parent ? ' disabled' : '';
+    const dtitle = parent ? ' title="Calculated from child tasks"' : '';
+    const cls = 'pl-row' + (parent ? ' parent' : '') + (V.selected === t.id ? ' sel' : '') + (V.critical && V.crit.has(t.id) ? ' crit' : '');
+    return `<div class="${cls}" data-id="${t.id}">
+      <div class="pl-c pl-num" title="Row ${i+1}. Use this number in the Predecessors column.">${i+1}</div>
+      <div class="pl-c pl-c-name" style="padding-left:${4 + t.indent * 18}px">
+        ${parent ? `<button class="pl-caret${coll ? ' closed' : ''}" data-act="caret" title="${coll ? 'Expand' : 'Collapse'}" aria-label="${coll ? 'Expand' : 'Collapse'} ${pesc(t.name)}">${CARET}</button>` : '<span class="pl-caret-sp"></span>'}
+        <input class="pl-in" data-f="name" value="${pesc(t.name)}" maxlength="200" aria-label="Task name for row ${i+1}" placeholder="Task name">
+      </div>
+      <div class="pl-c"><input class="pl-in" type="date" data-f="start" value="${t.start}"${dis}${dtitle} aria-label="Start date for row ${i+1}"></div>
+      <div class="pl-c"><input class="pl-in" type="date" data-f="finish" value="${t.finish}"${dis}${dtitle} aria-label="Finish date for row ${i+1}"></div>
+      <div class="pl-c"><input class="pl-in" type="number" min="0" step="1" data-f="duration" value="${t.duration}"${dis}${dtitle} aria-label="Duration in working days for row ${i+1}"></div>
+      <div class="pl-c"><div class="pl-pct" style="--p:${t.pct}%"><input class="pl-in" type="number" min="0" max="100" step="1" data-f="pct" value="${t.pct}"${dis}${dtitle} aria-label="Percent complete for row ${i+1}"></div></div>
+      <div class="pl-c"><input class="pl-in" type="text" data-f="preds" value="${pesc(predText(tasks, t))}"${dis} ${parent ? 'title="Parent rows cannot have predecessors"' : 'title="Row numbers separated by commas. Optional lag in working days: 3+2"'} placeholder="${parent ? '' : 'e.g. 2,3'}" aria-label="Predecessors for row ${i+1}"></div>
+      <div class="pl-c pl-c-act">
+        <button class="pl-ib" data-act="outdent" title="Outdent"${canOut ? '' : ' disabled'} aria-label="Outdent row ${i+1}">${ICON_OUT}</button>
+        <button class="pl-ib" data-act="indent" title="Indent"${canIn ? '' : ' disabled'} aria-label="Indent row ${i+1}">${ICON_IN}</button>
+        <button class="pl-ib" data-act="menu" title="More actions" aria-label="More actions for row ${i+1}">${ICON_MORE}</button>
+      </div>
+    </div>`;
+  }
+  function renderGrid(){
+    const tasks = P().tasks, m = V.meta;
+    let h = `<div class="pl-ghead"><div>#</div><div>Task Name</div><div>Start Date</div><div>Finish Date</div><div title="Working days (Monday to Friday)">Duration</div><div>% Complete</div><div>Predecessors</div><div style="border-right:0"></div></div><div class="pl-gbody">`;
+    V.vis.forEach(i => { h += rowHTML(i, m); });
+    h += `<div class="pl-addrow"><button data-act="addEnd">+ Add task</button></div></div>`;
+    $('plGridIn').innerHTML = h;
+  }
+  // refresh values in place so a focused input keeps focus while other cells update
+  function syncGrid(){
+    const tasks = P().tasks;
+    $('plGridIn').querySelectorAll('.pl-row').forEach(row => {
+      const t = tasks.find(x => x.id === row.dataset.id); if (!t) return;
+      const set = (f, v) => { const el = row.querySelector(`[data-f="${f}"]`); if (el && el.value !== String(v)) el.value = v; };
+      set('name', t.name); set('start', t.start); set('finish', t.finish); set('duration', t.duration); set('pct', t.pct);
+      set('preds', predText(tasks, t));
+      const pc = row.querySelector('.pl-pct'); if (pc) pc.style.setProperty('--p', t.pct + '%');
+      row.classList.toggle('crit', V.critical && V.crit.has(t.id));
+      row.querySelectorAll('.bad').forEach(el => el.classList.remove('bad'));
+    });
+  }
+
+  // ── timeline ──
+  function computeRange(tasks){
+    const ppd = PPD[V.zoom], vw = $('plChart').clientWidth || 800, td = PLE.todayDn();
+    let minS = td, maxF = td;
+    tasks.forEach(t => { minS = Math.min(minS, toDn(t.start)); maxF = Math.max(maxF, toDn(t.finish)); });
+    const lead = V.zoom === 'month' ? 45 : V.zoom === 'week' ? 21 : 10;
+    const tail = V.zoom === 'month' ? 240 : V.zoom === 'week' ? 70 : 30;
+    let o = minS - lead;
+    o = V.zoom === 'month' ? firstOfMonth(o) : mondayOf(o);
+    const e = Math.max(maxF + tail, o + Math.ceil(vw / ppd) + 7);
+    const shift = (V.origin != null && o < V.origin) ? (V.origin - o) : 0;
+    if (V.origin != null && o > V.origin) o = V.origin;
+    V.origin = Math.min(o, V.origin == null ? o : V.origin);
+    V.end = Math.max(e, V.end || 0);
+    return { ppd, o: V.origin, e: V.end, shift };
+  }
+  function headerHTML(o, e, ppd){
+    const td = PLE.todayDn(), W = (e - o + 1) * ppd, x = dn => (dn - o) * ppd;
+    let top = '', bot = '';
+    const cell = (cls, l, w, label, title) => `<div class="pl-hc ${cls}" style="left:${l}px;width:${w}px"${title ? ` title="${pesc(title)}"` : ''}>${label}</div>`;
+    const tcell = (l, w, label, title) => `<div class="pl-hc" style="left:${l}px;width:${w}px" title="${pesc(title)}"><span class="lb">${pesc(label)}</span></div>`;
+    if (V.zoom === 'day'){
+      for (let d = o; d <= e; d += 7){
+        const p = dparts(d);
+        top += tcell(x(d), 7 * ppd, 'Week of ' + MON[p.m] + ' ' + p.d + ', ' + p.y, 'Week of ' + fmtL(d) + ' to ' + fmtL(d + 6));
+      }
+      for (let d = o; d <= e; d++){
+        const r = (((d - 4) % 7) + 7) % 7, p = dparts(d);
+        bot += cell('d2' + (r >= 5 ? ' we' : '') + (d === td ? ' today' : ''), x(d), ppd, `<small>${'MTWTFSS'[r]}</small>${p.d}`, fmtL(d));
+      }
+    } else if (V.zoom === 'week'){
+      for (let d = o; d <= e;){
+        const me = Math.min(monthEnd(d), e), p = dparts(d);
+        top += tcell(x(d), (me - d + 1) * ppd, MON[p.m] + ' ' + p.y, MON[p.m] + ' ' + p.y);
+        d = me + 1;
+      }
+      for (let d = o; d <= e; d += 7){
+        bot += cell(td >= d && td < d + 7 ? 'today' : '', x(d), 7 * ppd, fmtS(d), 'Week of ' + fmtL(d) + ' to ' + fmtL(d + 6));
+      }
+    } else {
+      for (let d = o; d <= e;){
+        const ye = Math.min(yearEnd(d), e), p = dparts(d);
+        top += tcell(x(d), (ye - d + 1) * ppd, String(p.y), String(p.y));
+        d = ye + 1;
+      }
+      for (let d = o; d <= e;){
+        const me = Math.min(monthEnd(d), e), p = dparts(d), todayIn = td >= d && td <= me;
+        bot += cell(todayIn ? 'today' : '', x(d), (me - d + 1) * ppd, MON[p.m], MON[p.m] + ' ' + p.y + ' (' + fmtS(d) + ' to ' + fmtS(me) + ')');
+        d = me + 1;
+      }
+    }
+    return `<div class="pl-chead" style="width:${W}px"><div class="pl-hrow top">${top}</div><div class="pl-hrow">${bot}</div></div>`;
+  }
+  function linkPath(a, b){
+    const x1 = a.xe, y1 = a.y, x2 = b.xs, y2 = b.y;
+    const gap = x2 - x1;
+    const xm = gap >= 16 ? x1 + 8 : x1 + Math.max(2, gap / 2);
+    return `M${x1},${y1} H${xm} V${y2} H${x2 - 1}`;
+  }
+  function drawChart(){
+    const tasks = P().tasks, m = V.meta, RH = V.rowH, chart = $('plChart');
+    const { ppd, o, e, shift } = computeRange(tasks);
+    const W = (e - o + 1) * ppd, H = V.vis.length * RH + ADDH, x = dn => (dn - o) * ppd;
+    const td = PLE.todayDn(), crit = V.critical;
+    let body = '';
+    // background: row lines, weekend shading and column lines
+    const rowLine = `repeating-linear-gradient(to bottom, transparent 0, transparent ${RH - 1}px, #E2E8F0 ${RH - 1}px, #E2E8F0 ${RH}px)`;
+    let bg = rowLine;
+    if (V.zoom === 'day') bg += `, repeating-linear-gradient(90deg, transparent 0, transparent ${5 * ppd}px, rgba(148,163,184,.14) ${5 * ppd}px, rgba(148,163,184,.14) ${7 * ppd}px), repeating-linear-gradient(90deg, transparent 0, transparent ${ppd - 1}px, #EEF2F7 ${ppd - 1}px, #EEF2F7 ${ppd}px)`;
+    else if (V.zoom === 'week') bg += `, repeating-linear-gradient(90deg, transparent 0, transparent ${5 * ppd}px, rgba(148,163,184,.14) ${5 * ppd}px, rgba(148,163,184,.14) ${7 * ppd}px), repeating-linear-gradient(90deg, transparent 0, transparent ${7 * ppd - 1}px, #E2E8F0 ${7 * ppd - 1}px, #E2E8F0 ${7 * ppd}px)`;
+    else {
+      for (let d = o; d <= e;){ const me = Math.min(monthEnd(d), e); body += `<div class="pl-vl" style="left:${x(me + 1) - 1}px"></div>`; d = me + 1; }
+    }
+    // positions
+    V.pos = new Map();
+    V.vis.forEach((i, r) => {
+      const t = tasks[i], s = toDn(t.start), f = toDn(t.finish), y = r * RH + RH / 2;
+      const ms = !m.isParent[i] && t.duration === 0;
+      const xs = ms ? x(s) + ppd / 2 - 10 : x(s), xe = ms ? x(s) + ppd / 2 + 10 : x(f) + ppd;
+      V.pos.set(t.id, { i, r, y, xs, xe, s, f, ms, parent: m.isParent[i] });
+    });
+    if (td >= o && td <= e) body += `<div class="pl-today" style="left:${x(td) + ppd / 2}px" title="Today: ${fmtL(td)}"></div>`;
+    body += `<div class="pl-selmark" id="plSelMark" style="display:none;height:${RH}px"></div>`;
+    // dependency links
+    let svg = '';
+    tasks.forEach((t, i) => {
+      const b = V.pos.get(t.id); if (!b) return;
+      t.preds.forEach(p => {
+        const a = V.pos.get(p.id); if (!a) return;
+        const j = a.i;
+        const tight = PLE.fromWi(PLE.wi(a.f) + 1 + (p.lag || 0)) === b.s;
+        const hot = crit && V.crit.has(t.id) && V.crit.has(p.id) && tight;
+        const d = linkPath(a, b), col = hot ? '#EF4444' : '#94A3B8', sw = hot ? 1.8 : 1.3;
+        svg += `<path d="${d}" fill="none" stroke="${col}" stroke-width="${sw}"/><polygon points="${b.xs},${b.y} ${b.xs - 5},${b.y - 3.5} ${b.xs - 5},${b.y + 3.5}" fill="${col}"/><path class="hit" d="${d}" data-tip="l:${p.id}>${t.id}"/>`;
+      });
+    });
+    body += `<svg class="pl-links" width="${W}" height="${H}">${svg}</svg>`;
+    // bars
+    V.vis.forEach((i, r) => {
+      const t = tasks[i], b = V.pos.get(t.id), top = r * RH;
+      const isC = crit && V.crit.has(t.id), cls = (isC ? ' crit' : '') + (crit && !isC ? ' dim' : '');
+      const pc = Math.max(0, Math.min(100, t.pct));
+      if (b.parent){
+        const w = Math.max(6, b.xe - b.xs);
+        body += `<div class="pl-sum${cls}" data-id="${t.id}" data-tip="t:${t.id}" style="left:${b.xs}px;top:${top + (RH - 9) / 2}px;width:${w}px"><div class="pl-prog" style="width:${pc}%"></div></div>`;
+        body += `<div class="pl-blabel sum" data-for="${t.id}" style="left:${b.xs + w + 8}px;top:${top}px">${pesc(t.name)}</div>`;
+      } else if (b.ms){
+        body += `<div class="pl-ms pl-bar-ms${cls}" data-id="${t.id}" data-tip="t:${t.id}" style="left:${x(b.s) + ppd / 2 - 8}px;top:${top + (RH - 16) / 2}px"></div>`;
+        body += `<div class="pl-blabel" data-for="${t.id}" style="left:${b.xe + 8}px;top:${top}px">${pesc(t.name)}</div>`;
+      } else {
+        const w = Math.max(4, b.xe - b.xs);
+        body += `<div class="pl-bar${cls}" data-id="${t.id}" data-tip="t:${t.id}" style="left:${b.xs}px;top:${top + 7}px;width:${w}px"><div class="pl-prog${pc >= 100 ? ' full' : ''}" style="width:${pc}%"></div><div class="pl-h pl-h-l"></div><div class="pl-h pl-h-r"></div></div>`;
+        body += `<div class="pl-blabel" data-for="${t.id}" style="left:${b.xs + w + 8}px;top:${top}px">${pesc(t.name)}</div>`;
+      }
+    });
+    if (!V.vis.length) body += `<div class="pl-empty" style="position:absolute;left:0;top:0;width:100%"></div>`;
+    const inner = $('plChartIn');
+    inner.style.width = W + 'px';
+    inner.innerHTML = headerHTML(o, e, ppd) + `<div class="pl-cbody" id="plCBody" style="width:${W}px;height:${H}px;background-image:${bg}">${body}</div>`;
+    if (shift) chart.scrollLeft += shift * ppd;
+    positionSelection();
+  }
+  function positionSelection(){
+    const el = $('plSelMark'); if (!el) return;
+    const b = V.selected && V.pos.get(V.selected);
+    if (b){ el.style.display = 'block'; el.style.top = (b.r * V.rowH) + 'px'; } else el.style.display = 'none';
+  }
+  function setSelected(id){
+    if (V.selected === id) return;
+    V.selected = id;
+    $('plGridIn').querySelectorAll('.pl-row.sel').forEach(r => r.classList.remove('sel'));
+    const row = id && $('plGridIn').querySelector(`.pl-row[data-id="${id}"]`);
+    if (row) row.classList.add('sel');
+    positionSelection();
+  }
+  function scrollToDn(dn, pad){
+    const chart = $('plChart'), ppd = PPD[V.zoom];
+    chart.scrollLeft = Math.max(0, (dn - V.origin) * ppd - (pad == null ? 60 : pad));
+  }
+
+  // ── info + toolbar state ──
+  function updateInfo(){
+    const tasks = P().tasks, info = $('plInfo');
+    if (!tasks.length){ info.textContent = 'No tasks'; return; }
+    let s = Infinity, f = -Infinity;
+    tasks.forEach(t => { s = Math.min(s, toDn(t.start)); f = Math.max(f, toDn(t.finish)); });
+    const leaves = tasks.filter((t, i) => !V.meta.isParent[i]).length;
+    info.textContent = `${leaves} task${leaves === 1 ? '' : 's'}  |  ${fmtS(s)} to ${fmtS(f)}, ${dparts(f).y}  |  ${PLE.workDays(s, f)} working days`;
+  }
+  function syncToolbar(){
+    $('plZoom').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.zoom === V.zoom));
+    $('plCritSw').classList.toggle('on', V.critical);
+    $('plRoot').classList.toggle('crit-on', V.critical);
+    $('plLegend').classList.toggle('show', V.critical);
+  }
+
+  // ── render entry points ──
+  function analyse(){
+    const r = PLE.recalc(P().tasks);
+    V.meta = r.meta; V.crit = r.critical; V.floatOf = r.floatOf;
+    const coll = new Set(P().collapsed), tasks = P().tasks;
+    V.vis = [];
+    tasks.forEach((t, i) => {
+      let hide = false, p = r.meta.parent[i];
+      while (p !== -1){ if (coll.has(tasks[p].id)){ hide = true; break; } p = r.meta.parent[p]; }
+      if (!hide) V.vis.push(i);
+    });
+    return r;
+  }
+  function refresh(){
+    if (!$('plGridIn') || !state.planner) return;
+    analyse();
+    syncGrid(); drawChart(); updateInfo();
+  }
+  function render_(){
+    ensure();
+    const root = $('plRoot'); if (!root) return;
+    V.rowH = rowH();
+    root.style.setProperty('--pl-row', V.rowH + 'px');
+    layout();
+    analyse();
+    const tasks = P().tasks;
+    if (V.selected && !tasks.some(t => t.id === V.selected)) V.selected = null;
+    renderGrid();
+    if (!tasks.length){
+      $('plGridIn').querySelector('.pl-gbody').insertAdjacentHTML('afterbegin',
+        `<div class="pl-empty"><h3>The board is empty</h3>Add your first task, or start from a sample plan.<br><button class="pl-btn primary" data-act="addEnd">+ Add Task</button><button class="pl-btn" data-act="sample">Load sample plan</button></div>`);
+    }
+    drawChart(); syncToolbar(); updateInfo();
+    if (V.inited && V.sl != null && $('plChart').clientWidth){ $('plChart').scrollLeft = V.sl; $('plChart').scrollTop = V.st || 0; }
+    if (!V.inited && $('plChart').clientWidth){
+      V.inited = true;
+      let s = Infinity; tasks.forEach(t => { s = Math.min(s, toDn(t.start)); });
+      scrollToDn(isFinite(s) ? Math.min(s, PLE.todayDn()) : PLE.todayDn(), 40);
+    }
+    if (V.focusId){
+      const el = $('plGridIn').querySelector(`.pl-row[data-id="${V.focusId}"] [data-f="name"]`);
+      if (el){ el.focus(); el.select(); const row = el.closest('.pl-row'); setSelected(V.focusId); const g = $('plChart'); const b = V.pos.get(V.focusId); if (b){ const y = b.r * V.rowH; if (y < g.scrollTop || y > g.scrollTop + g.clientHeight - V.rowH - HDR) g.scrollTop = Math.max(0, y - 80); } }
+      V.focusId = null;
+    }
+  }
+
+  // ── actions ──
+  function addEnd(){ doOp(ts => PLE.insertAt(ts, ts.length, 0, { start: toStr(PLE.nextWork(PLE.todayDn())), name: 'New Task' }), { structural: true }); }
+  function addAbove(id){
+    doOp(ts => { const i = PLE.find(ts, id); return PLE.insertAt(ts, i, ts[i].indent, { start: ts[i].start, name: 'New Task' }); }, { structural: true });
+  }
+  function addBelow(id){
+    doOp(ts => { const i = PLE.find(ts, id); const at = V.meta.isParent[i] ? PLE.subtreeEnd(ts, i) : i + 1; return PLE.insertAt(ts, at, ts[i].indent, { start: ts[i].start, name: 'New Task' }); }, { structural: true });
+  }
+  function del(id){
+    const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
+    const n = PLE.subtreeEnd(ts, i) - i;
+    const go = () => { doOp(t => PLE.removeTask(t, id), { structural: true }); };
+    if (n > 1) confirmBox('Delete task and sub-tasks?', `"${ts[i].name}" is a parent row. Deleting it also deletes its ${n - 1} sub-task${n - 1 === 1 ? '' : 's'}.`, 'Delete', go);
+    else go();
+  }
+  function clearBoard(){
+    if (!P().tasks.length) return;
+    confirmBox('Clear the board?', `This removes all ${P().tasks.length} tasks from the Planner. You can bring them back with Undo.`, 'Clear Board', () => {
+      doOp(ts => { ts.length = 0; P().collapsed = []; return { ok: true, warnings: [] }; }, { structural: true });
+    });
+  }
+  function loadSample(){ doOp(() => { state.planner = { tasks: seedTasks(), collapsed: [] }; PLE.recalc(state.planner.tasks); return { ok: true, warnings: [] }; }, { structural: true }); }
+  function toggleCaret(id){
+    const c = P().collapsed, k = c.indexOf(id);
+    if (k >= 0) c.splice(k, 1); else c.push(id);
+    save(); render_();
+  }
+  function setZoom(z){
+    if (!PPD[z] || z === V.zoom) return;
+    V.zoom = z; V.origin = null; V.end = null; persist();
+    syncToolbar(); drawChart();
+    const tasks = P().tasks; let s = Infinity; tasks.forEach(t => { s = Math.min(s, toDn(t.start)); });
+    scrollToDn(isFinite(s) ? Math.min(s, PLE.todayDn()) : PLE.todayDn(), 40);
+  }
+  function toggleCritical(){
+    V.critical = !V.critical; persist();
+    if (V.critical){
+      const any = P().tasks.some(t => t.preds.length);
+      if (!any) toast('Add predecessors to see a critical path. It is calculated from linked tasks.');
+      else if (!V.crit.size) toast('No critical path found yet.');
+    }
+    syncToolbar(); refresh(); renderGridCritOnly();
+  }
+  function renderGridCritOnly(){ $('plGridIn').querySelectorAll('.pl-row').forEach(r => r.classList.toggle('crit', V.critical && V.crit.has(r.dataset.id))); }
+
+  // ── context menu ──
+  function openMenu(x, y, id){
+    closeMenu();
+    const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
+    const canIn = i > 0 && ts[i-1].indent >= ts[i].indent, canOut = ts[i].indent > 0;
+    menuEl = document.createElement('div'); menuEl.className = 'pl-menu';
+    menuEl.innerHTML = `<button data-m="above">Add Task Above</button><button data-m="below">Add Task Below</button><hr><button data-m="indent"${canIn ? '' : ' disabled'}>Indent</button><button data-m="outdent"${canOut ? '' : ' disabled'}>Outdent</button><hr><button data-m="delete" class="danger">Delete Task</button>`;
+    document.body.appendChild(menuEl); menuEl.style.display = 'block';
+    const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
+    menuEl.style.left = Math.max(6, Math.min(x, window.innerWidth - w - 6)) + 'px';
+    menuEl.style.top = Math.max(6, Math.min(y, window.innerHeight - h - 6)) + 'px';
+    menuEl.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || b.disabled) return;
+      const a = b.dataset.m; closeMenu();
+      if (a === 'above') addAbove(id); else if (a === 'below') addBelow(id);
+      else if (a === 'indent') doOp(t => PLE.changeIndent(t, id, 1), { structural: true });
+      else if (a === 'outdent') doOp(t => PLE.changeIndent(t, id, -1), { structural: true });
+      else if (a === 'delete') del(id);
+    });
+  }
+  function closeMenu(){ if (menuEl){ menuEl.remove(); menuEl = null; } }
+
+  // ── tooltips ──
+  function taskTip(id){
+    const t = task(id); if (!t) return '';
+    const ts = P().tasks, i = ts.indexOf(t), parent = V.meta.isParent[i];
+    const s = toDn(t.start), f = toDn(t.finish);
+    let h = `<b>${pesc(t.name || 'Untitled')}</b><span class="k">Row ${i + 1}</span><br>`;
+    h += `<span class="k">Start:</span> ${fmtL(s)}<br><span class="k">Finish:</span> ${fmtL(f)}<br>`;
+    h += `<span class="k">Duration:</span> ${t.duration === 0 && !parent ? 'Milestone (0 days)' : t.duration + ' working day' + (t.duration === 1 ? '' : 's')}<br>`;
+    h += `<span class="k">% Complete:</span> ${t.pct}%`;
+    if (parent) h += `<br><span class="k">Summary of ${V.meta.children[i].length} child row${V.meta.children[i].length === 1 ? '' : 's'}</span>`;
+    if (t.preds.length) h += `<br><span class="k">Predecessors:</span> ${pesc(predText(ts, t))}`;
+    if (V.critical && V.crit.has(id)) h += `<br><span class="crit">Critical path (zero float)</span>`;
+    else if (V.floatOf.has(id) && !parent && (t.preds.length || ts.some(x => x.preds.some(p => p.id === id)))) h += `<br><span class="k">Float:</span> ${V.floatOf.get(id)} working day${V.floatOf.get(id) === 1 ? '' : 's'}`;
+    return h;
+  }
+  function linkTip(a, b){
+    const ts = P().tasks, ta = task(a), tb = task(b); if (!ta || !tb) return '';
+    const p = tb.preds.find(x => x.id === a);
+    return `<b>Dependency (Finish-to-Start)</b>Row ${ts.indexOf(ta) + 1} "${pesc(ta.name)}"<br>to Row ${ts.indexOf(tb) + 1} "${pesc(tb.name)}"${p && p.lag ? `<br><span class="k">Lag:</span> ${p.lag} working day${p.lag === 1 ? '' : 's'}` : ''}`;
+  }
+
+  // ── drag handles on the timeline ──
+  function startDrag(e){
+    if (e.button !== 0) return;
+    const bar = e.target.closest('.pl-bar, .pl-ms'); if (!bar) return;
+    const id = bar.dataset.id, t = task(id); if (!t) return;
+    setSelected(id);
+    const ms = bar.classList.contains('pl-ms');
+    let mode = 'move';
+    if (!ms){ if (e.target.closest('.pl-h-l')) mode = 'left'; else if (e.target.closest('.pl-h-r')) mode = 'right'; }
+    const D = { id, mode, bar, ms, x0: e.clientX, s: toDn(t.start), f: toDn(t.finish), dur: t.duration, moved: false };
+    D.ns = D.s; D.nf = D.f;
+    V.drag = D; hideTip();
+    try { bar.setPointerCapture(e.pointerId); } catch (err) {}
+    bar.addEventListener('pointermove', onDragMove);
+    bar.addEventListener('pointerup', onDragEnd);
+    bar.addEventListener('pointercancel', onDragCancel);
+    e.preventDefault();
+  }
+  function onDragMove(e){
+    const D = V.drag; if (!D) return;
+    const ppd = PPD[V.zoom], dx = e.clientX - D.x0;
+    if (!D.moved && Math.abs(dx) < 3) return;
+    D.moved = true;
+    const days = Math.round(dx / ppd), nw = PLE.nearestWork;
+    if (D.mode === 'move'){ D.ns = nw(D.s + days); D.nf = D.ms ? D.ns : PLE.finishFor(D.ns, D.dur); }
+    else if (D.mode === 'left'){ D.ns = Math.min(nw(D.s + days), D.f); D.nf = D.f; }
+    else { D.ns = D.s; D.nf = Math.max(nw(D.f + days), D.s); }
+    const o = V.origin, b = V.pos.get(D.id);
+    let left, width;
+    if (D.ms){ left = (D.ns - o) * ppd + ppd / 2 - 8; D.bar.style.left = left + 'px'; width = 0; }
+    else { left = (D.ns - o) * ppd; width = Math.max(4, (D.nf - D.ns + 1) * ppd); D.bar.style.left = left + 'px'; D.bar.style.width = width + 'px'; }
+    const lab = $('plChartIn').querySelector(`.pl-blabel[data-for="${D.id}"]`);
+    if (lab) lab.style.left = (D.ms ? left + 24 : left + width + 8) + 'px';
+    const dur = D.ms ? 0 : PLE.workDays(D.ns, D.nf);
+    showTip(`<b>${D.mode === 'move' ? 'Move' : D.mode === 'left' ? 'Change start' : 'Change finish'}</b>${fmtL(D.ns)}${D.ms ? '' : '<br>to ' + fmtL(D.nf)}<br><span class="k">Duration:</span> ${D.ms ? 'Milestone' : dur + ' working day' + (dur === 1 ? '' : 's')}`, e.clientX, e.clientY);
+  }
+  function cleanupDrag(D){
+    D.bar.removeEventListener('pointermove', onDragMove);
+    D.bar.removeEventListener('pointerup', onDragEnd);
+    D.bar.removeEventListener('pointercancel', onDragCancel);
+    V.drag = null; hideTip();
+  }
+  function onDragEnd(e){
+    const D = V.drag; if (!D) return;
+    try { D.bar.releasePointerCapture(e.pointerId); } catch (err) {}
+    cleanupDrag(D);
+    if (!D.moved) return;
+    if (D.ns === D.s && D.nf === D.f){ drawChart(); return; }
+    if (D.mode === 'move') doOp(ts => PLE.setStart(ts, D.id, toStr(D.ns), 'move'));
+    else if (D.mode === 'left') doOp(ts => PLE.setStart(ts, D.id, toStr(D.ns), 'trim'));
+    else doOp(ts => PLE.setFinish(ts, D.id, toStr(D.nf)));
+  }
+  function onDragCancel(){ const D = V.drag; if (!D) return; cleanupDrag(D); drawChart(); }
+
+  // ── wiring ──
+  let wired = false;
+  function wire(){
+    if (wired) return; wired = true;
+    const gridIn = $('plGridIn'), grid = $('plGrid'), chart = $('plChart'), chartIn = $('plChartIn'), root = $('plRoot');
+
+    // toolbar
+    root.querySelector('.pl-toolbar').addEventListener('click', e => {
+      const z = e.target.closest('[data-zoom]'); if (z){ setZoom(z.dataset.zoom); return; }
+      if (e.target.closest('#plCritSw')){ toggleCritical(); return; }
+      const b = e.target.closest('[data-pl]'); if (!b) return;
+      const a = b.dataset.pl;
+      if (a === 'addEnd') addEnd();
+      else if (a === 'clear') clearBoard();
+      else if (a === 'today') scrollToDn(PLE.todayDn(), chart.clientWidth / 2);
+      else if (a === 'expandAll'){ P().collapsed = []; save(); render_(); }
+      else if (a === 'collapseAll'){ P().collapsed = P().tasks.filter((t, i) => V.meta.isParent[i]).map(t => t.id); save(); render_(); }
+    });
+
+    // grid: edits
+    gridIn.addEventListener('change', e => {
+      const el = e.target, f = el.dataset.f; if (!f) return;
+      const row = el.closest('.pl-row'), id = row.dataset.id;
+      if (f === 'name') doOp(ts => PLE.setName(ts, id, el.value), { el });
+      else if (f === 'start' || f === 'finish'){
+        const v = el.value;
+        if (!v){ syncGrid(); return; }
+        const y = +v.slice(0, 4);
+        if (y < 1990 || y > 2100){ syncGrid(); return; }
+        if (f === 'start') doOp(ts => PLE.setStart(ts, id, v, 'move'), { el });
+        else doOp(ts => PLE.setFinish(ts, id, v), { el });
+      }
+      else if (f === 'duration') doOp(ts => PLE.setDuration(ts, id, el.value), { el });
+      else if (f === 'pct') doOp(ts => PLE.setPct(ts, id, el.value), { el });
+      else if (f === 'preds') doOp(ts => PLE.setPreds(ts, id, el.value), { el });
+    });
+    gridIn.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.target.classList.contains('pl-in')){ e.preventDefault(); e.target.blur(); }
+      else if (e.key === 'Escape' && e.target.classList.contains('pl-in')){ syncGrid(); e.target.blur(); }
+    });
+    // grid: buttons, selection, context menu
+    gridIn.addEventListener('click', e => {
+      const row = e.target.closest('.pl-row');
+      const btn = e.target.closest('[data-act]');
+      if (btn){
+        const a = btn.dataset.act;
+        if (a === 'addEnd'){ addEnd(); return; }
+        if (a === 'sample'){ loadSample(); return; }
+        if (!row) return;
+        const id = row.dataset.id;
+        if (a === 'indent') doOp(ts => PLE.changeIndent(ts, id, 1), { structural: true });
+        else if (a === 'outdent') doOp(ts => PLE.changeIndent(ts, id, -1), { structural: true });
+        else if (a === 'caret') toggleCaret(id);
+        else if (a === 'menu'){ const r = btn.getBoundingClientRect(); openMenu(r.left, r.bottom + 4, id); }
+        return;
+      }
+      if (row) setSelected(row.dataset.id);
+    });
+    gridIn.addEventListener('focusin', e => { const row = e.target.closest('.pl-row'); if (row) setSelected(row.dataset.id); });
+    gridIn.addEventListener('contextmenu', e => { const row = e.target.closest('.pl-row'); if (!row) return; e.preventDefault(); setSelected(row.dataset.id); openMenu(e.clientX, e.clientY, row.dataset.id); });
+    document.addEventListener('click', e => { if (menuEl && !e.target.closest('.pl-menu') && !e.target.closest('[data-act="menu"]')) closeMenu(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+    window.addEventListener('wheel', closeMenu, { passive: true, capture: true });
+
+    // vertical scroll sync (the timeline owns the vertical scrollbar)
+    chart.addEventListener('scroll', () => {
+      if (grid.scrollTop !== chart.scrollTop) grid.scrollTop = chart.scrollTop;
+      if (chart.clientWidth) { V.sl = chart.scrollLeft; V.st = chart.scrollTop; }
+    });
+    grid.addEventListener('scroll', () => { if (grid.scrollTop !== chart.scrollTop) chart.scrollTop = grid.scrollTop; });
+    grid.addEventListener('wheel', e => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)){ chart.scrollTop += e.deltaY; e.preventDefault(); }
+    }, { passive: false });
+
+    // timeline: drag + tooltips
+    chartIn.addEventListener('pointerdown', startDrag);
+    chartIn.addEventListener('pointermove', e => {
+      if (V.drag) return;
+      const el = e.target.closest('[data-tip]');
+      if (!el){ hideTip(); return; }
+      const k = el.dataset.tip;
+      const html = k.startsWith('t:') ? taskTip(k.slice(2)) : (() => { const [a, b] = k.slice(2).split('>'); return linkTip(a, b); })();
+      if (html) showTip(html, e.clientX, e.clientY); else hideTip();
+    });
+    chartIn.addEventListener('pointerleave', () => { if (!V.drag) hideTip(); });
+    chartIn.addEventListener('click', e => { const el = e.target.closest('[data-id]'); if (el) setSelected(el.dataset.id); });
+    chartIn.addEventListener('dblclick', e => {
+      const el = e.target.closest('[data-id]'); if (!el) return;
+      const inp = gridIn.querySelector(`.pl-row[data-id="${el.dataset.id}"] [data-f="name"]`);
+      if (inp){ inp.focus(); inp.select(); }
+    });
+
+    // resizable divider
+    const div = $('plDivider');
+    div.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      const x0 = e.clientX, w0 = $('plGrid').offsetWidth;
+      div.setPointerCapture(e.pointerId); div.classList.add('drag'); document.body.classList.add('pl-resizing');
+      const mv = ev => { V.gridW = w0 + (ev.clientX - x0); layout(); };
+      const up = () => { div.classList.remove('drag'); document.body.classList.remove('pl-resizing'); div.removeEventListener('pointermove', mv); div.removeEventListener('pointerup', up); div.removeEventListener('pointercancel', up); V.gridW = $('plGrid').offsetWidth; persist(); };
+      div.addEventListener('pointermove', mv); div.addEventListener('pointerup', up); div.addEventListener('pointercancel', up);
+    });
+    div.addEventListener('dblclick', () => { V.gridW = 0; layout(); V.gridW = $('plGrid').offsetWidth; persist(); });
+    div.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
+        e.preventDefault(); V.gridW = $('plGrid').offsetWidth + (e.key === 'ArrowRight' ? 24 : -24); layout(); V.gridW = $('plGrid').offsetWidth; persist();
+      }
+    });
+
+    // responsive: re-clamp on resize; rebuild if row height class changes
+    let rt = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(rt);
+      rt = setTimeout(() => {
+        if (typeof currentView === 'undefined' || currentView !== 'planner') return;
+        if (rowH() !== V.rowH) render_(); else { layout(); }
+      }, 120);
+    });
+  }
+
+  function mount(){
+    wire();
+    render_();
+  }
+  return { mount, render: render_, refresh, V };
+})();
+
+function renderPlanner(){ PLU.mount(); }
 
 // init
 document.getElementById('schedView').style.display='flex';
