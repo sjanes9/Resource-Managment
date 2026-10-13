@@ -1849,6 +1849,24 @@ body.pl-dragging-row, body.pl-dragging-row * { cursor: grabbing !important; user
 .pl-wkchk small { color: var(--txt-sub); font-size: 11.5px; }
 .pl-menu { max-height: calc(100vh - 16px); overflow-y: auto; }
 
+/* ===== v5: assign pop-up, column move ===== */
+.pl-pop-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.pl-pop-h > span { min-width: 0; overflow-wrap: anywhere; line-height: 1.35; padding-top: 2px; }
+.pl-x.sm { font-size: 18px; padding: 0 6px; flex: none; margin-top: -2px; }
+.pl-pi-t .part { color: var(--blue-dk); font-style: normal; font-weight: 600; }
+.pl-as.grp { cursor: pointer; }
+.pl-pi.col { padding: 2px 4px 2px 0; cursor: default; gap: 2px; }
+.pl-pi.col .pl-pi-l { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; padding: 4px 6px; cursor: pointer; }
+.pl-mvb { flex: none; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--txt-sub); cursor: pointer; padding: 0; }
+.pl-mvb:hover:not(:disabled) { background: var(--bg-alt); color: var(--txt-main); }
+.pl-mvb:disabled { opacity: .3; cursor: not-allowed; }
+.pl-ghead > div.mv { cursor: grab; touch-action: none; user-select: none; }
+.pl-ghead > div.mv:hover { background: #EEF2F7; }
+.pl-ghead > div.moving { opacity: .45; }
+body.pl-colmoving, body.pl-colmoving * { cursor: grabbing !important; user-select: none !important; }
+.pl-colghost { position: fixed; z-index: 10010; pointer-events: none; background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-radius: 6px; padding: 5px 10px; box-shadow: 0 6px 18px rgba(15,23,42,.3); }
+.pl-ghead > .pl-coldrop { position: absolute; display: block; top: 0; bottom: 0; width: 3px; padding: 0; border: 0; border-radius: 2px; background: var(--blue); z-index: 8; pointer-events: none; }
+
 </style>
 
 </head>
@@ -5756,7 +5774,7 @@ const TUTORIAL_STEPS = [
   { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
   { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent: parents roll up their children and are read-only. Durations count Monday to Friday only, unless a task is set to Include weekends (row menu or task details): then its start, finish, duration and lag count every calendar day, and typing a Saturday or Sunday date switches that on for you. Type a start or finish date on a group row (a phase such as Design) to set it for every task inside, and each task can still be edited afterwards.', targetId:'tabPlanner' },
-  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project adds a project to the board. Pick a project that already exists in the Projects tab to pull in its name, dates and phases (its client and owner show in the task details), or add a standalone project, blank or from a template. Save any project as a template from the row menu (the three dots); templates keep durations, dependencies, notes, links and checklists. Drag the number cell on the left of any row, or a task name on the timeline, to move that row. Drag the edge of any column heading to change its width (double-click the edge to reset it). Columns hides or shows columns. Status is a drop-down: Not Started, In Progress, Delayed or Complete. Choosing Complete sets 100%, and group rows roll up their children. Click the notes icon beside a task name, double-click a bar, or use the row menu to open the task details: notes, links to documents, a checklist, dates and people. Checklist items show as sub-rows under their task (use the caret to hide them) and set its % Complete (items done divided by items); Complete ticks every item and Not Started clears them. Use the row menu to Duplicate a task or phase with everything inside it, or Copy it and Paste Below on any row; copies start at 0% and keep their links between tasks. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
+  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project adds a project to the board. Pick a project that already exists in the Projects tab to pull in its name, dates and phases (its client and owner show in the task details), or add a standalone project, blank or from a template. Save any project as a template from the row menu (the three dots); templates keep durations, dependencies, notes, links and checklists. Drag the number cell on the left of any row, or a task name on the timeline, to move that row. Drag the edge of any column heading to change its width (double-click the edge to reset it). Columns hides, shows or rearranges columns (use its arrows, or drag a column heading left or right in the grid; the pop-up follows its row when you scroll and closes when the row leaves the screen). Status is a drop-down: Not Started, In Progress, Delayed or Complete. Choosing Complete sets 100%, and group rows roll up their children. Click the notes icon beside a task name, double-click a bar, or use the row menu to open the task details: notes, links to documents, a checklist, dates and people. Checklist items show as sub-rows under their task (use the caret to hide them) and set its % Complete (items done divided by items); Complete ticks every item and Not Started clears them. Use the row menu to Duplicate a task or phase with everything inside it, or Copy it and Paste Below on any row; copies start at 0% and keep their links between tasks. Click Assigned To on a phase or project row to add a person to every task inside it (a dash means only some tasks have them), or on a single task to assign just that one. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
   { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet.', targetId:null },
   { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile, or use the pencil beside a name to edit their details (name, role, title, department, hire date, type, manager, email, tags, capacity and target).', targetId:'tabPeopleRpt' },
@@ -8200,6 +8218,40 @@ const PLE = (function(){
     return { ok: true, warnings: [] };
   }
 
+  // Add or remove one person on a task, or on every task inside a group (a phase or a whole project).
+  // The group row itself stores nothing: it shows whoever is assigned beneath it.
+  function leavesOf(tasks, i){
+    const m = meta(tasks);
+    if (!m.isParent[i]) return [i];
+    const e = subtreeEnd(tasks, i), out = [];
+    for (let k = i + 1; k < e; k++) if (!m.isParent[k]) out.push(k);
+    return out;
+  }
+  function assignTo(tasks, id, resId, on){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    if (!resId) return fail('Pick a person to assign.');
+    const group = meta(tasks).isParent[i], leaves = leavesOf(tasks, i);
+    if (!leaves.length) return fail('This group has no tasks to assign to.');
+    let changed = 0;
+    leaves.forEach(k => {
+      const t = tasks[k]; if (!Array.isArray(t.assign)) t.assign = [];
+      const has = t.assign.includes(resId);
+      if (on && !has){ t.assign.push(resId); changed++; }
+      else if (!on && has){ t.assign = t.assign.filter(x => x !== resId); changed++; }
+    });
+    const r = { ok: true, warnings: [], changed, count: leaves.length };
+    if (!changed) r.noop = true;
+    else if (group) r.note = `${on ? 'Assigned to' : 'Removed from'} ${changed} of ${leaves.length} task${leaves.length === 1 ? '' : 's'} in this group. Each task can still be changed on its own.`;
+    return r;
+  }
+  // how many of the tasks under a row each person is on: { resId: n }, plus the task count
+  function assignCounts(tasks, id){
+    const i = find(tasks, id); if (i < 0) return { n: 0, by: {} };
+    const leaves = leavesOf(tasks, i), by = {};
+    leaves.forEach(k => (tasks[k].assign || []).forEach(r => { by[r] = (by[r] || 0) + 1; }));
+    return { n: leaves.length, by };
+  }
+
   // ── templates ──
   // A template stores a project's rows relative to each other: indent, duration, unlinked start offset
   // (working days from the earliest start) and predecessors as row positions inside the template.
@@ -8237,7 +8289,7 @@ const PLE = (function(){
     return out;
   }
 
-  return { setWeekend, setGroupDates, copyBlock, pasteBlock, duplicateBlock, wiEnd, workIn, nextAfter, ckStats, STATUSES, setStatus, normalizeUrl, setNotes, addLink, updateLink, removeLink, addCheck, editCheck, removeCheck, setProjLink, rowsFromProject, moveBlock, moveSibling, setAssign, extractTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
+  return { assignTo, assignCounts, leavesOf, setWeekend, setGroupDates, copyBlock, pasteBlock, duplicateBlock, wiEnd, workIn, nextAfter, ckStats, STATUSES, setStatus, normalizeUrl, setNotes, addLink, updateLink, removeLink, addCheck, editCheck, removeCheck, setProjLink, rowsFromProject, moveBlock, moveSibling, setAssign, extractTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
            meta, subtreeEnd, isAncestor, hasCycle, recalc, setName, setPct, setDuration, setStart, setFinish, setPreds,
            parsePreds, insertAt, removeTask, changeIndent, find };
 })();
@@ -8257,16 +8309,17 @@ const PLU = (function(){
   const HDR = 56, ADDH = 48;
   const LS = 'etRM_pl';
   const V = { zoom: 'week', critical: false, gridW: 0, origin: null, end: null, selected: null, drag: null, focusId: null,
-              inited: false, rowH: 34, pos: new Map(), vis: [], rows: [], clip: null, focusCk: null, crit: new Set(), floatOf: new Map(), meta: null, hidden: [], widths: {}, dt: null, reorder: null, reveal: null };
+              inited: false, rowH: 34, pos: new Map(), vis: [], rows: [], clip: null, focusCk: null, crit: new Set(), floatOf: new Map(), meta: null, hidden: [], order: [], widths: {}, dt: null, reorder: null, reveal: null };
   try {
     const o = JSON.parse(localStorage.getItem(LS) || '{}');
     if (o.zoom && PPD[o.zoom]) V.zoom = o.zoom;
     V.critical = !!o.critical;
     if (o.gridW > 0) V.gridW = o.gridW;
     if (Array.isArray(o.hidden)) V.hidden = o.hidden;
+    if (Array.isArray(o.order)) V.order = o.order;
     if (o.widths && typeof o.widths === 'object') V.widths = o.widths;
   } catch (e) {}
-  const persist = () => { try { localStorage.setItem(LS, JSON.stringify({ zoom: V.zoom, critical: V.critical, gridW: V.gridW, hidden: V.hidden, widths: V.widths })); } catch (e) {} };
+  const persist = () => { try { localStorage.setItem(LS, JSON.stringify({ zoom: V.zoom, critical: V.critical, gridW: V.gridW, hidden: V.hidden, order: V.order, widths: V.widths })); } catch (e) {} };
   const $ = id => document.getElementById(id);
   const P = () => state.planner;
   const pesc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -8444,7 +8497,15 @@ const PLU = (function(){
     { k: 'assign',   label: 'Assigned To',  w: 160, min: 100 },
     { k: 'act',      label: '',             w: 92,  min: 92,  lock: true, fixed: true }
   ];
-  const visCols = () => COLS.filter(c => c.lock || !V.hidden.includes(c.k));
+  const colBy = k => COLS.find(c => c.k === k);
+  // the movable columns in the order the user chose (new columns that are not in the saved order go at the end)
+  const movableKeys = () => {
+    const base = COLS.filter(c => !c.lock).map(c => c.k), o = (V.order || []).filter((k, n, a) => base.includes(k) && a.indexOf(k) === n);
+    base.forEach(k => { if (!o.includes(k)) o.push(k); });
+    return o;
+  };
+  // # and Task Name stay first and the row buttons stay last, because they are frozen or fixed
+  const visCols = () => [colBy('num'), colBy('name'), ...movableKeys().filter(k => !V.hidden.includes(k)).map(colBy), colBy('act')];
   const colW = c => c.fixed ? c.w : Math.max(c.min, Math.min(700, Math.round(+V.widths[c.k]) || c.w));
 
   // resources ----
@@ -8465,7 +8526,7 @@ const PLU = (function(){
     const parent = V.meta.isParent[i], list = assigneesOf(i);
     const chips = list.slice(0, 3).map(avHTML).join('') + (list.length > 3 ? `<span class="pl-more">+${list.length - 3}</span>` : '');
     const label = list.length === 1 ? `<span class="pl-asn">${pesc(list[0].first + ' ' + list[0].last)}</span>` : '';
-    if (parent) return `<div class="pl-as ro" title="${list.length ? 'Everyone assigned to tasks in this group' : 'Assign people on the individual tasks'}">${chips || ''}${label}</div>`;
+    if (parent) return `<div class="pl-as grp" data-act="assign" tabindex="0" role="button" title="${list.length ? 'Everyone assigned to tasks in this group. Click to add or remove people for every task in it.' : 'Click to assign people to every task in this group'}" aria-label="Assign resources to every task in row ${i + 1}">${chips}${label}${list.length ? '' : '<span class="pl-as-empty">Assign all…</span>'}</div>`;
     return `<div class="pl-as" data-act="assign" tabindex="0" role="button" aria-label="Assign resources to row ${i + 1}">${chips}${label}${list.length ? '' : '<span class="pl-as-empty">Assign…</span>'}</div>`;
   }
 
@@ -8530,10 +8591,11 @@ const PLU = (function(){
   function renderGrid(){
     const cols = visCols(), gin = $('plGridIn');
     applyCols();
-    let h = `<div class="pl-ghead">${cols.map((c, n) => `<div data-k="${c.k}"${c.title ? ` title="${pesc(c.title)}"` : ''}${n === cols.length - 1 ? ' style="border-right:0"' : ''}><span class="lbl">${c.k === 'num' ? '#' : pesc(c.label)}</span>${c.fixed ? '' : `<i class="pl-rz" data-k="${c.k}" title="Drag to change the column width. Double-click to reset it."></i>`}</div>`).join('')}</div><div class="pl-gbody">`;
+    let h = `<div class="pl-ghead">${cols.map((c, n) => `<div data-k="${c.k}"${c.lock ? '' : ' class="mv"'} title="${pesc((c.title ? c.title + '. ' : '') + (c.lock ? '' : 'Drag the heading left or right to move this column.'))}"${n === cols.length - 1 ? ' style="border-right:0"' : ''}><span class="lbl">${c.k === 'num' ? '#' : pesc(c.label)}</span>${c.fixed ? '' : `<i class="pl-rz" data-k="${c.k}" title="Drag to change the column width. Double-click to reset it."></i>`}</div>`).join('')}</div><div class="pl-gbody">`;
     V.rows.forEach(rw => { h += rw.c ? chkRowHTML(rw.i, rw.c) : rowHTML(rw.i, V.meta); });
     h += `<div class="pl-addrow"><button data-act="addEnd">+ Add task</button></div></div>`;
     gin.innerHTML = h;
+    placePop();
   }
   // refresh values in place so a focused input keeps focus while other cells update
   function syncGrid(){
@@ -8758,6 +8820,7 @@ const PLU = (function(){
     analyse();
     syncGrid(); drawChart(); updateInfo();
     if (V.dt) V.dt.fill();
+    placePop();
   }
   function render_(){
     ensure();
@@ -8983,17 +9046,36 @@ const PLU = (function(){
   function onDragCancel(){ const D = V.drag; if (!D) return; cleanupDrag(D); drawChart(); }
 
   // ══ popovers (Columns menu, resource picker) ══
-  let popEl = null, popKey = null;
-  function closePop(){ if (popEl){ popEl.remove(); popEl = null; popKey = null; } }
-  function openPop(key, anchor, html){
+  let popEl = null, popKey = null, popAnchor = null, popRaf = 0;
+  function closePop(){ if (popEl){ popEl.remove(); popEl = null; popKey = null; popAnchor = null; } }
+  // keep an open pop-up attached to the cell it came from: it follows the row when the grid scrolls, and closes
+  // when that row is scrolled out of view or no longer exists
+  function placePop(){
+    if (!popEl) return;
+    const a = popAnchor && popAnchor();
+    if (!a || !a.isConnected){ closePop(); return; }
+    const r = a.getBoundingClientRect(), g = a.closest('#plGrid');
+    if (g){
+      const gr = g.getBoundingClientRect(), hd = g.querySelector('.pl-ghead'), top = gr.top + (hd ? hd.offsetHeight : HDR);
+      if (r.bottom < top + 4 || r.top > gr.bottom - 4 || r.right < gr.left + 4 || r.left > gr.right - 4){ closePop(); return; }
+    }
+    // sit on whichever side of the cell has more room and shrink to fit, so the pop-up never covers its own row
+    popEl.style.maxHeight = '';
+    const w = popEl.offsetWidth, nat = popEl.offsetHeight, below = window.innerHeight - r.bottom - 12, above = r.top - 12;
+    const useBelow = nat <= below || below >= above;
+    const H = Math.max(120, Math.min(nat, (useBelow ? below : above) - 2));
+    const T = useBelow ? r.bottom + 4 : Math.max(8, r.top - 4 - H);
+    popEl.style.maxHeight = H + 'px';
+    popEl.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px'; popEl.style.top = T + 'px';
+  }
+  const schedulePlace = e => { if (!popEl || (e && e.target && e.target.nodeType === 1 && popEl.contains(e.target))) return; cancelAnimationFrame(popRaf); popRaf = requestAnimationFrame(placePop); };
+  function openPop(key, anchor, html, anchorFn){
     if (popEl && popKey === key){ closePop(); return null; }
     closePop();
     popEl = document.createElement('div'); popEl.className = 'pl-pop'; popEl.innerHTML = html; popKey = key;
+    popAnchor = anchorFn || (() => anchor);
     document.body.appendChild(popEl);
-    const r = anchor.getBoundingClientRect(), w = popEl.offsetWidth, h = popEl.offsetHeight;
-    let L = Math.min(r.left, window.innerWidth - w - 8), T = r.bottom + 6;
-    if (T + h > window.innerHeight - 8) T = Math.max(8, r.top - h - 6);
-    popEl.style.left = Math.max(8, L) + 'px'; popEl.style.top = T + 'px';
+    placePop();
     return popEl;
   }
   function modalBox(html, cls, onClose, onEsc){
@@ -9012,8 +9094,9 @@ const PLU = (function(){
 
   // ══ columns show/hide ══
   function openColumns(btn){
-    const items = COLS.filter(c => !c.lock).map(c => `<label class="pl-pi"><input type="checkbox" data-col="${c.k}"${V.hidden.includes(c.k) ? '' : ' checked'}><span class="pl-pi-t"><b>${pesc(c.label)}</b></span></label>`).join('');
-    const p = openPop('cols', btn, `<div class="pl-pop-h">Show columns</div>${items}<div class="pl-pop-f"><button class="pl-btn" data-x="all">Show all</button> <button class="pl-btn" data-x="widths">Reset widths</button></div><div class="pl-pop-n">Task Name, the row number and the row buttons are always shown. Hidden columns keep working in the background. Drag the edge of any column heading to change its width.</div>`);
+    const A_L = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 2.5L4 6l3.5 3.5"/></svg>', A_R = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 2.5L8 6 4.5 9.5"/></svg>';
+    const list = () => movableKeys().map((k, n, a) => { const c = colBy(k); return `<div class="pl-pi col"><label class="pl-pi-l"><input type="checkbox" data-col="${c.k}"${V.hidden.includes(c.k) ? '' : ' checked'}><span class="pl-pi-t"><b>${pesc(c.label)}</b></span></label><button class="pl-mvb" data-mv="${c.k}" data-d="-1" title="Move ${pesc(c.label)} left"${n === 0 ? ' disabled' : ''} aria-label="Move ${pesc(c.label)} left">${A_L}</button><button class="pl-mvb" data-mv="${c.k}" data-d="1" title="Move ${pesc(c.label)} right"${n === a.length - 1 ? ' disabled' : ''} aria-label="Move ${pesc(c.label)} right">${A_R}</button></div>`; }).join('');
+    const p = openPop('cols', btn, `<div class="pl-pop-h">Show and arrange columns</div><div id="plColList">${list()}</div><div class="pl-pop-f"><button class="pl-btn" data-x="all">Show all</button> <button class="pl-btn" data-x="order">Reset order</button> <button class="pl-btn" data-x="widths">Reset widths</button></div><div class="pl-pop-n">Use the arrows here, or drag a column heading in the grid, to move it left or right. Task Name, the row number and the row buttons stay where they are. Drag the edge of a heading to change its width.</div>`);
     if (!p) return;
     p.addEventListener('change', e => {
       const k = e.target.dataset.col; if (!k) return;
@@ -9021,35 +9104,114 @@ const PLU = (function(){
       persist(); renderGrid(); syncToolbar();
     });
     p.addEventListener('click', e => {
-      if (e.target.dataset.x === 'all'){ V.hidden = []; persist(); renderGrid(); syncToolbar(); p.querySelectorAll('input').forEach(i => { i.checked = true; }); }
+      const mv = e.target.closest('[data-mv]');
+      if (mv && !mv.disabled){ moveCol(mv.dataset.mv, +mv.dataset.d); p.querySelector('#plColList').innerHTML = list(); return; }
+      if (e.target.dataset.x === 'order'){ V.order = []; persist(); renderGrid(); syncToolbar(); p.querySelector('#plColList').innerHTML = list(); toast('Column order reset.'); }
+      else if (e.target.dataset.x === 'all'){ V.hidden = []; persist(); renderGrid(); syncToolbar(); p.querySelectorAll('input[data-col]').forEach(i => { i.checked = true; }); }
       else if (e.target.dataset.x === 'widths'){ V.widths = {}; persist(); applyCols(); toast('Column widths reset.'); }
     });
   }
 
+  // move one column a step left or right among the movable columns (hidden ones keep their place in the order)
+  function moveCol(k, d){
+    const a = movableKeys(), i = a.indexOf(k), j = i + d; if (i < 0 || j < 0 || j >= a.length) return;
+    a.splice(i, 1); a.splice(j, 0, k); V.order = a; persist(); renderGrid(); syncToolbar();
+  }
+  // put column k before column beforeKey (or after the last shown movable column when beforeKey is null)
+  function placeCol(k, beforeKey){
+    const a = movableKeys().filter(x => x !== k);
+    let at;
+    if (beforeKey) at = a.indexOf(beforeKey);
+    else { const shown = a.filter(x => !V.hidden.includes(x)); at = shown.length ? a.indexOf(shown[shown.length - 1]) + 1 : a.length; }
+    a.splice(Math.max(0, at), 0, k); V.order = a;
+  }
+  // drag a column heading left or right to move that column
+  function startColMove(e, k){
+    const c = colBy(k); if (!c || c.lock || e.button !== 0) return;
+    const grid = $('plGrid'), head = $('plGridIn').querySelector('.pl-ghead'); if (!head) return;
+    const M = { k, x0: e.clientX, active: false, before: undefined, ghost: null, line: null, raf: 0, lastX: e.clientX };
+    const cells = () => [...head.children].filter(h => h.classList.contains('mv') && h.dataset.k !== k);
+    const mv = ev => {
+      M.lastX = ev.clientX;
+      if (!M.active){
+        if (Math.abs(ev.clientX - M.x0) < 6) return;
+        M.active = true; closePop(); closeMenu(); hideTip();
+        document.body.classList.add('pl-colmoving');
+        head.querySelector(`[data-k="${k}"]`).classList.add('moving');
+        M.ghost = document.createElement('div'); M.ghost.className = 'pl-colghost'; M.ghost.textContent = c.label; document.body.appendChild(M.ghost);
+        M.line = document.createElement('div'); M.line.className = 'pl-coldrop'; head.appendChild(M.line);
+        const loop = () => {
+          if (!M.active) return;
+          const gr = grid.getBoundingClientRect(), edge = 46; let d = 0;
+          if (M.lastX > gr.right - edge) d = Math.ceil((M.lastX - (gr.right - edge)) / 3); else if (M.lastX < gr.left + edge + colW(COLS[0]) + colW(COLS[1])) d = -Math.ceil(((gr.left + edge + colW(COLS[0]) + colW(COLS[1])) - M.lastX) / 3);
+          if (d) { grid.scrollLeft += d; place(M.lastX); }
+          M.raf = requestAnimationFrame(loop);
+        };
+        M.raf = requestAnimationFrame(loop);
+      }
+      place(ev.clientX); M.ghost.style.left = (ev.clientX + 12) + 'px'; M.ghost.style.top = (ev.clientY + 10) + 'px';
+    };
+    function place(x){
+      const hs = cells(), hr = head.getBoundingClientRect(); let before = null, lineX;
+      for (const h of hs){ const r = h.getBoundingClientRect(); if (x < r.left + r.width / 2){ before = h.dataset.k; lineX = r.left - hr.left; break; } }
+      if (before == null){ const last = hs[hs.length - 1]; const ref = last || head.querySelector(`[data-k="${k}"]`); lineX = ref.getBoundingClientRect().right - hr.left; }
+      M.before = before; M.line.style.left = (lineX - 1) + 'px';
+    }
+    const done = commit => {
+      document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+      document.removeEventListener('pointercancel', cancel); document.removeEventListener('keydown', key, true);
+      cancelAnimationFrame(M.raf); document.body.classList.remove('pl-colmoving');
+      if (M.ghost) M.ghost.remove(); if (M.line) M.line.remove();
+      const was = M.active; M.active = false;
+      if (!was || !commit) { const h = head.querySelector(`[data-k="${k}"]`); if (h) h.classList.remove('moving'); return; }
+      const before = movableKeys(); placeCol(k, M.before);
+      if (movableKeys().join() !== before.join()){ persist(); renderGrid(); syncToolbar(); } else { const h = head.querySelector(`[data-k="${k}"]`); if (h) h.classList.remove('moving'); }
+    };
+    const up = () => done(true), cancel = () => done(false);
+    const key = ev => { if (ev.key === 'Escape'){ ev.stopPropagation(); done(false); } };
+    document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+    document.addEventListener('pointercancel', cancel); document.addEventListener('keydown', key, true);
+    e.preventDefault();
+  }
+
   // ══ resource assignment ══
-  function busyCount(resId, selfId, s, f){
+  function busyCount(resId, skip, s, f){
     const ts = P().tasks, m = V.meta; let n = 0;
     ts.forEach((t, i) => {
-      if (t.id === selfId || m.isParent[i] || t.duration === 0 || !(t.assign || []).includes(resId)) return;
+      if (skip.has(t.id) || m.isParent[i] || t.duration === 0 || !(t.assign || []).includes(resId)) return;
       if (toDn(t.start) <= f && toDn(t.finish) >= s) n++;
     });
     return n;
   }
   function openAssign(anchor, id){
-    const ts = P().tasks, i = PLE.find(ts, id); if (i < 0 || V.meta.isParent[i]) return;
-    const t = ts[i], res = state.resources || [], s = toDn(t.start), f = toDn(t.finish);
+    const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
+    const group = !!V.meta.isParent[i], t = ts[i], res = state.resources || [], s = toDn(t.start), f = toDn(t.finish);
+    const skip = new Set(group ? ts.slice(i, PLE.subtreeEnd(ts, i)).map(x => x.id) : [id]);
+    const cnt = PLE.assignCounts(ts, id);
     const rows = res.map(r => {
-      const b = busyCount(r.id, id, s, f);
-      return `<label class="pl-pi" data-q="${pesc((r.first + ' ' + r.last + ' ' + (r.role || '') + ' ' + (r.dept || '')).toLowerCase())}"><input type="checkbox" data-r="${r.id}"${(t.assign || []).includes(r.id) ? ' checked' : ''}>${avHTML(r)}<span class="pl-pi-t"><b>${pesc(r.first + ' ' + r.last)}</b><small>${pesc(r.role || '')}${b ? ` <i class="warn">already on ${b} overlapping task${b === 1 ? '' : 's'}</i>` : ''}</small></span></label>`;
+      const b = busyCount(r.id, skip, s, f), on = cnt.by[r.id] || 0;
+      const part = group && on ? ` <i class="part">on ${on} of ${cnt.n} task${cnt.n === 1 ? '' : 's'}</i>` : '';
+      return `<label class="pl-pi" data-q="${pesc((r.first + ' ' + r.last + ' ' + (r.role || '') + ' ' + (r.dept || '')).toLowerCase())}"><input type="checkbox" data-r="${r.id}" data-on="${on}"${on && on === cnt.n ? ' checked' : ''}>${avHTML(r)}<span class="pl-pi-t"><b>${pesc(r.first + ' ' + r.last)}</b><small>${pesc(r.role || '')}${part}${b ? ` <i class="warn">already on ${b} overlapping task${b === 1 ? '' : 's'}</i>` : ''}</small></span></label>`;
     }).join('');
-    const p = openPop('assign:' + id, anchor, `<div class="pl-pop-h">Assign to row ${i + 1}: ${pesc(t.name)}</div>${res.length ? `<input class="pl-pop-s" placeholder="Search people" aria-label="Search people"><div class="pl-pop-list">${rows}</div>` : '<div class="pl-pop-n">No resources yet. Add people with + Add Resource.</div>'}<div class="pl-pop-n">Planner assignments are not yet counted in utilization or alerts (coming soon).</div>`);
+    const head = group
+      ? `<div class="pl-pop-h"><span>Assign to all ${cnt.n} task${cnt.n === 1 ? '' : 's'} in: ${pesc(t.name)}</span><button class="pl-x sm" data-x="closepop" aria-label="Close" title="Close">&times;</button></div>`
+      : `<div class="pl-pop-h"><span>Assign to row ${i + 1}: ${pesc(t.name)}</span><button class="pl-x sm" data-x="closepop" aria-label="Close" title="Close">&times;</button></div>`;
+    const note = group ? `<div class="pl-pop-n">Checking a person adds them to every task in this group. Unchecking removes them from every task. A dash means only some tasks have them. Each task can still be changed on its own.</div>` : '';
+    const sel = '#plGridIn .pl-row:not(.chk)[data-id="' + id + '"] [data-act="assign"]';
+    const inGrid = !!anchor.closest('#plGridIn');
+    const p = openPop('assign:' + id, anchor, `${head}${res.length ? `<input class="pl-pop-s" placeholder="Search people" aria-label="Search people"><div class="pl-pop-list">${rows}</div>` : '<div class="pl-pop-n">No resources yet. Add people with + Add Resource.</div>'}${note}<div class="pl-pop-n">Planner assignments are not yet counted in utilization or alerts (coming soon).</div>`, inGrid ? () => document.querySelector(sel) : () => (anchor.isConnected ? anchor : document.querySelector('.pl-modal.dt [data-dt="assign"]')));
     if (!p) return;
+    p.querySelectorAll('input[data-r]').forEach(c => { const on = +c.dataset.on; c.indeterminate = group && on > 0 && on < cnt.n; });
     const q = p.querySelector('.pl-pop-s');
     if (q){ q.focus(); q.addEventListener('input', () => { const v = q.value.trim().toLowerCase(); p.querySelectorAll('.pl-pi').forEach(l => { l.style.display = !v || l.dataset.q.includes(v) ? '' : 'none'; }); }); }
+    p.addEventListener('click', e => { if (e.target.closest('[data-x="closepop"]')) closePop(); });
     p.addEventListener('change', e => {
-      if (!e.target.dataset.r) return;
-      const list = [...p.querySelectorAll('input[data-r]:checked')].map(x => x.dataset.r);
-      doOp(tt => PLE.setAssign(tt, id, list));
+      const rid = e.target.dataset.r; if (!rid) return;
+      e.target.indeterminate = false;
+      doOp(tt => PLE.assignTo(tt, id, rid, e.target.checked));
+      // keep the hint under each name in step with the change
+      const c2 = PLE.assignCounts(P().tasks, id), lab = e.target.closest('.pl-pi'), sm = lab && lab.querySelector('small');
+      if (group && sm){ const on = c2.by[rid] || 0; let it = sm.querySelector('i.part'); if (!on){ if (it) it.remove(); } else { if (!it){ it = document.createElement('i'); it.className = 'part'; sm.insertBefore(it, sm.querySelector('i.warn')); sm.insertBefore(document.createTextNode(' '), it); } it.textContent = `on ${on} of ${c2.n} task${c2.n === 1 ? '' : 's'}`; } e.target.indeterminate = on > 0 && on < c2.n; e.target.checked = on === c2.n && on > 0; }
     });
   }
 
@@ -9174,7 +9336,7 @@ const PLU = (function(){
       const chips = list.map(r => `<span class="pl-asg-i">${avHTML(r)}<span>${pesc(r.first + ' ' + r.last)}</span></span>`).join('');
       q('#dtAsg').innerHTML = `<span class="pl-dt-ic" title="${parent ? 'Team' : 'Assigned to'}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="5.2" r="2.4"/><path d="M1.8 13c.3-2.4 2-3.7 4.2-3.7s3.9 1.3 4.2 3.7M12 4v4M10 6h4"/></svg></span>`
         + (chips || `<span class="pl-asg-none">${parent ? 'No one is assigned to tasks in this group yet' : 'No one assigned'}</span>`)
-        + (parent ? '' : `<button class="pl-btn" data-dt="assign">${list.length ? 'Change' : 'Assign people'}</button>`);
+        + `<button class="pl-btn" data-dt="assign">${parent ? (list.length ? 'Change for all tasks' : 'Assign to all tasks') : (list.length ? 'Change' : 'Assign people')}</button>`;
     }
     function paintProj(t){
       const pj = t.projId && projById(t.projId), box_ = q('#dtProj');
@@ -9540,6 +9702,7 @@ const PLU = (function(){
     });
     gridIn.addEventListener('pointerdown', e => {
       const rz = e.target.closest('.pl-rz'); if (rz){ startColResize(e, rz.dataset.k); return; }
+      const hd = e.target.closest('.pl-ghead > div.mv'); if (hd){ startColMove(e, hd.dataset.k); return; }
       const n = e.target.closest('.pl-num:not(.ck)'); if (n) startReorder(e, n.closest('.pl-row').dataset.id);
     });
     gridIn.addEventListener('dblclick', e => {
@@ -9571,8 +9734,10 @@ const PLU = (function(){
     gridIn.addEventListener('contextmenu', e => { const row = e.target.closest('.pl-row'); if (!row) return; if (row.classList.contains('chk')) return; e.preventDefault(); setSelected(row.dataset.id); openMenu(e.clientX, e.clientY, row.dataset.id); });
     document.addEventListener('click', e => { if (menuEl && !e.target.closest('.pl-menu') && !e.target.closest('[data-act="menu"]')) closeMenu(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape'){ closeMenu(); closePop(); } });
-    document.addEventListener('click', e => { if (popEl && !popEl.contains(e.target) && !e.target.closest('[data-act="assign"], [data-pl="columns"], [data-dt="assign"]')) closePop(); });
+    document.addEventListener('click', e => { if (popEl && e.target.isConnected && !popEl.contains(e.target) && !e.target.closest('[data-act="assign"], [data-pl="columns"], [data-dt="assign"]')) closePop(); });
     window.addEventListener('wheel', closeMenu, { passive: true, capture: true });
+    document.addEventListener('scroll', schedulePlace, true);
+    window.addEventListener('resize', schedulePlace);
 
     // vertical scroll sync (the timeline owns the vertical scrollbar)
     chart.addEventListener('scroll', () => {
