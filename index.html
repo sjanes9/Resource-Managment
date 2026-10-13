@@ -1867,6 +1867,20 @@ body.pl-colmoving, body.pl-colmoving * { cursor: grabbing !important; user-selec
 .pl-colghost { position: fixed; z-index: 10010; pointer-events: none; background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-radius: 6px; padding: 5px 10px; box-shadow: 0 6px 18px rgba(15,23,42,.3); }
 .pl-ghead > .pl-coldrop { position: absolute; display: block; top: 0; bottom: 0; width: 3px; padding: 0; border: 0; border-radius: 2px; background: var(--blue); z-index: 8; pointer-events: none; }
 
+
+/* ===== Admin tab ===== */
+.adm-wrap { max-width: 980px; margin: 0 auto; padding: 6px 0 40px; }
+.adm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.adm-title { font-size: 18px; font-weight: 700; color: var(--txt-main); }
+.adm-sub { font-size: 12.5px; color: var(--txt-muted); margin-top: 3px; }
+.adm-soon { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #92400E; background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+.adm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.adm-card { background: var(--bg-white, #fff); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.adm-card-t { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--txt-sub); }
+.adm-card-n { font-size: 30px; font-weight: 700; color: var(--txt-main); line-height: 1.1; }
+.adm-card-u { font-size: 13px; font-weight: 500; color: var(--txt-muted); }
+.adm-card-d { font-size: 12.5px; color: var(--txt-sub); line-height: 1.5; flex: 1; margin-bottom: 6px; }
+.adm-card .tb-btn { align-self: flex-start; }
 </style>
 
 </head>
@@ -1912,6 +1926,10 @@ body.pl-colmoving, body.pl-colmoving * { cursor: grabbing !important; user-selec
       <button class="nav-item" id="navReports" onclick="switchView('reports')">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13 L5 8 L8 10.5 L11 4 L14 7"/><line x1="2" y1="13" x2="14" y2="13"/></svg>
         <span class="nav-item-text">Reports</span>
+      </button>
+      <button class="nav-item" id="navAdmin" onclick="switchView('admin')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4"/></svg>
+        <span class="nav-item-text">Admin</span>
       </button>
     </div>
   </div>
@@ -2054,6 +2072,10 @@ body.pl-colmoving, body.pl-colmoving * { cursor: grabbing !important; user-selec
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11 L4.5 6.5 L7 9 L10 3.5 L12 6"/><line x1="2" y1="11" x2="12" y2="11"/></svg>
         Reports
       </button>
+      <button class="topbar-tab" id="tabAdmin" onclick="switchView('admin')">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="2"/><path d="M7 1v1.6M7 11.4V13M1 7h1.6M11.4 7H13M2.8 2.8l1.1 1.1M10.1 10.1l1.1 1.1M11.2 2.8l-1.1 1.1M3.9 10.1l-1.1 1.1"/></svg>
+        Admin
+      </button>
     </div>
     <div class="topbar-right">
       <!-- Undo button -->
@@ -2075,18 +2097,19 @@ body.pl-colmoving, body.pl-colmoving * { cursor: grabbing !important; user-selec
         <div class="alert-panel" id="alertPanel" style="display:none"></div>
       </div>
       <div style="width:1px;height:20px;background:var(--border);"></div>
-      <button class="tb-btn" onclick="exportData()" title="Export all projects and resources as JSON">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1v7M3 5l3 3 3-3"/><path d="M1 9v1a1 1 0 001 1h8a1 1 0 001-1V9"/></svg>
-        Save Data
+      <button class="tb-btn" id="saveBtn" onclick="saveFile(false)" title="Save (Ctrl+S)" style="display:flex;align-items:center;gap:5px;">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1.5 1.5h7l2 2v7h-9z"/><path d="M3.5 1.5v3h4v-3M3.5 10.5v-3h5v3"/></svg>
+        Save<span id="saveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:#F59E0B;" title="Changes since the last save to a file"></span>
       </button>
-      <label class="tb-btn" title="Load projects and resources from a JSON file" style="cursor:pointer;margin:0;">
+      <button class="tb-btn" id="saveAsBtn" onclick="saveFile(true)" title="Save a copy under a new name (Ctrl+Shift+S)" style="display:flex;align-items:center;gap:5px;">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5h6l2 2v2.5M1.5 1.5v9h4.5"/><path d="M8.5 7.5v4M6.5 9.5h4"/></svg>
+        Save As...
+      </button>
+      <button class="tb-btn" id="loadBtn" onclick="loadFile()" title="Load projects and resources from a JSON file" style="display:flex;align-items:center;gap:5px;">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8V1M3 4l3-3 3 3"/><path d="M1 9v1a1 1 0 001 1h8a1 1 0 001-1V9"/></svg>
         Load Data
-        <input type="file" accept=".json" style="display:none" onchange="importData(event)">
-      </label>
-      <div style="width:1px;height:20px;background:var(--border);"></div>
-      <button class="tb-btn" onclick="openProjectModal()">+ Add Project</button>
-      <button class="tb-btn tb-btn-primary" onclick="openResourceModal()">+ Add Resource</button>
+      </button>
+      <input type="file" id="loadInput" accept=".json" style="display:none" onchange="importData(event)">
     </div>
   </div>
 
@@ -2247,8 +2270,7 @@ body.pl-colmoving, body.pl-colmoving * { cursor: grabbing !important; user-selec
   <!-- REPORTS VIEW -->
   <div class="reports-view" id="reportsView">
     <div class="reports-subtabs">
-      <button class="reports-subtab active" id="repSubSkillsMatrix" onclick="switchReportsSub('skillsmatrix')">Skills Matrix</button>
-      <button class="reports-subtab" id="repSubProjects" onclick="switchReportsSub('projects')">Projects</button>
+      <button class="reports-subtab active" id="repSubProjects" onclick="switchReportsSub('projects')">Projects</button>
     </div>
     <div class="reports-content" id="reportsContent"></div>
   </div>
@@ -2280,6 +2302,15 @@ body.pl-colmoving, body.pl-colmoving * { cursor: grabbing !important; user-selec
         <div class="pl-chart" id="plChart"><div class="pl-chart-in" id="plChartIn"></div></div>
       </div>
     </div>
+  </div>
+
+  <!-- ADMIN VIEW (no password yet) -->
+  <div class="reports-view" id="adminView">
+    <div class="reports-subtabs">
+      <button class="reports-subtab active" id="admSubSetup" onclick="switchAdminSub('setup')">Projects &amp; People</button>
+      <button class="reports-subtab" id="admSubSkills" onclick="switchAdminSub('skills')">Skills Matrix</button>
+    </div>
+    <div class="reports-content" id="adminContent"></div>
   </div>
 
   <!-- EMPLOYEE PROFILE VIEW (full page) -->
@@ -2894,15 +2925,38 @@ ensureSkillsMatrix();
 ensureCertDisciplines();
 
 var _schedStale=false, _schedScrollMemo=null;
-function save(){ _schedStale=true; try{localStorage.setItem('etRM2',JSON.stringify(state));}catch(e){} }
+function save(){ _schedStale=true; try{localStorage.setItem('etRM2',JSON.stringify(state));}catch(e){} if(typeof markDirty==='function') markDirty(); }
 
 // ── helpers ──
 function initials(r){ return (r.first[0]+r.last[0]).toUpperCase(); }
 function avColor(r){ const i=state.resources.indexOf(r); return AV_COLORS[i%AV_COLORS.length]; }
 function totalPct(resId){ return state.allocations.filter(a=>a.resId===resId).reduce((s,a)=>s+a.pct,0); }
+// An assignment can be scoped to one phase of a project (a.phaseId). Everything that draws or counts
+// an assignment reads its project through here, so a phase assignment spans the phase dates instead
+// of the whole project. The copy keeps the real project id, so clicking it still opens the project.
+function phaseView(p, phaseId){
+  if(!p || !phaseId) return p;
+  const ph = (p.phases||[]).find(x=>x.id===phaseId);
+  if(!ph || !ph.start || !ph.end) return p;
+  return {...p, start:ph.start, end:ph.end, name:p.name+' · '+(ph.name||'Phase'), _phaseId:phaseId, _phaseName:ph.name||'Phase'};
+}
+// move or resize the bar of an assignment: a phase assignment changes that phase, anything else the project
+function applyBarDates(p, vals){
+  const proj = state.projects.find(x=>x.id===p.id); if(!proj) return;
+  if(p._phaseId){
+    const ph = (proj.phases||[]).find(x=>x.id===p._phaseId);
+    if(ph){
+      if(ph.lockDuration && !(vals.start && vals.end)){ showToast('This phase has its duration locked. Unlock it in the project to change one date.', 'error'); renderSchedule(); return; }
+      Object.assign(ph, vals);
+      if(ph.start && ph.end && !ph.lockDuration){ const n = workDaysIncl(ph.start, ph.end); if(n > 0) ph.duration = n; }
+      save(); renderSchedule(); return;
+    }
+  }
+  Object.assign(proj, vals); save(); renderSchedule();
+}
 function allocsForRes(resId){
   return state.allocations.filter(a=>a.resId===resId)
-    .map(a=>({...a,project:state.projects.find(p=>p.id===a.projId)}))
+    .map(a=>{ const proj = state.projects.find(p=>p.id===a.projId); return {...a, project: phaseView(proj, a.phaseId)}; })
     .filter(a=>a.project);
 }
 function allocsForProj(projId){
@@ -3025,14 +3079,15 @@ function switchView(v){
   document.getElementById('plannerView').classList.toggle('active', v==='planner');
   document.getElementById('peopleView').classList.toggle('active', v==='people');
   document.getElementById('reportsView').classList.toggle('active', v==='reports');
+  document.getElementById('adminView').classList.toggle('active', v==='admin');
   document.getElementById('profileView').classList.toggle('active', v==='profile');
 
   // Topbar tabs — Employee Profile is reached from the People tab, so treat People as active while viewing a profile
-  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPlanner','planner'],['tabPortfolio','portfolio'],['tabPeopleRpt','people'],['tabReports','reports']].forEach(([id,vv])=>{
+  [['tabSchedule','schedule'],['tabProjGantt','projgantt'],['tabPlanner','planner'],['tabPortfolio','portfolio'],['tabPeopleRpt','people'],['tabReports','reports'],['tabAdmin','admin']].forEach(([id,vv])=>{
     const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='people'));
   });
   // Sidebar nav
-  [['navSchedule','schedule'],['navProjects','projgantt'],['navPlanner','planner'],['navPortfolio','portfolio'],['navPeopleRpt','people'],['navReports','reports']].forEach(([id,vv])=>{
+  [['navSchedule','schedule'],['navProjects','projgantt'],['navPlanner','planner'],['navPortfolio','portfolio'],['navPeopleRpt','people'],['navReports','reports'],['navAdmin','admin']].forEach(([id,vv])=>{
     const el=document.getElementById(id); if(el) el.classList.toggle('active', v===vv || (v==='profile'&&vv==='people'));
   });
 
@@ -3046,6 +3101,7 @@ function switchView(v){
   }
   if(v==='people')     renderEmployeeReportsTable();
   if(v==='reports')    renderReportsView();
+  if(v==='admin')      renderAdminView();
 }
 
 // ── Sidebar collapse ──
@@ -3370,8 +3426,7 @@ function renderSchedule(){
           document.body.style.cursor = ''; bar.style.opacity = '1'; lbl.remove();
           const newW = Math.max(pxPerDay, startW + (me.clientX - startX));
           const newEnd = dateFromX(bx + newW - pxPerDay);
-          const idx = state.projects.findIndex(x=>x.id===p.id);
-          if(idx>=0){ state.projects[idx].end=fmt(newEnd); save(); renderSchedule(); }
+          applyBarDates(p, {end:fmt(newEnd)});
         }
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
@@ -3400,8 +3455,7 @@ function renderSchedule(){
           const delta = me.clientX - startX;
           const newBx = Math.max(0, Math.min(origBx + delta, origBx + origBw - pxPerDay));
           const newStart = dateFromX(newBx);
-          const idx = state.projects.findIndex(x=>x.id===p.id);
-          if(idx>=0){ state.projects[idx].start=fmt(newStart); save(); renderSchedule(); }
+          applyBarDates(p, {start:fmt(newStart)});
         }
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
@@ -3445,12 +3499,7 @@ function renderSchedule(){
           const newBx = Math.max(0, Math.min(origBx + delta, TW - bw));
           const newStart = dateFromX(newBx);
           const newEnd   = new Date(newStart.getTime() + durMs);
-          const idx = state.projects.findIndex(x=>x.id===p.id);
-          if(idx>=0){
-            state.projects[idx].start = fmt(newStart);
-            state.projects[idx].end   = fmt(newEnd);
-            save(); renderSchedule();
-          }
+          applyBarDates(p, {start:fmt(newStart), end:fmt(newEnd)});
         }
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
@@ -3860,12 +3909,18 @@ function renderProjGantt(){
           cell.className='tl-cell'; cell.style.cssText=`width:${COL_W}px;height:100%;`;
           subRow.appendChild(cell);
         });
-        if(ex>sx){
+        let asx=sx, aex=ex, aLabel='';
+        if(a.phaseId){
+          const _ph=(proj.phases||[]).find(x=>x.id===a.phaseId);
+          if(_ph && _ph.start && _ph.end){ const _pe=parseD(_ph.end); _pe.setDate(_pe.getDate()+1); asx=Math.max(0,dateToX(parseD(_ph.start),cols)); aex=Math.min(TW,dateToX(_pe,cols)); }
+          aLabel=' · '+((_ph&&_ph.name)||'Phase');
+        }
+        if(aex>asx){
           const hpd=(a.pct/100*res.capacity/5);
           const hpdStr=(hpd%1===0?hpd.toFixed(0):hpd.toFixed(1))+'h/d';
           const rbar=document.createElement('div'); rbar.className='g-bar';
-          rbar.style.cssText=`left:${sx}px;width:${ex-sx}px;top:5px;height:${SUB_H-10}px;bottom:auto;background:${proj.color};opacity:.8;cursor:pointer;`;
-          rbar.innerHTML=`<span class="g-bar-label">${res.first} ${res.last}</span><span class="g-bar-meta">${hpdStr}</span>`;
+          rbar.style.cssText=`left:${asx}px;width:${aex-asx}px;top:5px;height:${SUB_H-10}px;bottom:auto;background:${proj.color};opacity:.8;cursor:pointer;`;
+          rbar.innerHTML=`<span class="g-bar-label">${res.first} ${res.last}${aLabel}</span><span class="g-bar-meta">${hpdStr}</span>`;
           rbar.onclick=ev=>{ev.stopPropagation();openSnapshot(res.id);};
           rbar.onmouseenter=ev=>showTip(ev,`${res.first} ${res.last} · ${a.pct}% (${hpdStr})`);
           rbar.onmouseleave=hideTip;
@@ -3990,11 +4045,11 @@ function showBarPopover(ev, p, a, res) {
     </button>
 
     <div class="pop-menu-section-label">From/To</div>
-    <button class="pop-menu-row" onclick="popEditDate('${p.id}','start')">
+    <button class="pop-menu-row" onclick="popEditDate('${p.id}','start','${a.phaseId||''}')">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2l-2 2 2 2M1 4h6"/></svg>
       ${fmtShortPop(p.start)}
     </button>
-    <button class="pop-menu-row" onclick="popEditDate('${p.id}','end')">
+    <button class="pop-menu-row" onclick="popEditDate('${p.id}','end','${a.phaseId||''}')">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l2 2-2 2M13 4H7"/></svg>
       ${fmtShortPop(p.end)}
     </button>`;
@@ -4065,6 +4120,7 @@ function popRepeatAssignment(resId, projId, allocId){
   const p = state.projects.find(x=>x.id===projId);
   const a = state.allocations.find(x=>x.id===allocId);
   if(!p || !a) return;
+  if(a.phaseId){ showToast('Repeat is not available for a phase assignment.'); return; }
   const weeksStr = prompt('Repeat this assignment for how many more weeks (starting right after it ends)?', '4');
   if(!weeksStr) return;
   const weeks = Math.max(1, parseInt(weeksStr)||0);
@@ -4098,15 +4154,19 @@ function popReassign(allocId, currentResId){
   showToast(`Reassigned to ${others[idx].first} ${others[idx].last}`, 'success');
 }
 
-function popEditDate(projId, field){
+function popEditDate(projId, field, phaseId){
   const p = state.projects.find(x=>x.id===projId); if(!p) return;
-  const current = p[field];
+  const ph = phaseId ? (p.phases||[]).find(x=>x.id===phaseId) : null;
+  const current = ph ? ph[field] : p[field];
   const input = prompt(`New ${field==='start'?'start':'end'} date (YYYY-MM-DD):`, current);
   if(!input) return;
   const d = parseD(input);
   if(isNaN(d.getTime())) { showToast('Enter a valid date', 'error'); return; }
   pushUndo();
-  p[field] = input;
+  if(ph){
+    if(ph.lockDuration){ showToast('This phase has its duration locked. Unlock it in the project to change one date.', 'error'); return; }
+    ph[field] = input; normalizePhaseDur(ph);
+  } else p[field] = input;
   save(); closeBarPopover(); render();
 }
 
@@ -4123,7 +4183,8 @@ function openSetAllocationModal(ev, allocId, resId, projId){
   if(!a || !res || !p) return;
 
   const capacity = res.capacity || 40;
-  const workDays = Math.max(1, daysBetween(parseD(p.start), parseD(p.end)) * 5/7);
+  const pv = phaseView(p, a.phaseId);
+  const workDays = Math.max(1, daysBetween(parseD(pv.start), parseD(pv.end)) * 5/7);
   const hpd = a.pct/100 * capacity / 5;
   const total = hpd * workDays;
 
@@ -4234,11 +4295,12 @@ function commitSetAllocation(allocId, resId, projId){
 }
 
 function removeOverlappingAssignments(allocId, resId, projId){
-  const p = state.projects.find(x=>x.id===projId); if(!p) return;
+  const p0 = state.projects.find(x=>x.id===projId); if(!p0) return;
+  const p = phaseView(p0, (state.allocations.find(x=>x.id===allocId)||{}).phaseId);
   const pStart = parseD(p.start), pEnd = parseD(p.end);
   const overlapping = state.allocations.filter(a=>{
     if (a.id === allocId || a.resId !== resId) return false;
-    const op = state.projects.find(x=>x.id===a.projId); if(!op) return false;
+    const op = phaseView(state.projects.find(x=>x.id===a.projId), a.phaseId); if(!op) return false;
     const oS = parseD(op.start), oE = parseD(op.end);
     return pStart <= oE && pEnd >= oS;
   });
@@ -4258,6 +4320,7 @@ function splitAssignment(allocId, resId, projId){
   const a = state.allocations.find(x=>x.id===allocId);
   const p = state.projects.find(x=>x.id===projId);
   if (!a || !p) return;
+  if (a.phaseId){ showToast('Split is not available for a phase assignment.'); return; }
   const splitDate = _popClickedDate || parseD(p.start);
   const origEnd = p.end;
   const firstEnd = new Date(splitDate); firstEnd.setDate(firstEnd.getDate()-1);
@@ -4563,7 +4626,7 @@ function openResAllocModal(resId){
   // Store resId for saveResAllocations
   list.dataset.resId = resId;
   state.projects.forEach(p=>{
-    const a=state.allocations.find(x=>x.projId===p.id&&x.resId===resId);
+    const a=state.allocations.find(x=>x.projId===p.id&&x.resId===resId&&!x.phaseId);
     const div=document.createElement('div'); div.className='alloc-row';
     div.innerHTML=`
       <div class="alloc-avatar" style="background:${p.color}">${p.name.slice(0,2).toUpperCase()}</div>
@@ -4596,7 +4659,7 @@ function saveAllocations(){
     const resId = list.dataset.resId;
     list.querySelectorAll('.alloc-pct-input').forEach(inp=>{
       const projId=inp.dataset.projId, pct=parseInt(inp.value)||0;
-      const idx=state.allocations.findIndex(a=>a.projId===projId&&a.resId===resId);
+      const idx=state.allocations.findIndex(a=>a.projId===projId&&a.resId===resId&&!a.phaseId);
       if(pct>0){ if(idx>=0)state.allocations[idx].pct=pct; else state.allocations.push({id:uid(),projId,resId,pct}); }
       else if(idx>=0) state.allocations.splice(idx,1);
     });
@@ -4605,7 +4668,7 @@ function saveAllocations(){
     const projId=document.getElementById('allocProjId').value;
     list.querySelectorAll('.alloc-pct-input').forEach(inp=>{
       const resId=inp.dataset.resId, pct=parseInt(inp.value)||0;
-      const idx=state.allocations.findIndex(a=>a.projId===projId&&a.resId===resId);
+      const idx=state.allocations.findIndex(a=>a.projId===projId&&a.resId===resId&&!a.phaseId);
       if(pct>0){ if(idx>=0)state.allocations[idx].pct=pct; else state.allocations.push({id:uid(),projId,resId,pct}); }
       else if(idx>=0) state.allocations.splice(idx,1);
     });
@@ -4670,6 +4733,7 @@ function switchProjTab(tab, phaseId) {
       document.getElementById('phaseCodeInput').value = ph.code||'';
       document.getElementById('phaseStart').value = ph.start||'';
       document.getElementById('phaseEnd').value   = ph.end||'';
+      normalizePhaseDur(ph);
       document.getElementById('phaseDuration').value = ph.duration||'';
       document.getElementById('phaseLockDuration').checked = !!ph.lockDuration;
       document.getElementById('phaseDesc').value  = ph.desc||'';
@@ -4689,6 +4753,7 @@ function syncPhaseField(key, value){
   if (!ph) return;
   ph[key] = value;
   if (key === 'name') renderProjPhaseList(); // keep the sidebar label live
+  if (key === 'start' || key === 'end' || key === 'duration' || key === 'lockDuration'){ phaseRecalc(ph, key); loadPhaseFields(ph); }
 }
 
 function renderProjPhaseList() {
@@ -4711,22 +4776,78 @@ function addPhase() {
   switchProjTab('phase', ph.id);
 }
 
+// ── working-day helpers (Mon-Fri, both the start day and the end day count) ──
+function workDaysIncl(sStr, eStr){
+  if(!sStr || !eStr) return 0;
+  const a = parseD(sStr), b = parseD(eStr);
+  if(isNaN(a) || isNaN(b) || b < a) return 0;
+  let n = 0; const d = new Date(a);
+  while(d <= b){ const g = d.getDay(); if(g !== 0 && g !== 6) n++; d.setDate(d.getDate()+1); }
+  return n;
+}
+// the last day of a span that starts on sStr and holds `dur` working days
+function endAfterWorkDays(sStr, dur){
+  const d = parseD(sStr); let n = 0;
+  for(let guard = 0; guard < 4000; guard++){
+    const g = d.getDay();
+    if(g !== 0 && g !== 6){ n++; if(n >= dur) break; }
+    d.setDate(d.getDate()+1);
+  }
+  return fmt(d);
+}
+// the first day of a span that ends on eStr and holds `dur` working days
+function startBeforeWorkDays(eStr, dur){
+  const d = parseD(eStr); let n = 0;
+  for(let guard = 0; guard < 4000; guard++){
+    const g = d.getDay();
+    if(g !== 0 && g !== 6){ n++; if(n >= dur) break; }
+    d.setDate(d.getDate()-1);
+  }
+  return fmt(d);
+}
+function normalizePhaseDur(ph){
+  if(ph && ph.start && ph.end && !ph.lockDuration){ const n = workDaysIncl(ph.start, ph.end); if(n > 0) ph.duration = n; }
+}
+function loadPhaseFields(ph){
+  document.getElementById('phaseStart').value = ph.start||'';
+  document.getElementById('phaseEnd').value   = ph.end||'';
+  document.getElementById('phaseDuration').value = ph.duration||'';
+}
+// keep a phase's start, end and duration consistent after one of them (or the lock) changes
+function phaseRecalc(ph, key){
+  const dur = parseInt(ph.duration) || 0;
+  if(key === 'duration'){
+    if(dur > 0 && ph.start) ph.end = endAfterWorkDays(ph.start, dur);
+    else if(dur > 0 && ph.end) ph.start = startBeforeWorkDays(ph.end, dur);
+    ph.duration = dur > 0 ? dur : '';
+  } else if(key === 'start'){
+    if(ph.lockDuration && dur > 0 && ph.start) ph.end = endAfterWorkDays(ph.start, dur);
+    else if(ph.start && ph.end){
+      if(parseD(ph.end) < parseD(ph.start)){ showToast('The end date is before the start date', 'error'); ph.duration = ''; }
+      else ph.duration = workDaysIncl(ph.start, ph.end);
+    }
+  } else if(key === 'end'){
+    if(ph.lockDuration && dur > 0 && ph.end) ph.start = startBeforeWorkDays(ph.end, dur);
+    else if(ph.start && ph.end){
+      if(parseD(ph.end) < parseD(ph.start)){ showToast('The end date is before the start date', 'error'); ph.duration = ''; }
+      else ph.duration = workDaysIncl(ph.start, ph.end);
+    }
+  } else if(key === 'lockDuration'){
+    if(ph.lockDuration && !dur && ph.start && ph.end) ph.duration = workDaysIncl(ph.start, ph.end);
+  }
+}
 function updateProjDuration() {
   const s = document.getElementById('projStart')?.value;
   const e = document.getElementById('projEnd')?.value;
   if(s && e) {
-    const days = Math.max(0, Math.round((parseD(e)-parseD(s)) / 86400000 * 5/7));
-    document.getElementById('projDuration').value = days;
+    document.getElementById('projDuration').value = workDaysIncl(s, e);
   }
 }
 function updateProjEndFromDuration() {
   const s = document.getElementById('projStart')?.value;
   const dur = parseInt(document.getElementById('projDuration')?.value)||0;
   if(s && dur>0) {
-    const start = parseD(s);
-    let d=new Date(start), added=0;
-    while(added<dur){ d.setDate(d.getDate()+1); if(d.getDay()!==0&&d.getDay()!==6)added++; }
-    document.getElementById('projEnd').value = fmt(d);
+    document.getElementById('projEnd').value = endAfterWorkDays(s, dur);
   }
 }
 
@@ -4839,7 +4960,7 @@ function openProjectEdit(id){
   else if(img){img.style.display='none';}
   const ph=document.getElementById('projImagePlaceholder');
   if(ph) ph.style.display=p.image?'none':'block';
-  _projPhases=p.phases||[]; _projTags=p.tags||[];
+  _projPhases=p.phases||[]; _projPhases.forEach(normalizePhaseDur); _projTags=p.tags||[];
   renderProjPhaseList(); renderProjTags(); updateProjDuration();
   buildColorPicker(p.color);
   _populateProjDatalist('projClientList',[...new Set(state.projects.map(x=>x.client).filter(Boolean))]);
@@ -4970,7 +5091,7 @@ function openAllocModal(projId){
   document.getElementById('allocProjId').value=projId;
   const list=document.getElementById('allocList'); list.innerHTML='';
   state.resources.forEach(r=>{
-    const a=state.allocations.find(x=>x.projId===projId&&x.resId===r.id);
+    const a=state.allocations.find(x=>x.projId===projId&&x.resId===r.id&&!x.phaseId);
     const other=state.allocations.filter(x=>x.resId===r.id&&x.projId!==projId).reduce((s,x)=>s+x.pct,0);
     const div=document.createElement('div'); div.className='alloc-row';
     div.innerHTML=`
@@ -4989,7 +5110,7 @@ function saveAllocations(){
   pushUndo();
   document.querySelectorAll('#allocList .alloc-pct-input').forEach(inp=>{
     const resId=inp.dataset.resId, pct=parseInt(inp.value)||0;
-    const idx=state.allocations.findIndex(a=>a.projId===projId&&a.resId===resId);
+    const idx=state.allocations.findIndex(a=>a.projId===projId&&a.resId===resId&&!a.phaseId);
     if(pct>0){ if(idx>=0)state.allocations[idx].pct=pct; else state.allocations.push({id:uid(),projId,resId,pct}); }
     else if(idx>=0) state.allocations.splice(idx,1);
   });
@@ -5459,6 +5580,72 @@ loadOrgSettings();
 // ══════════════════════════════════════════
 // SAVE / LOAD DATA
 // ══════════════════════════════════════════
+// ── Save / Save As ──
+// Chrome and Edge can write straight to a file you pick, so Save then overwrites that same file.
+// Other browsers can only download, so Save downloads again under the same name.
+let _fileHandle = null, _fileName = '', _dirty = false;
+try { _fileName = localStorage.getItem('etRM_fileName') || ''; } catch(e){}
+function markDirty(){ _dirty = true; updateSaveUI(); }
+function updateSaveUI(){
+  const dot = document.getElementById('saveDot'), b = document.getElementById('saveBtn');
+  if(dot) dot.style.display = _dirty ? 'inline-block' : 'none';
+  if(b) b.title = (_fileName ? 'Save to ' + _fileName : 'Save to a file') + ' (Ctrl+S)' + (_dirty ? ' - unsaved changes' : '');
+}
+function setFileName(n){ _fileName = n || ''; try { localStorage.setItem('etRM_fileName', _fileName); } catch(e){} updateSaveUI(); }
+function snapshotJSON(){
+  const org = { orgName: document.getElementById('logoText').textContent, orgSub: document.getElementById('logoSub').textContent };
+  return JSON.stringify({ ...state, org, exportedAt: new Date().toISOString() }, null, 2);
+}
+function defaultFileName(){
+  if(_fileName) return _fileName;
+  const n = (document.getElementById('logoText').textContent || '').trim().replace(/\s+/g,'_') || 'ResourceManager';
+  return n + '_' + fmt(today) + '.json';
+}
+function downloadJSON(json, name){
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+async function saveFile(asNew){
+  const json = snapshotJSON();
+  if(typeof window.showSaveFilePicker === 'function'){
+    try {
+      let h = (!asNew && _fileHandle) ? _fileHandle : null;
+      if(!h) h = await window.showSaveFilePicker({ suggestedName: defaultFileName(), types: [{ description: 'Resource Manager data (JSON)', accept: { 'application/json': ['.json'] } }] });
+      const w = await h.createWritable(); await w.write(json); await w.close();
+      _fileHandle = h; _dirty = false; setFileName(h.name || defaultFileName());
+      showToast('Saved to ' + _fileName, 'success'); return;
+    } catch(err) {
+      if(err && err.name === 'AbortError') return;       // cancelled the picker
+      // anything else (blocked in this context, no permission): fall back to a download below
+    }
+  }
+  let name = defaultFileName();
+  if(asNew || !_fileName){
+    const n = prompt('Save as (file name):', name); if(n === null) return;
+    name = n.trim().replace(/[\\/:*?"<>|]+/g, '_') || name;
+    if(!/\.json$/i.test(name)) name += '.json';
+  }
+  downloadJSON(json, name); _fileHandle = null; _dirty = false; setFileName(name);
+  showToast('Downloaded ' + name + '. Check your Downloads folder.', 'success');
+}
+async function loadFile(){
+  if(typeof window.showOpenFilePicker === 'function'){
+    try {
+      const [h] = await window.showOpenFilePicker({ types: [{ description: 'Resource Manager data (JSON)', accept: { 'application/json': ['.json'] } }] });
+      const file = await h.getFile();
+      importData({ target: { files: [file], value: '' } }, h); return;
+    } catch(err) {
+      if(err && err.name === 'AbortError') return;
+    }
+  }
+  document.getElementById('loadInput').click();
+}
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && !e.altKey && String(e.key).toLowerCase() === 's'){ e.preventDefault(); saveFile(e.shiftKey); }
+});
+
 function exportData() {
   const org = { orgName: document.getElementById('logoText').textContent, orgSub: document.getElementById('logoSub').textContent };
   const blob = new Blob([JSON.stringify({ ...state, org, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
@@ -5470,7 +5657,7 @@ function exportData() {
   URL.revokeObjectURL(url);
 }
 
-function importData(ev) {
+function importData(ev, handle) {
   const file = ev.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -5486,6 +5673,10 @@ function importData(ev) {
       state.projects    = data.projects    || [];
       state.resources   = data.resources   || [];
       state.allocations = data.allocations || [];
+      if (data.skillsMatrix && typeof data.skillsMatrix === 'object') state.skillsMatrix = data.skillsMatrix;
+      if (Array.isArray(data.certDisciplines)) state.certDisciplines = data.certDisciplines;
+      if (Array.isArray(data.alertAcks)) state.alertAcks = data.alertAcks;
+      ensureResourceExtras(); ensureSkillsMatrix();
       if (data.planner && Array.isArray(data.planner.tasks)) state.planner = data.planner;
       save();
       // Restore org name if present
@@ -5494,6 +5685,7 @@ function importData(ev) {
         loadOrgSettings();
       }
       expandedRes = new Set(state.resources.map(r=>r.id));
+      _fileHandle = handle || null; _dirty = false; setFileName(file.name);
       render();
       alert(`Loaded ${state.projects.length} projects and ${state.resources.length} resources successfully.`);
     } catch(err) {
@@ -5776,12 +5968,13 @@ const TUTORIAL_STEPS = [
   { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent: parents roll up their children and are read-only. Durations count Monday to Friday only, unless a task is set to Include weekends (row menu or task details): then its start, finish, duration and lag count every calendar day, and typing a Saturday or Sunday date switches that on for you. Type a start or finish date on a group row (a phase such as Design) to set it for every task inside, and each task can still be edited afterwards.', targetId:'tabPlanner' },
   { title:'Planner: Projects, Templates and Columns', body:'+ Add Project adds a project to the board. Pick a project that already exists in the Projects tab to pull in its name, dates and phases (its client and owner show in the task details), or add a standalone project, blank or from a template. Save any project as a template from the row menu (the three dots); templates keep durations, dependencies, notes, links and checklists. Drag the number cell on the left of any row, or a task name on the timeline, to move that row. Drag the edge of any column heading to change its width (double-click the edge to reset it). Columns hides, shows or rearranges columns (use its arrows, or drag a column heading left or right in the grid; the pop-up follows its row when you scroll and closes when the row leaves the screen). Status is a drop-down: Not Started, In Progress, Delayed or Complete. Choosing Complete sets 100%, and group rows roll up their children. Click the notes icon beside a task name, double-click a bar, or use the row menu to open the task details: notes, links to documents, a checklist, dates and people. Checklist items show as sub-rows under their task (use the caret to hide them) and set its % Complete (items done divided by items); Complete ticks every item and Not Started clears them. Use the row menu to Duplicate a task or phase with everything inside it, or Copy it and Paste Below on any row; copies start at 0% and keep their links between tasks. Click Assigned To on a phase or project row to add a person to every task inside it (a dash means only some tasks have them), or on a single task to assign just that one. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
-  { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet.', targetId:null },
+  { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet. A phase\'s duration is worked out from its start and end dates (Monday to Friday, both days counted), or type a duration to set the end date. In the Schedule, the assignment picker lists a project\'s phases: tick one or more to assign the person to just those phases, or leave them all unticked for the whole project.', targetId:null },
   { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile, or use the pencil beside a name to edit their details (name, role, title, department, hire date, type, manager, email, tags, capacity and target).', targetId:'tabPeopleRpt' },
   { title:'Employee Profile', body:'From the People tab, click any name to open their full profile page. Use Edit Profile for the core details. Photo, status and contact info can also be changed right on the page. It shows tenure, top project contributions, and collapsible sections for Utilization, Project History, Training, Skills, and Certifications. In the Utilization chart, flip "Show Details" to overlay real training-activity markers; a Sales series is listed but marked "Coming Soon" since there\'s no sales data tracked yet.', targetId:null },
-  { title:'Reports & Skills Matrix', body:'The Reports tab holds the Skills Matrix — the master catalog of every trackable skill, organized by category. Add, rename, or remove skills and categories here — changes instantly show up on every employee\'s profile for rating. Project Reports are coming soon.', targetId:'tabReports' },
+  { title:'Reports', body:'The Reports tab will hold project-level reporting (budget burn, schedule variance, staffing history). It is coming soon. The Skills Matrix has moved to the Admin tab.', targetId:'tabReports' },
+  { title:'Admin: Skills Matrix, Projects and People', body:'The Admin tab is where setup lives. + Add Resource and + Add Project are here (they used to be in the top bar), and the Skills Matrix, the master catalog of every trackable skill, is a tab inside Admin. Add, rename or remove skills and categories and they show up on every employee profile for rating. Admin has no password yet (password protection is coming soon).', targetId:'tabAdmin' },
   { title:'Utilization Alerts', body:'The bell icon shows who is currently over their utilization target. Click it to see a list — click any person to open their profile.', targetId:'alertBell' },
-  { title:'Save & Load Data', body:'"Save Data" exports everything — projects, people, allocations, the skills matrix, and the Planner tasks — to a JSON file. "Load Data" restores from a saved file, great for backups or moving to another browser.', targetId:null },
+  { title:'Save, Save As and Load Data', body:'Save writes everything (projects, people, assignments, the skills matrix and the Planner) to your data file. In Chrome and Edge the first Save asks where to put the file, and every Save after that overwrites it, so you do not pick a name each time. Save As (Ctrl+Shift+S) writes a copy under a new name. An orange dot on Save means there are changes since the last save to a file. In other browsers Save downloads a JSON file each time. Load Data restores a saved file and, in Chrome and Edge, makes Save write back to that file. Ctrl+S also saves.', targetId:'saveBtn' },
   { title:'Undo', body:'Made a mistake? Click Undo (or press Ctrl+Z / Cmd+Z) to step back. Up to 30 actions are remembered per session.', targetId:'undoBtn' },
   { title:'You\'re all set!', body:'Tip: drag either edge of a project bar to change its start or end date, or drag the middle to move the whole thing. Right-click a bar for quick Edit/Duplicate/Delete options.', targetId:null },
 ];
@@ -5895,6 +6088,7 @@ function openQuickAssign(ev, resId, col) {
         style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--sans);outline:none;">
     </div>
     <div id="qaList" style="max-height:220px;overflow-y:auto;"></div>
+    <div id="qaPhases" style="display:none;"></div>
     <div style="padding:10px 14px 4px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;">
       <label style="font-size:11px;color:var(--txt-sub);flex-shrink:0;">Allocation %</label>
       <input id="qaPct" type="number" min="10" max="100" step="10" value="100"
@@ -5939,6 +6133,7 @@ function openQuickAssign(ev, resId, col) {
   // Close on outside click (with mousedown tracking)
   setTimeout(() => {
     document.addEventListener('mouseup', function onQAUp(e) {
+      if (_qaPanel !== panel) { document.removeEventListener('mouseup', onQAUp); return; }
       if (!panel.contains(e.target) && _overlayMousedownTarget && !panel.contains(_overlayMousedownTarget)) {
         closeQuickAssign();
         document.removeEventListener('mouseup', onQAUp);
@@ -5948,6 +6143,58 @@ function openQuickAssign(ev, resId, col) {
 }
 
 let _qaSelectedProjId = null;
+let _qaPhaseSel = new Set();
+
+// phases of the selected project (leave all unchecked to assign the whole project)
+function renderQAPhases(){
+  const box = document.getElementById('qaPhases'); if(!box) return;
+  const p = state.projects.find(x=>x.id===_qaSelectedProjId);
+  const phs = (p && p.id!==OOO_ID && Array.isArray(p.phases)) ? p.phases : [];
+  [..._qaPhaseSel].forEach(id => { if(!phs.some(x=>x.id===id && x.start && x.end)) _qaPhaseSel.delete(id); });
+  const list = document.getElementById('qaList');
+  if(!phs.length){
+    box.style.display = 'none'; box.innerHTML = ''; if(list) list.style.maxHeight = '220px';
+    qaSyncRepeat(); qaKeepOnScreen(); return;
+  }
+  if(list) list.style.maxHeight = '150px';
+  const fs = d => parseD(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  box.style.display = 'block';
+  box.innerHTML = `<div style="padding:8px 14px 6px;border-top:1px solid var(--border);">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;">
+      <span style="font-size:11px;font-weight:700;color:var(--txt-main);">Phases of ${esc_(p.name)}</span>
+      <button type="button" onclick="qaToggleAllPhases()" style="border:0;background:none;color:var(--blue);font-size:11px;cursor:pointer;padding:0;font-family:var(--sans);">${_qaPhaseSel.size === phs.filter(x=>x.start&&x.end).length ? 'Clear' : 'Select all'}</button>
+    </div>
+    <div style="font-size:10px;color:var(--txt-muted);margin:2px 0 4px;">Leave all unchecked to assign the whole project.</div>
+    <div style="max-height:120px;overflow-y:auto;">${phs.map(ph=>{
+      const ok = !!(ph.start && ph.end);
+      return `<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;cursor:${ok?'pointer':'not-allowed'};opacity:${ok?1:.5};">
+        <input type="checkbox" ${ok?'':'disabled'} ${_qaPhaseSel.has(ph.id)?'checked':''} onchange="qaTogglePhase('${ph.id}',this.checked)">
+        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc_(ph.name||'Unnamed')}</span>
+        <span style="font-size:10px;color:var(--txt-muted);flex-shrink:0;">${ok ? fs(ph.start)+' – '+fs(ph.end) : 'no dates set'}</span></label>`;
+    }).join('')}</div></div>`;
+  qaSyncRepeat(); qaKeepOnScreen();
+}
+function esc_(t){ return String(t==null?'':t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function qaTogglePhase(id, on){ if(on) _qaPhaseSel.add(id); else _qaPhaseSel.delete(id); qaSyncRepeat(); }
+function qaToggleAllPhases(){
+  const p = state.projects.find(x=>x.id===_qaSelectedProjId); if(!p) return;
+  const ids = (p.phases||[]).filter(x=>x.start&&x.end).map(x=>x.id);
+  if(_qaPhaseSel.size === ids.length) _qaPhaseSel.clear(); else ids.forEach(i=>_qaPhaseSel.add(i));
+  renderQAPhases();
+}
+// "Repeat weekly" clones the whole project, so it cannot be combined with phases
+function qaSyncRepeat(){
+  const cb = document.getElementById('qaRepeatWeekly'); if(!cb) return;
+  const off = _qaPhaseSel.size > 0;
+  if(off && cb.checked){ cb.checked = false; const c = document.getElementById('qaRepeatCount'); if(c) c.style.display = 'none'; }
+  cb.disabled = off; cb.parentElement.style.opacity = off ? '.45' : '1';
+  cb.parentElement.title = off ? 'Repeat weekly is for whole projects, not phases' : '';
+}
+function qaKeepOnScreen(){
+  const panel = document.getElementById('qaPanel'); if(!panel) return;
+  const r = panel.getBoundingClientRect();
+  if(r.bottom > window.innerHeight - 8) panel.style.top = Math.max(8, window.innerHeight - 8 - r.height) + 'px';
+}
 
 function renderQAList(search) {
   const list = document.getElementById('qaList'); if(!list) return;
@@ -5976,14 +6223,16 @@ function renderQAList(search) {
       <div style="width:10px;height:10px;border-radius:3px;background:${p.color};flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:600;color:${isSelected?'var(--blue-dk)':'var(--txt-main)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
-        <div style="font-size:10px;color:var(--txt-muted);">${p.client?p.client+' · ':''}${p.start} – ${p.end}</div>
+        <div style="font-size:10px;color:var(--txt-muted);">${p.client?p.client+' · ':''}${p.start} – ${p.end}${(p.id!==OOO_ID && (p.phases||[]).length) ? ' · '+p.phases.length+' phase'+(p.phases.length!==1?'s':'') : ''}</div>
       </div>
       ${isSelected?'<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--blue)" stroke-width="2.5"><polyline points="2,7 5,10 12,3"/></svg>':''}`;
     row.onmouseenter = () => { if(!isSelected) row.style.background='var(--bg-alt)'; };
     row.onmouseleave = () => { if(!isSelected) row.style.background='transparent'; };
     row.onclick = () => {
+      if(_qaSelectedProjId !== p.id) _qaPhaseSel = new Set();
       _qaSelectedProjId = p.id;
       renderQAList(document.getElementById('qaSearch')?.value||'');
+      renderQAPhases();
     };
     list.appendChild(row);
   });
@@ -5998,12 +6247,24 @@ function commitQuickAssign(resId, colStart, colEnd) {
   const proj = state.projects.find(p=>p.id===_qaSelectedProjId);
   if (!proj) return;
 
-  const repeatOn = document.getElementById('qaRepeatWeekly')?.checked;
+  const phaseIds = (proj.phases||[]).filter(x=>_qaPhaseSel.has(x.id) && x.start && x.end).map(x=>x.id);
+  const repeatOn = !phaseIds.length && document.getElementById('qaRepeatWeekly')?.checked;
   const repeatCount = repeatOn ? Math.max(2, parseInt(document.getElementById('qaRepeatCount')?.value) || 4) : 1;
 
   pushUndo();
 
-  if (repeatOn) {
+  if (phaseIds.length) {
+    // ── Phases: one assignment per chosen phase, spanning that phase's dates ──
+    let added = 0, updated = 0;
+    phaseIds.forEach(phId => {
+      const ex = state.allocations.findIndex(a=>a.projId===proj.id && a.resId===resId && a.phaseId===phId);
+      if (ex >= 0) { state.allocations[ex].pct = pct; updated++; }
+      else { state.allocations.push({ id:uid(), projId:proj.id, resId, pct, phaseId:phId }); added++; }
+    });
+    const names = phaseIds.map(id => (proj.phases.find(x=>x.id===id)||{}).name || 'Phase');
+    showToast(`${added ? 'Assigned' : 'Updated'} ${proj.name}: ${names.join(', ')} at ${pct}%`, 'success');
+
+  } else if (repeatOn) {
     // ── Repeat Weekly: build a chain of separate single-week clones of the selected
     // project, all sharing its name/color/client — this is what produces the
     // week-by-week tiled bars (rather than one continuous multi-week bar). ──
@@ -6037,7 +6298,7 @@ function commitQuickAssign(resId, colStart, colEnd) {
 
   } else {
     // Check if already assigned
-    const existing = state.allocations.findIndex(a=>a.projId===_qaSelectedProjId&&a.resId===resId);
+    const existing = state.allocations.findIndex(a=>a.projId===_qaSelectedProjId&&a.resId===resId&&!a.phaseId);
     if (existing>=0) {
       state.allocations[existing].pct = pct;
       showToast(`Updated ${proj.name} to ${pct}%`);
@@ -6047,7 +6308,7 @@ function commitQuickAssign(resId, colStart, colEnd) {
     }
   }
 
-  _qaSelectedProjId = null;
+  _qaSelectedProjId = null; _qaPhaseSel = new Set();
   save();
   closeQuickAssign();
   render();
@@ -6055,7 +6316,7 @@ function commitQuickAssign(resId, colStart, colEnd) {
 
 function closeQuickAssign() {
   if (_qaPanel) { _qaPanel.remove(); _qaPanel=null; }
-  _qaSelectedProjId = null;
+  _qaSelectedProjId = null; _qaPhaseSel = new Set();
 }
 
 // ══════════════════════════════════════════
@@ -6124,22 +6385,56 @@ function buildSparklineHTML(series, targetPct){
 // ══════════════════════════════════════════
 // REPORTS VIEW — Employees table
 // ══════════════════════════════════════════
-let _reportsSub = 'skillsmatrix';
+let _reportsSub = 'projects';
 let _empRepExpanded = new Set();
 
 function switchReportsSub(sub){
   _reportsSub = sub;
   document.getElementById('repSubProjects').classList.toggle('active', sub==='projects');
-  document.getElementById('repSubSkillsMatrix').classList.toggle('active', sub==='skillsmatrix');
   renderReportsView();
+}
+
+// ══════════════════════════════════════════
+// ADMIN — Skills Matrix, adding projects and people. No password yet.
+// ══════════════════════════════════════════
+let _adminSub = 'setup';
+function switchAdminSub(sub){ _adminSub = sub; renderAdminView(); }
+function renderAdminView(){
+  const content = document.getElementById('adminContent'); if(!content) return;
+  document.getElementById('admSubSetup').classList.toggle('active', _adminSub==='setup');
+  document.getElementById('admSubSkills').classList.toggle('active', _adminSub==='skills');
+  if(_adminSub==='skills'){ renderSkillsMatrixEditor(); return; }
+  const np = state.projects.filter(p=>!p._builtin && !p._ooo && p.id!==OOO_ID).length, nr = state.resources.length;
+  content.innerHTML = `<div class="adm-wrap">
+    <div class="adm-head">
+      <div><div class="adm-title">Admin</div><div class="adm-sub">Set up the projects and people that appear everywhere else in the app.</div></div>
+      <span class="adm-soon" title="Anyone who opens the app can use this tab for now">Password protection: Coming soon</span>
+    </div>
+    <div class="adm-grid">
+      <div class="adm-card">
+        <div class="adm-card-t">Resources</div>
+        <div class="adm-card-n">${nr}</div>
+        <div class="adm-card-d">People you can schedule. Add a new team member with their role, department, capacity and utilization target. Edit an existing person from the Schedule or People tab.</div>
+        <button class="tb-btn tb-btn-primary" id="admAddResource" onclick="openResourceModal()">+ Add Resource</button>
+      </div>
+      <div class="adm-card">
+        <div class="adm-card-t">Projects</div>
+        <div class="adm-card-n">${np}</div>
+        <div class="adm-card-d">Projects, with their dates and phases. Phases can then be picked when you assign someone on the Schedule.</div>
+        <button class="tb-btn" id="admAddProject" onclick="openProjectModal()">+ Add Project</button>
+      </div>
+      <div class="adm-card">
+        <div class="adm-card-t">Skills Matrix</div>
+        <div class="adm-card-n">${skillCategoryList().length}<span class="adm-card-u"> categories</span></div>
+        <div class="adm-card-d">The master catalog of skills that can be rated on every employee profile.</div>
+        <button class="tb-btn" id="admOpenSkills" onclick="switchAdminSub('skills')">Open Skills Matrix</button>
+      </div>
+    </div>
+  </div>`;
 }
 
 function renderReportsView(){
   const content = document.getElementById('reportsContent');
-  if(_reportsSub==='skillsmatrix'){
-    renderSkillsMatrixEditor();
-    return;
-  }
   content.innerHTML = `<div style="padding:60px 20px;text-align:center;color:var(--txt-muted);">
     <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--txt-sub);">Project Reports</div>
     <div style="font-size:13px;">Coming soon — project-level reporting (budget burn, schedule variance, staffing history) will live here.</div>
@@ -6597,7 +6892,7 @@ function buildSixWeekSchedule(resId){
 let _skmEditCategory = null;
 
 function renderSkillsMatrixEditor(){
-  const content = document.getElementById('reportsContent');
+  const content = document.getElementById('adminContent'); if(!content) return;
   const cats = skillCategoryList();
   if(!_skmEditCategory || !cats.includes(_skmEditCategory)) _skmEditCategory = cats[0] || null;
 
@@ -7560,6 +7855,7 @@ function render(){
   else if(currentView==='planner') renderPlanner();
   else if(currentView==='people') renderEmployeeReportsTable();
   else if(currentView==='reports') renderReportsView();
+  else if(currentView==='admin') renderAdminView();
   else if(currentView==='profile' && _profileResId) renderEmployeeProfile(_profileResId);
   renderSidebar();
   renderSummary();
