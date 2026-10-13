@@ -1828,6 +1828,27 @@ body.pl-dragging-row, body.pl-dragging-row * { cursor: grabbing !important; user
   .pl-dt-side { border-left: 0; border-top: 1px solid var(--border); }
 }
 
+/* ===== v4: weekends, checklist rows, phase dates, copy ===== */
+.pl-row.chk { background: #FAFBFD; font-weight: 400; }
+.pl-row.chk:hover { background: #F1F5F9; }
+.pl-row.chk.done .pl-in[data-f=ck-text] { text-decoration: line-through; color: var(--txt-sub); -webkit-text-fill-color: var(--txt-sub); }
+.pl-row > .pl-num.ck { cursor: default; color: var(--txt-sub); background: var(--bg-alt); }
+.pl-row.chk .pl-c-name.ck { gap: 6px; }
+.pl-ckb { flex: none; width: 15px; height: 15px; margin: 0; accent-color: var(--blue); cursor: pointer; }
+.pl-st.ck { font-size: 11px; font-weight: 600; }
+.pl-ckbar { position: absolute; z-index: 3; height: 6px; border-radius: 3px; background: #CBD5E1; box-sizing: border-box; }
+.pl-ckbar.done { background: #22C55E; }
+.pl-blabel.ck { font-size: 11px; color: var(--txt-sub); pointer-events: none; cursor: default; }
+.pl-blabel.ck.done { text-decoration: line-through; opacity: .7; }
+.pl-in.wk { color: #0E7490; font-weight: 600; -webkit-text-fill-color: currentColor; }
+.pl-in.wk::after { content: ""; }
+.pl-bar.wk::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1.5px rgba(14,116,144,.75); pointer-events: none; }
+.pl-in.grp:not(:disabled) { cursor: text; }
+.pl-wkchk { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--txt-main); margin: -2px 0 14px; cursor: pointer; }
+.pl-wkchk input { width: 15px; height: 15px; margin: 0; accent-color: var(--blue); }
+.pl-wkchk small { color: var(--txt-sub); font-size: 11.5px; }
+.pl-menu { max-height: calc(100vh - 16px); overflow-y: auto; }
+
 </style>
 
 </head>
@@ -5734,8 +5755,8 @@ const TUTORIAL_STEPS = [
   { title:'Utilization Target Bar', body:'When a person\'s overlapping projects push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
   { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
-  { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent: parents roll up their children and are read-only. Durations count Monday to Friday only.', targetId:'tabPlanner' },
-  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project adds a project to the board. Pick a project that already exists in the Projects tab to pull in its name, dates and phases (its client and owner show in the task details), or add a standalone project, blank or from a template. Save any project as a template from the row menu (the three dots); templates keep durations, dependencies, notes, links and checklists. Drag the number cell on the left of any row, or a task name on the timeline, to move that row. Drag the edge of any column heading to change its width (double-click the edge to reset it). Columns hides or shows columns. Status is a drop-down: Not Started, In Progress, Delayed or Complete. Choosing Complete sets 100%, and group rows roll up their children. Click the notes icon beside a task name, double-click a bar, or use the row menu to open the task details: notes, links to documents, a checklist, dates and people. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
+  { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent: parents roll up their children and are read-only. Durations count Monday to Friday only, unless a task is set to Include weekends (row menu or task details): then its start, finish, duration and lag count every calendar day, and typing a Saturday or Sunday date switches that on for you. Type a start or finish date on a group row (a phase such as Design) to set it for every task inside, and each task can still be edited afterwards.', targetId:'tabPlanner' },
+  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project adds a project to the board. Pick a project that already exists in the Projects tab to pull in its name, dates and phases (its client and owner show in the task details), or add a standalone project, blank or from a template. Save any project as a template from the row menu (the three dots); templates keep durations, dependencies, notes, links and checklists. Drag the number cell on the left of any row, or a task name on the timeline, to move that row. Drag the edge of any column heading to change its width (double-click the edge to reset it). Columns hides or shows columns. Status is a drop-down: Not Started, In Progress, Delayed or Complete. Choosing Complete sets 100%, and group rows roll up their children. Click the notes icon beside a task name, double-click a bar, or use the row menu to open the task details: notes, links to documents, a checklist, dates and people. Checklist items show as sub-rows under their task (use the caret to hide them) and set its % Complete (items done divided by items); Complete ticks every item and Not Started clears them. Use the row menu to Duplicate a task or phase with everything inside it, or Copy it and Paste Below on any row; copies start at 0% and keep their links between tasks. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
   { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet.', targetId:null },
   { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile, or use the pencil beside a name to edit their details (name, role, title, department, hire date, type, manager, email, tags, capacity and target).', targetId:'tabPeopleRpt' },
@@ -7557,13 +7578,24 @@ const PLE = (function(){
   // Duration = (Finish - Start) + 1, counting working days only
   const workDays = (s, f) => wi(f) - wi(s) + 1;
   const finishFor = (s, d) => d <= 0 ? s : fromWi(wi(s) + d - 1);
+  // ── weekend support ──
+  // A task can be marked "wk" (includes weekends). It then lives on the calendar: it may start and finish on any
+  // day, its duration counts every calendar day, and a lag after its predecessor counts calendar days.
+  // Other tasks keep the Monday to Friday calendar.
+  const wiEnd    = dn => isWork(dn) ? wi(dn) : wi(dn) - 1;                 // index of the last working day on or before dn
+  const workIn   = (s, f) => Math.max(0, wiEnd(f) - wi(s) + 1);            // Monday to Friday days inside [s, f]
+  const nextAfter = (F, wk, lag) => wk ? F + 1 + lag : fromWi(wi(nextWork(F + 1)) + lag);   // earliest start after a predecessor finishing on F
+  const finishOf = (wk, s, d) => d <= 0 ? s : (wk ? s + d - 1 : finishFor(s, d));
+  const durFor   = (wk, s, f) => wk ? f - s + 1 : workDays(s, f);
+  const DAYNAME  = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const dayName  = dn => DAYNAME[rem(dn)];
   const uid = () => 't' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
   const todayDn = () => { const n = new Date(); return Math.round(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / MS); };
 
   const STATUSES = ['Not Started', 'In Progress', 'Delayed', 'Complete'];
   const statusFromPct = p => p >= 100 ? 'Complete' : p > 0 ? 'In Progress' : 'Not Started';
   function makeTask(over){
-    return Object.assign({ id: uid(), name: 'New task', start: '', finish: '', duration: 1, pct: 0, status: 'Not Started', preds: [], indent: 0, assign: [], notes: '', links: [], checklist: [] }, over || {});
+    return Object.assign({ id: uid(), name: 'New task', start: '', finish: '', duration: 1, pct: 0, status: 'Not Started', preds: [], indent: 0, assign: [], notes: '', links: [], checklist: [], wk: false }, over || {});
   }
   // Make sure the optional detail fields exist and have the right shape (older saves, imports, templates).
   function normalizeDetail(t){
@@ -7573,7 +7605,9 @@ const PLE = (function(){
     t.checklist = (Array.isArray(t.checklist) ? t.checklist : []).filter(c => c && typeof c.text === 'string').slice(0, 100)
       .map(c => ({ id: c.id || uid(), text: c.text.slice(0, 200), done: !!c.done }));
     if (typeof t.projId !== 'string' || !t.projId) t.projId = null;
+    t.wk = !!t.wk;
   }
+  const ckStats = t => { const l = t.checklist || []; return { n: l.length, done: l.filter(c => c.done).length }; };
   // Leaf status must agree with % complete: 100% is always Complete, Not Started never has progress.
   function normalizeStatus(t){
     const p = Math.min(100, Math.max(0, Math.round(+t.pct || 0)));
@@ -7683,7 +7717,7 @@ const PLE = (function(){
       if (m.isParent[i]){
         let s = Infinity, f = -Infinity;
         m.children[i].forEach(c => { s = Math.min(s, S[c]); f = Math.max(f, F[c]); });
-        S[i] = s; F[i] = f; D[i] = workDays(s, f);
+        S[i] = s; F[i] = f; D[i] = workIn(s, f);
         let sw = 0, sp = 0, sm = 0;
         m.children[i].forEach(c => { sw += D[c]; sp += PC[c] * D[c]; sm += PC[c]; });
         PC[i] = sw > 0 ? Math.round(sp / sw) : Math.round(sm / m.children[i].length);
@@ -7693,13 +7727,17 @@ const PLE = (function(){
           : (cs.includes('In Progress') || cs.includes('Complete')) ? 'In Progress' : 'Not Started';
       } else {
         const d = Math.max(0, Math.floor(+t.duration || 0));
-        let s = toDn(t.start); s = isNaN(s) ? fallback : nextWork(s);
+        const wk = !!t.wk;
+        let s = toDn(t.start); s = isNaN(s) ? fallback : (wk ? s : nextWork(s));
         if (t.preds.length){
           s = -Infinity;
-          t.preds.forEach(p => { const j = m.idx.get(p.id); s = Math.max(s, fromWi(wi(F[j]) + 1 + (p.lag || 0))); });
+          t.preds.forEach(p => { const j = m.idx.get(p.id); s = Math.max(s, nextAfter(F[j], wk, p.lag || 0)); });
         }
-        S[i] = s; D[i] = d; F[i] = finishFor(s, d);
-        PC[i] = Math.min(100, Math.max(0, Math.round(+t.pct || 0)));
+        S[i] = s; D[i] = d; F[i] = finishOf(wk, s, d);
+        // a task with a checklist gets its % complete from the items
+        const ck = ckStats(t);
+        PC[i] = ck.n ? Math.round(100 * ck.done / ck.n) : Math.min(100, Math.max(0, Math.round(+t.pct || 0)));
+        t.pct = PC[i];
         normalizeStatus(t); ST[i] = t.status;
       }
       t.start = toStr(S[i]); t.finish = toStr(F[i]); t.duration = D[i]; t.pct = PC[i]; t.status = ST[i];
@@ -7714,8 +7752,8 @@ const PLE = (function(){
   function criticalPath(tasks, m, order, S, F, D){
     const n = tasks.length, critical = new Set(), floatOf = new Map();
     if (!n) return { critical, projectEnd: null, floatOf };
-    const b = i => wi(F[i]) + 1;                   // exclusive end boundary
-    const len = i => b(i) - wi(S[i]);              // milestones occupy one slot
+    const b = i => wiEnd(F[i]) + 1;                // exclusive end boundary (weekend work counts toward the next working day)
+    const len = i => b(i) - wi(S[i]);              // milestones occupy one slot, weekend-only work none
     let projectEnd = -Infinity;
     for (let i = 0; i < n; i++) projectEnd = Math.max(projectEnd, b(i));
     const hasSucc = new Array(n).fill(false);
@@ -7730,7 +7768,11 @@ const PLE = (function(){
       if (LB[i] === Infinity) LB[i] = projectEnd;
       if (!m.isParent[i]){
         const ls = LB[i] - len(i);
-        tasks[i].preds.forEach(p => { const j = m.idx.get(p.id); LB[j] = Math.min(LB[j], ls - (p.lag || 0)); });
+        tasks[i].preds.forEach(p => {
+          const j = m.idx.get(p.id), lg = p.lag || 0;
+          const lagSlots = tasks[i].wk ? wiEnd(F[j] + lg) - wiEnd(F[j]) : lg;   // calendar lag expressed in working days
+          LB[j] = Math.min(LB[j], ls - lagSlots);
+        });
       } else {
         m.children[i].forEach(c => { LB[c] = Math.min(LB[c], LB[i]); });
       }
@@ -7768,6 +7810,7 @@ const PLE = (function(){
   }
   function setPct(tasks, id, v){
     const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    if (ckStats(r.t).n) return fail('% Complete for this task is calculated from its checklist. Check or uncheck the items, or change its Status.');
     const n = Number(v);
     if (!isFinite(n)) return fail('% Complete must be a number from 0 to 100.');
     const p = Math.min(100, Math.max(0, Math.round(n)));
@@ -7785,6 +7828,21 @@ const PLE = (function(){
     if (!STATUSES.includes(status)) return fail('Status must be Not Started, In Progress, Delayed or Complete.');
     const t = r.t;
     if (t.status === status) return { ok: true, warnings: [], noop: true };
+    const ck = ckStats(t);
+    if (ck.n){
+      // with a checklist, Status drives the items: Complete ticks them all, Not Started clears them all
+      let note = '';
+      if (status === 'Complete'){ if (ck.done < ck.n) t.ckBefore = t.checklist.filter(c => c.done).map(c => c.id); t.checklist.forEach(c => { c.done = true; }); }
+      else if (status === 'Not Started'){ t.checklist.forEach(c => { c.done = false; }); delete t.ckBefore; }
+      else if (ck.done === ck.n){
+        const keep = new Set(Array.isArray(t.ckBefore) ? t.ckBefore : []);
+        if (keep.size && keep.size < ck.n) t.checklist.forEach(c => { c.done = keep.has(c.id); });
+        else { t.checklist[t.checklist.length - 1].done = false; note = 'The last checklist item was unchecked so the task is no longer 100% complete.'; }
+        delete t.ckBefore;
+      }
+      t.status = status;
+      return finish(tasks, note ? { note } : null);
+    }
     if (status === 'Complete'){ if (t.pct < 100) t.pctBefore = t.pct; t.pct = 100; }
     else if (status === 'Not Started'){ t.pct = 0; delete t.pctBefore; }
     else if (t.pct >= 100){ const b = +t.pctBefore; t.pct = isFinite(b) && b >= 0 && b < 100 ? Math.round(b) : 0; delete t.pctBefore; }
@@ -7794,45 +7852,110 @@ const PLE = (function(){
   function setDuration(tasks, id, v){
     const r = leafOrFail(tasks, id); if (r.err) return r.err;
     const n = Number(v);
-    if (v === '' || !Number.isInteger(n) || n < 0) return fail('Duration must be a whole number of working days (0 or more). Use 0 for a milestone.');
+    if (v === '' || !Number.isInteger(n) || n < 0) return fail('Duration must be a whole number of days (0 or more). Use 0 for a milestone.');
     r.t.duration = n;
     return finish(tasks);
   }
-  // mode 'move' keeps Duration (Finish follows); mode 'trim' keeps Finish (Duration is recalculated).
-  // Tasks with predecessors cannot start before them; moving later is stored as lag on the driving link.
-  function setStart(tasks, id, str, mode){
-    const r = leafOrFail(tasks, id); if (r.err) return r.err;
-    const t = r.t, m = meta(tasks);
-    let want = toDn(str); if (isNaN(want)) return fail('That is not a valid date.');
-    let note = '';
-    const snapped = nextWork(want); if (snapped !== want) note = 'Start fell on a weekend and moved to the next working day.';
-    want = snapped;
-    const curFinish = toDn(t.finish);
-    if (mode === 'trim' && want > curFinish) want = curFinish;
-    let s = want;
+  // Work out where a task can start. Tasks with predecessors cannot start before them; wanting to start
+  // later is stored as lag on the driving link (working days, or calendar days for weekend tasks).
+  function place(tasks, t, want){
+    const m = meta(tasks);
+    let s = t.wk ? want : nextWork(want);
     if (t.preds.length){
-      const req = t.preds.map(p => { const j = m.idx.get(p.id); const base = fromWi(wi(toDn(tasks[j].finish)) + 1); return { p, base, r: fromWi(wi(base) + (p.lag || 0)) }; });
+      const req = t.preds.map(p => { const j = m.idx.get(p.id); const Fj = toDn(tasks[j].finish); return { p, base: nextAfter(Fj, t.wk, 0), r: nextAfter(Fj, t.wk, p.lag || 0) }; });
       let drv = 0; req.forEach((q, k) => { if (q.r > req[drv].r) drv = k; });
       let othersMax = -Infinity; req.forEach((q, k) => { if (k !== drv) othersMax = Math.max(othersMax, q.r); });
-      s = Math.max(want, othersMax, req[drv].base);
-      if (s > want) note = 'Start cannot be earlier than the next working day after its predecessor finishes, so it was adjusted.';
-      req[drv].p.lag = Math.max(0, wi(s) - wi(req[drv].base));
+      s = Math.max(s, othersMax, req[drv].base);
+      req[drv].p.lag = Math.max(0, t.wk ? s - req[drv].base : wi(s) - wi(req[drv].base));
     }
+    return s;
+  }
+  // A weekend date on a Monday to Friday task switches the task to "includes weekends".
+  function weekendNote(t, dn){
+    if (t.wk || isWork(dn)) return '';
+    t.wk = true;
+    return `${dayName(dn)} is not a working day, so this task now includes weekends (its duration counts every calendar day). Turn that off under Task Details if you did not intend it.`;
+  }
+  // mode 'move' keeps Duration (Finish follows); mode 'trim' keeps Finish (Duration is recalculated).
+  function setStart(tasks, id, str, mode){
+    const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    const t = r.t;
+    let want = toDn(str); if (isNaN(want)) return fail('That is not a valid date.');
+    let note = weekendNote(t, want);
+    const curFinish = toDn(t.finish);
+    if (mode === 'trim' && want > curFinish) want = curFinish;
+    const s = place(tasks, t, want);
+    if (s > want && !note) note = 'Start cannot be earlier than the next day after its predecessor finishes, so it was adjusted.';
     t.start = toStr(s);
-    if (mode === 'trim') t.duration = Math.max(1, workDays(s, curFinish));
+    if (mode === 'trim') t.duration = Math.max(1, durFor(t.wk, s, Math.max(s, curFinish)));
     return finish(tasks, { note });
   }
   function setFinish(tasks, id, str){
     const r = leafOrFail(tasks, id); if (r.err) return r.err;
     const t = r.t;
-    let f = toDn(str); if (isNaN(f)) return fail('That is not a valid date.');
-    const s = toDn(t.start);
-    if (f < s) return fail('Finish cannot be earlier than Start.');
-    let note = '';
-    const snapped = prevWork(f); if (snapped !== f) note = 'Finish fell on a weekend and moved to the previous working day.';
-    f = snapped;
-    t.duration = workDays(s, f);
+    const f = toDn(str); if (isNaN(f)) return fail('That is not a valid date.');
+    const s0 = toDn(t.start);
+    if (f < s0) return fail('Finish cannot be earlier than Start.');
+    const note = weekendNote(t, f);
+    const s = note ? place(tasks, t, s0) : s0;       // keep the start where it was when the calendar changes
+    t.start = toStr(s);
+    t.duration = durFor(t.wk, s, f);
     return finish(tasks, { note });
+  }
+  // Turn "includes weekends" on or off for one task. Its start and finish dates stay where they are.
+  function setWeekend(tasks, id, on){
+    const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    const t = r.t; on = !!on;
+    if (!!t.wk === on) return { ok: true, warnings: [], noop: true };
+    const s0 = toDn(t.start), f0 = toDn(t.finish), ms = t.duration === 0;
+    t.wk = on;
+    let note = '';
+    if (on){
+      t.duration = ms ? 0 : f0 - s0 + 1;
+      t.start = toStr(place(tasks, t, s0));
+    } else {
+      t.duration = ms ? 0 : Math.max(1, workIn(s0, f0));
+      const s = place(tasks, t, s0);
+      t.start = toStr(s);
+      if (s !== s0 || (!ms && workIn(s0, f0) === 0)) note = 'The task moved to working days only, so weekend dates were pushed to the next working day.';
+    }
+    return finish(tasks, { note });
+  }
+  // Give a group (phase) row a start or finish date and apply it to every task inside it. The tasks stay editable
+  // afterwards; the group row simply rolls up whatever they end up with. Milestones follow the finish date.
+  function setGroupDates(tasks, id, which, str){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    if (!meta(tasks).isParent[i]) return fail('This row is not a group.');
+    const want = toDn(str); if (isNaN(want)) return fail('That is not a valid date.');
+    const m0 = meta(tasks), e = subtreeEnd(tasks, i), leaves = [];
+    for (let k = i + 1; k < e; k++) if (!m0.isParent[k]) leaves.push(tasks[k].id);
+    if (!leaves.length) return fail('This group has no tasks to apply the date to.');
+    let late = 0, flipped = 0, applied = 0;
+    for (const lid of leaves){
+      recalc(tasks);
+      const t = tasks[find(tasks, lid)], ms = t.duration === 0, cs = toDn(t.start), cf = toDn(t.finish);
+      if (which === 'start' && ms && cs >= want) continue;            // milestones only follow the finish date
+      if (weekendNote(t, want)) flipped++;
+      if (which === 'start'){
+        const s = place(tasks, t, want);
+        t.start = toStr(s);
+        t.duration = ms ? 0 : Math.max(1, durFor(t.wk, s, Math.max(s, cf)));
+        if (s > want) late++;
+      } else if (ms || want < cs){
+        const s = place(tasks, t, want);
+        t.start = toStr(s);
+        t.duration = ms ? 0 : 1;
+        if (s > want) late++;
+      } else {
+        t.duration = durFor(t.wk, cs, want);
+      }
+      applied++;
+    }
+    const r = recalc(tasks);
+    const bits = [`Applied the ${which} date to ${applied} task${applied === 1 ? '' : 's'}. Each task can still be edited.`];
+    if (late) bits.push(`${late} task${late === 1 ? '' : 's'} could not move that far because of predecessors.`);
+    if (flipped) bits.push(`${flipped} task${flipped === 1 ? '' : 's'} now include weekends.`);
+    return { ok: true, warnings: r.warnings, note: bits.join(' '), applied };
   }
 
   function parsePreds(text){
@@ -7976,22 +8099,28 @@ const PLE = (function(){
     const i = find(tasks, id); if (i < 0) return fail('Task not found.');
     tasks[i].links = tasks[i].links.filter(x => x.id !== linkId); return { ok: true, warnings: [] };
   }
-  function addCheck(tasks, id, text){
+  function addCheck(tasks, id, text, afterId){
     const i = find(tasks, id); if (i < 0) return fail('Task not found.');
     const v = String(text || '').trim(); if (!v) return { ok: true, warnings: [], noop: true };
-    if (tasks[i].checklist.length >= 100) return fail('A checklist can hold up to 100 items.');
-    tasks[i].checklist.push({ id: uid(), text: v.slice(0, 200), done: false }); return { ok: true, warnings: [] };
+    const t = tasks[i];
+    if (t.checklist.length >= 100) return fail('A checklist can hold up to 100 items.');
+    const first = t.checklist.length === 0, item = { id: uid(), text: v.slice(0, 200), done: false };
+    const at = afterId ? t.checklist.findIndex(c => c.id === afterId) : -1;
+    if (at >= 0) t.checklist.splice(at + 1, 0, item); else t.checklist.push(item);
+    const isLeaf = !meta(tasks).isParent[i];
+    return Object.assign(finish(tasks, first && isLeaf ? { note: '% Complete for this task is now calculated from its checklist.' } : null), { itemId: item.id });
   }
   function editCheck(tasks, id, itemId, patch){
     const i = find(tasks, id); if (i < 0) return fail('Task not found.');
     const c = tasks[i].checklist.find(x => x.id === itemId); if (!c) return fail('Checklist item not found.');
     if (patch.text != null){ const v = String(patch.text).trim(); if (!v) tasks[i].checklist = tasks[i].checklist.filter(x => x !== c); else c.text = v.slice(0, 200); }
-    if (patch.done != null) c.done = !!patch.done;
-    return { ok: true, warnings: [] };
+    if (patch.done != null){ c.done = !!patch.done; delete tasks[i].ckBefore; }
+    return finish(tasks);
   }
   function removeCheck(tasks, id, itemId){
     const i = find(tasks, id); if (i < 0) return fail('Task not found.');
-    tasks[i].checklist = tasks[i].checklist.filter(x => x.id !== itemId); return { ok: true, warnings: [] };
+    tasks[i].checklist = tasks[i].checklist.filter(x => x.id !== itemId); delete tasks[i].ckBefore;
+    return finish(tasks);
   }
   function setProjLink(tasks, id, projId){
     const i = find(tasks, id); if (i < 0) return fail('Task not found.');
@@ -8011,6 +8140,12 @@ const PLE = (function(){
     if (phases.length){
       kids = phases.map(ph => {
         const a = toDn(ph.start), b = toDn(ph.end);
+        // a phase that is dated on a weekend keeps those exact dates (calendar days)
+        const wk = (!isNaN(a) && !isWork(a)) || (!isNaN(b) && !isWork(b));
+        if (wk){
+          const s = isNaN(a) ? ps : a, e = isNaN(b) ? Math.max(pe, s) : Math.max(b, s);
+          return makeTask({ name: String(ph.name).trim().slice(0, 200), indent: 1, start: toStr(s), duration: e - s + 1, wk: true, notes: String(ph.desc || '').slice(0, 20000) });
+        }
         const s = nextWork(isNaN(a) ? ps : a), e = isNaN(b) ? pe : Math.max(b, s);
         return makeTask({ name: String(ph.name).trim().slice(0, 200), indent: 1, start: toStr(s), duration: spanDays(s, e), notes: String(ph.desc || '').slice(0, 20000) });
       });
@@ -8018,6 +8153,44 @@ const PLE = (function(){
       kids = [makeTask({ name: 'Project work', indent: 1, start: toStr(ps), duration: spanDays(ps, pe) })];
     }
     return [root].concat(kids);
+  }
+
+  // ── copy, paste and duplicate (a row with everything beneath it) ──
+  // copyBlock returns a plain snapshot. pasteBlock inserts a fresh copy after a row (and its sub-rows) at that row's level.
+  // Links between rows inside the copy are remapped; links to rows outside it are kept. Progress is reset unless keepProgress.
+  function copyBlock(tasks, id){
+    const i = find(tasks, id); if (i < 0) return null;
+    const e = subtreeEnd(tasks, i);
+    return { base: tasks[i].indent, rows: JSON.parse(JSON.stringify(tasks.slice(i, e))) };
+  }
+  function pasteBlock(tasks, afterId, clip, opts){
+    opts = opts || {};
+    if (!clip || !clip.rows || !clip.rows.length) return fail('Nothing to paste.');
+    let at, indent;
+    if (afterId == null){ at = tasks.length; indent = 0; }
+    else { const k = find(tasks, afterId); if (k < 0) return fail('Task not found.'); at = subtreeEnd(tasks, k); indent = tasks[k].indent; }
+    const map = new Map(clip.rows.map(r => [r.id, uid()]));
+    const exists = new Set(tasks.map(t => t.id));
+    const rows = clip.rows.map((r, k) => {
+      const t = JSON.parse(JSON.stringify(r));
+      t.id = map.get(r.id);
+      t.indent = Math.max(0, indent + (r.indent - clip.base));
+      t.preds = (r.preds || []).filter(p => map.has(p.id) || exists.has(p.id)).map(p => ({ id: map.has(p.id) ? map.get(p.id) : p.id, lag: p.lag || 0 }));
+      t.projId = null;
+      t.links = (t.links || []).map(l => Object.assign({}, l, { id: uid() }));
+      t.checklist = (t.checklist || []).map(c => Object.assign({}, c, { id: uid(), done: opts.keepProgress ? !!c.done : false }));
+      delete t.ckBefore; delete t.pctBefore;
+      if (!opts.keepProgress){ t.pct = 0; t.status = 'Not Started'; }
+      if (k === 0 && opts.suffix) t.name = String(t.name || '').slice(0, 200 - opts.suffix.length) + opts.suffix;
+      return t;
+    });
+    tasks.splice(at, 0, ...rows);
+    const r = finish(tasks);
+    return Object.assign(r, { id: rows[0].id, count: rows.length });
+  }
+  function duplicateBlock(tasks, id, opts){
+    const clip = copyBlock(tasks, id); if (!clip) return fail('Task not found.');
+    return pasteBlock(tasks, id, clip, Object.assign({ suffix: ' (copy)' }, opts || {}));
   }
 
   // ── assignments ──
@@ -8041,6 +8214,7 @@ const PLE = (function(){
       duration: m.isParent[i + k] ? 1 : t.duration,
       off: wi(toDn(t.start)) - wi(minS),
       preds: t.preds.filter(p => pos.has(p.id)).map(p => ({ row: pos.get(p.id), lag: p.lag || 0 })),
+      wk: !!t.wk,
       notes: t.notes || '',
       checklist: (t.checklist || []).map(c => c.text),
       links: (t.links || []).map(l => ({ title: l.title, url: l.url }))
@@ -8053,6 +8227,7 @@ const PLE = (function(){
     const out = tpl.rows.map(r => makeTask({
       name: r.name, indent: Math.max(0, r.indent || 0), duration: Math.max(0, r.duration | 0), pct: 0,
       start: toStr(fromWi(wi(s0) + Math.max(0, r.off | 0))),
+      wk: !!r.wk,
       notes: typeof r.notes === 'string' ? r.notes : '',
       checklist: (Array.isArray(r.checklist) ? r.checklist : []).map(x => ({ id: uid(), text: String(x), done: false })),
       links: (Array.isArray(r.links) ? r.links : []).map(l => ({ id: uid(), title: l.title || '', url: l.url }))
@@ -8062,7 +8237,7 @@ const PLE = (function(){
     return out;
   }
 
-  return { STATUSES, setStatus, normalizeUrl, setNotes, addLink, updateLink, removeLink, addCheck, editCheck, removeCheck, setProjLink, rowsFromProject, moveBlock, moveSibling, setAssign, extractTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
+  return { setWeekend, setGroupDates, copyBlock, pasteBlock, duplicateBlock, wiEnd, workIn, nextAfter, ckStats, STATUSES, setStatus, normalizeUrl, setNotes, addLink, updateLink, removeLink, addCheck, editCheck, removeCheck, setProjLink, rowsFromProject, moveBlock, moveSibling, setAssign, extractTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
            meta, subtreeEnd, isAncestor, hasCycle, recalc, setName, setPct, setDuration, setStart, setFinish, setPreds,
            parsePreds, insertAt, removeTask, changeIndent, find };
 })();
@@ -8082,7 +8257,7 @@ const PLU = (function(){
   const HDR = 56, ADDH = 48;
   const LS = 'etRM_pl';
   const V = { zoom: 'week', critical: false, gridW: 0, origin: null, end: null, selected: null, drag: null, focusId: null,
-              inited: false, rowH: 34, pos: new Map(), vis: [], crit: new Set(), floatOf: new Map(), meta: null, hidden: [], widths: {}, dt: null, reorder: null, reveal: null };
+              inited: false, rowH: 34, pos: new Map(), vis: [], rows: [], clip: null, focusCk: null, crit: new Set(), floatOf: new Map(), meta: null, hidden: [], widths: {}, dt: null, reorder: null, reveal: null };
   try {
     const o = JSON.parse(localStorage.getItem(LS) || '{}');
     if (o.zoom && PPD[o.zoom]) V.zoom = o.zoom;
@@ -8224,6 +8399,7 @@ const PLU = (function(){
       return r;
     }
     if (r.id) V.focusId = r.id;
+    if (r.itemId && o.focusItem) V.focusCk = r.itemId;
     save();
     if (r.warnings && r.warnings.length) toast(r.warnings[0]);
     else if (r.note) toast(r.note);
@@ -8253,6 +8429,7 @@ const PLU = (function(){
   const LINK_ICON = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a2.4 2.4 0 003.4 0l2-2a2.4 2.4 0 00-3.4-3.4l-.7.7M8 6a2.4 2.4 0 00-3.4 0l-2 2a2.4 2.4 0 003.4 3.4l.7-.7"/></svg>';
   const COPY_ICON = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4.5" width="7.5" height="7.5" rx="1.5"/><path d="M9.5 4.5V3A1.5 1.5 0 008 1.5H3A1.5 1.5 0 001.5 3v5A1.5 1.5 0 003 9.5h1.5"/></svg>';
   const PENCIL_ICON = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2l2.5 2.5L5 11.5l-3 .5.5-3z"/></svg>';
+  const CK_ICON = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="1.5" width="9" height="9" rx="2"/><path d="M3.8 6.2l1.6 1.6 2.9-3.3"/></svg>';
   // grid columns. "lock" columns can never be hidden. "min" is the narrowest a column can be dragged to.
   const STAT_CLS = { 'Not Started': 's-ns', 'In Progress': 's-ip', 'Delayed': 's-dl', 'Complete': 's-ok' };
   const COLS = [
@@ -8261,7 +8438,7 @@ const PLU = (function(){
     { k: 'status',   label: 'Status',       w: 128, min: 100 },
     { k: 'start',    label: 'Start Date',   w: 128, min: 104 },
     { k: 'finish',   label: 'Finish Date',  w: 128, min: 104 },
-    { k: 'duration', label: 'Duration',     w: 80,  min: 58, title: 'Working days (Monday to Friday)' },
+    { k: 'duration', label: 'Duration',     w: 80,  min: 58, title: 'Working days (Monday to Friday). Tasks marked Include weekends count every calendar day.' },
     { k: 'pct',      label: '% Complete',   w: 96,  min: 72 },
     { k: 'preds',    label: 'Predecessors', w: 108, min: 72 },
     { k: 'assign',   label: 'Assigned To',  w: 160, min: 100 },
@@ -8294,22 +8471,24 @@ const PLU = (function(){
 
   function cellHTML(k, i, t, parent, coll){
     const tasks = P().tasks, dis = parent ? ' disabled' : '';
+    const ckn = (t.checklist || []).length, calcPct = parent || ckn > 0;
     const dtitle = parent ? ' title="Calculated from child tasks"' : '';
+    const gtitle = parent ? ' title="Type a date to set it for the whole group. It is applied to every task inside, and each task can still be edited."' : '';
     switch (k){
       case 'num': return `<div class="pl-c pl-num" title="Row ${i + 1}. Drag to move this row, with its children, up or down. Use this number in Predecessors."><span class="n">${i + 1}</span><span class="grip">${GRIP}</span></div>`;
       case 'name': {
         const ds = dtState(t), pj = t.projId && projById(t.projId);
         return `<div class="pl-c pl-c-name" style="padding-left:${4 + t.indent * 18}px">
-        ${parent ? `<button class="pl-caret${coll ? ' closed' : ''}" data-act="caret" title="${coll ? 'Expand' : 'Collapse'}" aria-label="${coll ? 'Expand' : 'Collapse'} ${pesc(t.name)}">${CARET}</button>` : '<span class="pl-caret-sp"></span>'}
+        ${(parent || ckn) ? `<button class="pl-caret${coll ? ' closed' : ''}" data-act="caret" title="${coll ? 'Expand' : 'Collapse'}${ckn && !parent ? ' the checklist' : ''}" aria-label="${coll ? 'Expand' : 'Collapse'} ${pesc(t.name)}">${CARET}</button>` : '<span class="pl-caret-sp"></span>'}
         <input class="pl-in" data-f="name" value="${pesc(t.name)}" maxlength="200" aria-label="Task name for row ${i + 1}" placeholder="Task name">${pj ? `<span class="pl-lk" title="Linked to project: ${pesc(pj.name)}">${LINK_ICON}</span>` : ''}<button class="pl-dtb${ds.has ? ' has' : ''}" data-act="details" title="${pesc(ds.title)}" aria-label="Open details for row ${i + 1}">${NOTE_ICON}</button></div>`;
       }
       case 'status': return parent
         ? `<div class="pl-c"><span class="pl-st ro ${STAT_CLS[t.status] || 's-ns'}" data-stro title="Calculated from the child tasks">${pesc(t.status)}</span></div>`
         : `<div class="pl-c"><select class="pl-st ${STAT_CLS[t.status] || 's-ns'}" data-f="status" aria-label="Status for row ${i + 1}">${PLE.STATUSES.map(x => `<option${x === t.status ? ' selected' : ''}>${x}</option>`).join('')}</select></div>`;
-      case 'start':    return `<div class="pl-c"><input class="pl-in" type="date" data-f="start" value="${t.start}"${dis}${dtitle} aria-label="Start date for row ${i + 1}"></div>`;
-      case 'finish':   return `<div class="pl-c"><input class="pl-in" type="date" data-f="finish" value="${t.finish}"${dis}${dtitle} aria-label="Finish date for row ${i + 1}"></div>`;
-      case 'duration': return `<div class="pl-c"><input class="pl-in" type="number" min="0" step="1" data-f="duration" value="${t.duration}"${dis}${dtitle} aria-label="Duration in working days for row ${i + 1}"></div>`;
-      case 'pct':      return `<div class="pl-c"><div class="pl-pct" style="--p:${t.pct}%"><input class="pl-in" type="number" min="0" max="100" step="1" data-f="pct" value="${t.pct}"${dis}${dtitle} aria-label="Percent complete for row ${i + 1}"></div></div>`;
+      case 'start':    return `<div class="pl-c"><input class="pl-in${parent ? ' grp' : ''}" type="date" data-f="start" value="${t.start}"${gtitle} aria-label="Start date for row ${i + 1}"></div>`;
+      case 'finish':   return `<div class="pl-c"><input class="pl-in${parent ? ' grp' : ''}" type="date" data-f="finish" value="${t.finish}"${gtitle} aria-label="Finish date for row ${i + 1}"></div>`;
+      case 'duration': return `<div class="pl-c"><input class="pl-in${t.wk ? ' wk' : ''}" type="number" min="0" step="1" data-f="duration" value="${t.duration}"${dis}${parent ? dtitle : (t.wk ? ' title="Includes weekends: the duration counts every calendar day"' : '')} aria-label="Duration in ${t.wk ? 'calendar' : 'working'} days for row ${i + 1}"></div>`;
+      case 'pct':      return `<div class="pl-c"><div class="pl-pct" style="--p:${t.pct}%"><input class="pl-in" type="number" min="0" max="100" step="1" data-f="pct" value="${t.pct}"${calcPct ? ' disabled' : ''}${parent ? dtitle : (ckn ? ' title="Calculated from the checklist: items done divided by items"' : '')} aria-label="Percent complete for row ${i + 1}"></div></div>`;
       case 'preds':    return `<div class="pl-c"><input class="pl-in" type="text" data-f="preds" value="${pesc(predText(tasks, t))}"${dis} ${parent ? 'title="Parent rows cannot have predecessors"' : 'title="Row numbers separated by commas. Optional lag in working days: 3+2"'} placeholder="${parent ? '' : 'e.g. 2,3'}" aria-label="Predecessors for row ${i + 1}"></div>`;
       case 'assign':   return `<div class="pl-c pl-c-as" data-col="assign">${assignCell(i)}</div>`;
       case 'act': {
@@ -8327,6 +8506,20 @@ const PLU = (function(){
     const cls = 'pl-row' + (parent ? ' parent' : '') + (V.selected === t.id ? ' sel' : '') + (V.critical && V.crit.has(t.id) ? ' crit' : '');
     return `<div class="${cls}" data-id="${t.id}">${visCols().map(c => cellHTML(c.k, i, t, parent, coll)).join('')}</div>`;
   }
+  // a checklist item shown as a sub-row under its task
+  function chkRowHTML(i, c){
+    const t = P().tasks[i];
+    const cell = k => {
+      switch (k){
+        case 'num': return `<div class="pl-c pl-num ck" title="Checklist item of row ${i + 1}">${CK_ICON}</div>`;
+        case 'name': return `<div class="pl-c pl-c-name ck" style="padding-left:${4 + (t.indent + 1) * 18}px"><span class="pl-caret-sp"></span><input type="checkbox" class="pl-ckb" data-f="ck-done"${c.done ? ' checked' : ''} aria-label="Done: ${pesc(c.text)}"><input class="pl-in" data-f="ck-text" value="${pesc(c.text)}" maxlength="200" aria-label="Checklist item of row ${i + 1}" placeholder="Checklist item"></div>`;
+        case 'status': return `<div class="pl-c"><span class="pl-st ro ck ${c.done ? 's-ok' : 's-ns'}">${c.done ? 'Done' : 'To do'}</span></div>`;
+        case 'act': return `<div class="pl-c pl-c-act"><button class="pl-ib" data-act="ckdel" title="Remove this checklist item" aria-label="Remove checklist item ${pesc(c.text)}">&times;</button></div>`;
+      }
+      return '<div class="pl-c"></div>';
+    };
+    return `<div class="pl-row chk${c.done ? ' done' : ''}" data-id="${t.id}" data-c="${c.id}">${visCols().map(col => cell(col.k)).join('')}</div>`;
+  }
   // column widths live in CSS variables so a resize drag never has to rebuild the rows
   function applyCols(){
     const cols = visCols(), gin = $('plGridIn'); if (!gin) return;
@@ -8338,7 +8531,7 @@ const PLU = (function(){
     const cols = visCols(), gin = $('plGridIn');
     applyCols();
     let h = `<div class="pl-ghead">${cols.map((c, n) => `<div data-k="${c.k}"${c.title ? ` title="${pesc(c.title)}"` : ''}${n === cols.length - 1 ? ' style="border-right:0"' : ''}><span class="lbl">${c.k === 'num' ? '#' : pesc(c.label)}</span>${c.fixed ? '' : `<i class="pl-rz" data-k="${c.k}" title="Drag to change the column width. Double-click to reset it."></i>`}</div>`).join('')}</div><div class="pl-gbody">`;
-    V.vis.forEach(i => { h += rowHTML(i, V.meta); });
+    V.rows.forEach(rw => { h += rw.c ? chkRowHTML(rw.i, rw.c) : rowHTML(rw.i, V.meta); });
     h += `<div class="pl-addrow"><button data-act="addEnd">+ Add task</button></div></div>`;
     gin.innerHTML = h;
   }
@@ -8348,10 +8541,20 @@ const PLU = (function(){
     $('plGridIn').querySelectorAll('.pl-row').forEach(row => {
       const i = tasks.findIndex(x => x.id === row.dataset.id); if (i < 0) return;
       const t = tasks[i];
+      if (row.classList.contains('chk')){
+        const c = (t.checklist || []).find(x => x.id === row.dataset.c); if (!c) return;
+        const cb = row.querySelector('[data-f="ck-done"]'); if (cb) cb.checked = c.done;
+        const tx = row.querySelector('[data-f="ck-text"]'); if (tx && document.activeElement !== tx && tx.value !== c.text) tx.value = c.text;
+        row.classList.toggle('done', c.done);
+        const sb = row.querySelector('.pl-st.ro'); if (sb){ sb.className = 'pl-st ro ck ' + (c.done ? 's-ok' : 's-ns'); sb.textContent = c.done ? 'Done' : 'To do'; }
+        return;
+      }
       const set = (f, v) => { const el = row.querySelector(`[data-f="${f}"]`); if (el && el.value !== String(v)) el.value = v; };
       set('name', t.name); set('start', t.start); set('finish', t.finish); set('duration', t.duration); set('pct', t.pct); set('status', t.status);
       const st = row.querySelector('select.pl-st, .pl-st.ro');
       if (st){ st.className = 'pl-st' + (st.tagName === 'SPAN' ? ' ro ' : ' ') + (STAT_CLS[t.status] || 's-ns'); if (st.tagName === 'SPAN') st.textContent = t.status; }
+      const di = row.querySelector('[data-f="duration"]'); if (di){ di.classList.toggle('wk', !!t.wk); }
+      const pi = row.querySelector('[data-f="pct"]'); if (pi) pi.disabled = !!V.meta.isParent[i] || (t.checklist || []).length > 0;
       const db = row.querySelector('.pl-dtb'); if (db){ const ds = dtState(t); db.classList.toggle('has', ds.has); db.title = ds.title; }
       set('preds', predText(tasks, t));
       const pc = row.querySelector('.pl-pct'); if (pc) pc.style.setProperty('--p', t.pct + '%');
@@ -8428,7 +8631,7 @@ const PLU = (function(){
   function drawChart(){
     const tasks = P().tasks, m = V.meta, RH = V.rowH, chart = $('plChart');
     const { ppd, o, e, shift } = computeRange(tasks);
-    const W = (e - o + 1) * ppd, H = V.vis.length * RH + ADDH, x = dn => (dn - o) * ppd;
+    const W = (e - o + 1) * ppd, H = V.rows.length * RH + ADDH, x = dn => (dn - o) * ppd;
     const td = PLE.todayDn(), crit = V.critical;
     let body = '';
     // background: row lines, weekend shading and column lines
@@ -8441,8 +8644,9 @@ const PLU = (function(){
     }
     // positions
     V.pos = new Map();
-    V.vis.forEach((i, r) => {
-      const t = tasks[i], s = toDn(t.start), f = toDn(t.finish), y = r * RH + RH / 2;
+    V.rows.forEach((rw, r) => {
+      if (rw.c) return;
+      const i = rw.i, t = tasks[i], s = toDn(t.start), f = toDn(t.finish), y = r * RH + RH / 2;
       const ms = !m.isParent[i] && t.duration === 0;
       const xs = ms ? x(s) + ppd / 2 - 10 : x(s), xe = ms ? x(s) + ppd / 2 + 10 : x(f) + ppd;
       V.pos.set(t.id, { i, r, y, xs, xe, s, f, ms, parent: m.isParent[i] });
@@ -8464,9 +8668,15 @@ const PLU = (function(){
     });
     body += `<svg class="pl-links" width="${W}" height="${H}">${svg}</svg>`;
     // bars
-    V.vis.forEach((i, r) => {
-      const t = tasks[i], b = V.pos.get(t.id), top = r * RH;
-      const isC = crit && V.crit.has(t.id), cls = (isC ? ' crit' : '') + (crit && !isC ? ' dim' : '') + (!b.parent && t.status === 'Delayed' ? ' st-dl' : '') + (!b.parent && t.status === 'Complete' ? ' st-ok' : '');
+    V.rows.forEach((rw, r) => {
+      const i = rw.i, t = tasks[i], b = V.pos.get(t.id), top = r * RH;
+      if (rw.c){
+        const w = Math.max(4, b.xe - b.xs), c = rw.c;
+        body += `<div class="pl-ckbar${c.done ? ' done' : ''}" data-id="${t.id}" data-tip="c:${t.id}:${c.id}" style="left:${b.xs}px;top:${top + (RH - 6) / 2}px;width:${w}px"></div>`;
+        body += `<div class="pl-blabel ck${c.done ? ' done' : ''}" style="left:${b.xe + 8}px;top:${top}px"><span class="nm">${pesc(c.text)}</span></div>`;
+        return;
+      }
+      const isC = crit && V.crit.has(t.id), cls = (isC ? ' crit' : '') + (crit && !isC ? ' dim' : '') + (!b.parent && t.status === 'Delayed' ? ' st-dl' : '') + (!b.parent && t.status === 'Complete' ? ' st-ok' : '') + (!b.parent && t.wk ? ' wk' : '');
       const pc = Math.max(0, Math.min(100, t.pct));
       if (b.parent){
         const w = Math.max(6, b.xe - b.xs);
@@ -8513,9 +8723,10 @@ const PLU = (function(){
     let s = Infinity, f = -Infinity;
     tasks.forEach(t => { s = Math.min(s, toDn(t.start)); f = Math.max(f, toDn(t.finish)); });
     const leaves = tasks.filter((t, i) => !V.meta.isParent[i]).length;
-    info.textContent = `${leaves} task${leaves === 1 ? '' : 's'}  |  ${fmtS(s)} to ${fmtS(f)}, ${dparts(f).y}  |  ${PLE.workDays(s, f)} working days`;
+    info.textContent = `${leaves} task${leaves === 1 ? '' : 's'}  |  ${fmtS(s)} to ${fmtS(f)}, ${dparts(f).y}  |  ${PLE.workIn(s, f)} working days`;
   }
   const root_ = () => $('plRoot');
+  const collapsible = () => P().tasks.filter((t, i) => V.meta.isParent[i] || (t.checklist || []).length).map(t => t.id);
   function syncToolbar(){
     $('plZoom').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.zoom === V.zoom));
     $('plCritSw').classList.toggle('on', V.critical);
@@ -8524,7 +8735,7 @@ const PLU = (function(){
     const hid = COLS.filter(c => !c.lock && V.hidden.includes(c.k)).length;
     const cb = root_().querySelector('[data-pl="columns"]'); if (cb) cb.textContent = hid ? `Columns (${hid} hidden)` : 'Columns';
     const ta = root_().querySelector('[data-pl="toggleAll"]');
-    if (ta && V.meta){ const parents = P().tasks.filter((t, i) => V.meta.isParent[i]).length; ta.textContent = parents && P().collapsed.length >= parents ? 'Expand all' : 'Collapse all'; }
+    if (ta && V.meta){ const parents = collapsible().length; ta.textContent = parents && P().collapsed.length >= parents ? 'Expand all' : 'Collapse all'; }
   }
 
   // ── render entry points ──
@@ -8532,11 +8743,13 @@ const PLU = (function(){
     const r = PLE.recalc(P().tasks);
     V.meta = r.meta; V.crit = r.critical; V.floatOf = r.floatOf;
     const coll = new Set(P().collapsed), tasks = P().tasks;
-    V.vis = [];
+    V.vis = []; V.rows = [];                       // vis: task rows shown. rows: everything shown, including checklist item rows
     tasks.forEach((t, i) => {
       let hide = false, p = r.meta.parent[i];
       while (p !== -1){ if (coll.has(tasks[p].id)){ hide = true; break; } p = r.meta.parent[p]; }
-      if (!hide) V.vis.push(i);
+      if (hide) return;
+      V.vis.push(i); V.rows.push({ i });
+      if (!coll.has(t.id)) (t.checklist || []).forEach(c => V.rows.push({ i, c }));
     });
     return r;
   }
@@ -8573,6 +8786,15 @@ const PLU = (function(){
       if (b){ setSelected(V.reveal); g.scrollTop = Math.max(0, b.r * V.rowH - 60); scrollToDn(b.s, 60); }
       V.reveal = null;
     }
+    if (V.focusCk){
+      const el = $('plGridIn').querySelector(`.pl-row.chk[data-c="${V.focusCk}"] [data-f="ck-text"]`);
+      if (el){
+        const rr = V.rows.findIndex(x => x.c && x.c.id === V.focusCk), g = $('plChart'), y = rr * V.rowH;
+        if (y < g.scrollTop || y > g.scrollTop + g.clientHeight - V.rowH - HDR) g.scrollTop = Math.max(0, y - 80);
+        el.focus(); el.select();
+      }
+      V.focusCk = null;
+    }
     if (V.focusId){
       const el = $('plGridIn').querySelector(`.pl-row[data-id="${V.focusId}"] [data-f="name"]`);
       if (el){ el.focus(); el.select(); const row = el.closest('.pl-row'); setSelected(V.focusId); const g = $('plChart'); const b = V.pos.get(V.focusId); if (b){ const y = b.r * V.rowH; if (y < g.scrollTop || y > g.scrollTop + g.clientHeight - V.rowH - HDR) g.scrollTop = Math.max(0, y - 80); } }
@@ -8594,6 +8816,24 @@ const PLU = (function(){
     const go = () => { doOp(t => PLE.removeTask(t, id), { structural: true }); };
     if (n > 1) confirmBox('Delete task and sub-tasks?', `"${ts[i].name}" is a parent row. Deleting it also deletes its ${n - 1} sub-task${n - 1 === 1 ? '' : 's'}.`, 'Delete', go);
     else go();
+  }
+  function addCheckTo(id){
+    P().collapsed = P().collapsed.filter(x => x !== id);
+    doOp(ts => PLE.addCheck(ts, id, 'New item'), { structural: true, focusItem: true });
+  }
+  function duplicate(id){
+    const r = doOp(ts => PLE.duplicateBlock(ts, id), { structural: true });
+    if (r && r.ok) toast(r.count > 1 ? `Duplicated ${r.count} rows. Progress on the copy starts at zero.` : 'Duplicated the task. Progress on the copy starts at zero.');
+  }
+  function copyRows(id){
+    const c = PLE.copyBlock(P().tasks, id); if (!c) return;
+    V.clip = c; toast(c.rows.length > 1 ? `Copied ${c.rows.length} rows. Use Paste Below on any row.` : 'Copied 1 row. Use Paste Below on any row.');
+  }
+  function pasteBelow(id){
+    if (!V.clip){ toast('Nothing copied yet. Use Copy on a row first.'); return; }
+    const clip = V.clip;
+    const r = doOp(ts => PLE.pasteBlock(ts, id, clip), { structural: true });
+    if (r && r.ok) toast(r.count > 1 ? `Pasted ${r.count} rows.` : 'Pasted 1 row.');
   }
   function clearBoard(){
     if (!P().tasks.length) return;
@@ -8623,7 +8863,7 @@ const PLU = (function(){
     }
     syncToolbar(); refresh(); renderGridCritOnly();
   }
-  function renderGridCritOnly(){ $('plGridIn').querySelectorAll('.pl-row').forEach(r => r.classList.toggle('crit', V.critical && V.crit.has(r.dataset.id))); }
+  function renderGridCritOnly(){ $('plGridIn').querySelectorAll('.pl-row:not(.chk)').forEach(r => r.classList.toggle('crit', V.critical && V.crit.has(r.dataset.id))); }
 
   // ── context menu ──
   function openMenu(x, y, id){
@@ -8631,7 +8871,7 @@ const PLU = (function(){
     const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
     const canIn = i > 0 && ts[i-1].indent >= ts[i].indent, canOut = ts[i].indent > 0;
     menuEl = document.createElement('div'); menuEl.className = 'pl-menu';
-    menuEl.innerHTML = `<button data-m="details">Task Details...</button><hr><button data-m="above">Add Task Above</button><button data-m="below">Add Task Below</button><hr><button data-m="up">Move Up</button><button data-m="down">Move Down</button><button data-m="indent"${canIn ? '' : ' disabled'}>Indent</button><button data-m="outdent"${canOut ? '' : ' disabled'}>Outdent</button><hr><button data-m="tpl">Save as Template...</button><hr><button data-m="delete" class="danger">Delete Task</button>`;
+    menuEl.innerHTML = `<button data-m="details">Task Details...</button><button data-m="addck">Add Checklist Item</button><hr><button data-m="above">Add Task Above</button><button data-m="below">Add Task Below</button><hr><button data-m="dup">${ts[i].indent === 0 && V.meta.isParent[i] ? 'Duplicate Phase' : (V.meta.isParent[i] ? 'Duplicate Group' : 'Duplicate Task')}</button><button data-m="copy">Copy${V.meta.isParent[i] ? ' With Sub-tasks' : ''}</button><button data-m="paste"${V.clip ? '' : ' disabled'}>Paste Below${V.clip ? ' (' + V.clip.rows.length + ' row' + (V.clip.rows.length === 1 ? '' : 's') + ')' : ''}</button><hr>${V.meta.isParent[i] ? '' : `<button data-m="wk">${ts[i].wk ? 'Weekdays only' : 'Include weekends'}</button><hr>`}<button data-m="up">Move Up</button><button data-m="down">Move Down</button><button data-m="indent"${canIn ? '' : ' disabled'}>Indent</button><button data-m="outdent"${canOut ? '' : ' disabled'}>Outdent</button><hr><button data-m="tpl">Save as Template...</button><hr><button data-m="delete" class="danger">Delete Task</button>`;
     document.body.appendChild(menuEl); menuEl.style.display = 'block';
     const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
     menuEl.style.left = Math.max(6, Math.min(x, window.innerWidth - w - 6)) + 'px';
@@ -8640,6 +8880,11 @@ const PLU = (function(){
       const b = e.target.closest('button'); if (!b || b.disabled) return;
       const a = b.dataset.m; closeMenu();
       if (a === 'details') openDetails(id);
+      else if (a === 'addck') addCheckTo(id);
+      else if (a === 'dup') duplicate(id);
+      else if (a === 'copy') copyRows(id);
+      else if (a === 'paste') pasteBelow(id);
+      else if (a === 'wk') doOp(t => PLE.setWeekend(t, id, !ts[PLE.find(t, id)].wk));
       else if (a === 'above') addAbove(id); else if (a === 'below') addBelow(id);
       else if (a === 'indent') doOp(t => PLE.changeIndent(t, id, 1), { structural: true });
       else if (a === 'outdent') doOp(t => PLE.changeIndent(t, id, -1), { structural: true });
@@ -8658,7 +8903,7 @@ const PLU = (function(){
     const s = toDn(t.start), f = toDn(t.finish);
     let h = `<b>${pesc(t.name || 'Untitled')}</b><span class="k">Row ${i + 1}</span><br>`;
     h += `<span class="k">Start:</span> ${fmtL(s)}<br><span class="k">Finish:</span> ${fmtL(f)}<br>`;
-    h += `<span class="k">Duration:</span> ${t.duration === 0 && !parent ? 'Milestone (0 days)' : t.duration + ' working day' + (t.duration === 1 ? '' : 's')}<br>`;
+    h += `<span class="k">Duration:</span> ${t.duration === 0 && !parent ? 'Milestone (0 days)' : t.duration + (t.wk && !parent ? ' calendar' : ' working') + ' day' + (t.duration === 1 ? '' : 's')}${t.wk && !parent ? ' (includes weekends)' : ''}<br>`;
     h += `<span class="k">% Complete:</span> ${t.pct}%<br><span class="k">Status:</span> ${pesc(t.status)}`;
     if ((t.notes || '').trim()){ const nn = t.notes.trim().replace(/\s+/g, ' '); h += `<br><span class="k">Notes:</span> ${pesc(nn.length > 90 ? nn.slice(0, 90) + '...' : nn)}`; }
     if ((t.links || []).length) h += `<br><span class="k">Links:</span> ${t.links.length}`;
@@ -8670,6 +8915,12 @@ const PLU = (function(){
     if (V.critical && V.crit.has(id)) h += `<br><span class="crit">Critical path (zero float)</span>`;
     else if (V.floatOf.has(id) && !parent && (t.preds.length || ts.some(x => x.preds.some(p => p.id === id)))) h += `<br><span class="k">Float:</span> ${V.floatOf.get(id)} working day${V.floatOf.get(id) === 1 ? '' : 's'}`;
     return h;
+  }
+  function ckTip(tid, cid){
+    const t = task(tid); if (!t) return '';
+    const c = (t.checklist || []).find(x => x.id === cid); if (!c) return '';
+    const st = PLE.ckStats(t);
+    return `<b>${pesc(c.text)}</b><span class="k">${c.done ? 'Done' : 'Not done'}</span><br>Checklist item of Row ${P().tasks.indexOf(t) + 1} "${pesc(t.name)}"<br><span class="k">Progress:</span> ${st.done} of ${st.n} done`;
   }
   function linkTip(a, b){
     const ts = P().tasks, ta = task(a), tb = task(b); if (!ta || !tb) return '';
@@ -8686,7 +8937,7 @@ const PLU = (function(){
     const ms = bar.classList.contains('pl-ms');
     let mode = 'move';
     if (!ms){ if (e.target.closest('.pl-h-l')) mode = 'left'; else if (e.target.closest('.pl-h-r')) mode = 'right'; }
-    const D = { id, mode, bar, ms, x0: e.clientX, s: toDn(t.start), f: toDn(t.finish), dur: t.duration, moved: false };
+    const D = { id, mode, bar, ms, wk: !!t.wk, x0: e.clientX, s: toDn(t.start), f: toDn(t.finish), dur: t.duration, moved: false };
     D.ns = D.s; D.nf = D.f;
     V.drag = D; hideTip();
     try { bar.setPointerCapture(e.pointerId); } catch (err) {}
@@ -8700,8 +8951,8 @@ const PLU = (function(){
     const ppd = PPD[V.zoom], dx = e.clientX - D.x0;
     if (!D.moved && Math.abs(dx) < 3) return;
     D.moved = true;
-    const days = Math.round(dx / ppd), nw = PLE.nearestWork;
-    if (D.mode === 'move'){ D.ns = nw(D.s + days); D.nf = D.ms ? D.ns : PLE.finishFor(D.ns, D.dur); }
+    const days = Math.round(dx / ppd), nw = D.wk ? (d => d) : PLE.nearestWork;      // weekend tasks move freely, others snap to working days
+    if (D.mode === 'move'){ D.ns = nw(D.s + days); D.nf = D.ms ? D.ns : (D.wk ? D.ns + D.dur - 1 : PLE.finishFor(D.ns, D.dur)); }
     else if (D.mode === 'left'){ D.ns = Math.min(nw(D.s + days), D.f); D.nf = D.f; }
     else { D.ns = D.s; D.nf = Math.max(nw(D.f + days), D.s); }
     const o = V.origin, b = V.pos.get(D.id);
@@ -8710,8 +8961,8 @@ const PLU = (function(){
     else { left = (D.ns - o) * ppd; width = Math.max(4, (D.nf - D.ns + 1) * ppd); D.bar.style.left = left + 'px'; D.bar.style.width = width + 'px'; }
     const lab = $('plChartIn').querySelector(`.pl-blabel[data-for="${D.id}"]`);
     if (lab) lab.style.left = (D.ms ? left + 24 : left + width + 8) + 'px';
-    const dur = D.ms ? 0 : PLE.workDays(D.ns, D.nf);
-    showTip(`<b>${D.mode === 'move' ? 'Move' : D.mode === 'left' ? 'Change start' : 'Change finish'}</b>${fmtL(D.ns)}${D.ms ? '' : '<br>to ' + fmtL(D.nf)}<br><span class="k">Duration:</span> ${D.ms ? 'Milestone' : dur + ' working day' + (dur === 1 ? '' : 's')}`, e.clientX, e.clientY);
+    const dur = D.ms ? 0 : (D.wk ? D.nf - D.ns + 1 : PLE.workDays(D.ns, D.nf));
+    showTip(`<b>${D.mode === 'move' ? 'Move' : D.mode === 'left' ? 'Change start' : 'Change finish'}</b>${fmtL(D.ns)}${D.ms ? '' : '<br>to ' + fmtL(D.nf)}<br><span class="k">Duration:</span> ${D.ms ? 'Milestone' : dur + (D.wk ? ' calendar' : ' working') + ' day' + (dur === 1 ? '' : 's')}`, e.clientX, e.clientY);
   }
   function cleanupDrag(D){
     D.bar.removeEventListener('pointermove', onDragMove);
@@ -8845,8 +9096,9 @@ const PLU = (function(){
   function updateReorder(R){
     const ts = P().tasks, gb = $('plGridIn').querySelector('.pl-gbody'); if (!gb) return;
     const y = R.lastY - gb.getBoundingClientRect().top;
-    const slot = Math.max(0, Math.min(V.vis.length, Math.round(y / V.rowH)));
-    const at = slot < V.vis.length ? V.vis[slot] : ts.length;
+    let slot = Math.max(0, Math.min(V.rows.length, Math.round(y / V.rowH)));
+    while (slot < V.rows.length && V.rows[slot].c) slot++;          // a row cannot be dropped between a task and its checklist
+    const at = slot < V.rows.length ? V.rows[slot].i : ts.length;
     const valid = !(at >= R.i && at <= R.end);
     R.at = valid ? at : null;
     document.querySelectorAll('.pl-drop').forEach(d => { d.style.display = valid ? 'block' : 'none'; d.style.top = (slot * V.rowH - 1) + 'px'; });
@@ -8894,10 +9146,12 @@ const PLU = (function(){
             ${f('pct', '% Complete', '<input class="pl-fi" type="number" min="0" max="100" step="1">')}
             ${f('start', 'Start date', '<input class="pl-fi" type="date">')}
             ${f('finish', 'Finish date', '<input class="pl-fi" type="date">')}
-            ${f('duration', 'Duration (working days)', '<input class="pl-fi" type="number" min="0" step="1">')}
+            <label class="pl-f"><span id="dtDurL">Duration (working days)</span><input class="pl-fi" data-d="duration" type="number" min="0" step="1"></label>
             ${f('preds', 'Predecessors (row numbers)', '<input class="pl-fi" type="text" placeholder="e.g. 2,3">')}
           </div>
-          <div class="pl-dt-note" id="dtParentNote" style="display:none">This row is a group. Its dates, duration, % complete, status and predecessors are calculated from its child tasks.</div>
+          <label class="pl-wkchk" id="dtWkRow"><input type="checkbox" data-d="wk"> Includes weekends <small>(Saturdays and Sundays count as work days for this task)</small></label>
+          <div class="pl-dt-note" id="dtParentNote" style="display:none">This row is a group. Type a start or finish date here to set it for every task inside. Each task can still be edited afterwards. Duration, % complete, status and predecessors are calculated from the child tasks.</div>
+          <div class="pl-dt-note" id="dtCkNote" style="display:none">% Complete is calculated from the checklist: items done divided by items.</div>
           <div class="pl-dt-h"><span id="dtChT">Checklist</span></div>
           <div id="dtChList"></div>
           <div class="pl-ck add"><span class="pl-ck-box"></span><input class="pl-ck-t" id="dtChNew" maxlength="200" placeholder="Add an item" aria-label="Add a checklist item"></div>
@@ -8950,8 +9204,15 @@ const PLU = (function(){
       const stSel = q('[data-d="status"]'); setVal(stSel, t.status);
       ['pct', 'start', 'finish', 'duration'].forEach(k => setVal(q(`[data-d="${k}"]`), t[k]));
       setVal(q('[data-d="preds"]'), predText(P().tasks, t));
-      ['status', 'pct', 'start', 'finish', 'duration', 'preds'].forEach(k => { q(`[data-d="${k}"]`).disabled = parent; });
+      const hasCk = t.checklist.length > 0;
+      ['status', 'duration', 'preds'].forEach(k => { q(`[data-d="${k}"]`).disabled = parent; });
+      q('[data-d="pct"]').disabled = parent || hasCk;
+      ['start', 'finish'].forEach(k => { q(`[data-d="${k}"]`).disabled = false; });
+      const wkc = q('[data-d="wk"]'); wkc.checked = !!t.wk; wkc.disabled = parent;
+      q('#dtWkRow').style.display = parent ? 'none' : '';
+      q('#dtDurL').textContent = t.wk && !parent ? 'Duration (calendar days)' : 'Duration (working days)';
       q('#dtParentNote').style.display = parent ? 'block' : 'none';
+      q('#dtCkNote').style.display = !parent && hasCk ? 'block' : 'none';
       const bits = ['Row ' + (i + 1)];
       if (parent) bits.push(`Group of ${m.children[i].length} row${m.children[i].length === 1 ? '' : 's'}`);
       if (V.critical && V.crit.has(id)) bits.push('On the critical path');
@@ -8979,7 +9240,7 @@ const PLU = (function(){
     // fields
     el.addEventListener('change', e => {
       const t = e.target, d = t.dataset.d;
-      if (d){ applyField(id, d, t.value); fill(); return; }
+      if (d){ applyField(id, d, t.type === 'checkbox' ? t.checked : t.value); fill(); return; }
       if (t.id === 'dtNotes'){ commitNotes(); return; }
       const ck = t.closest('.pl-ck[data-c]');
       if (ck && t.classList.contains('pl-ck-b')){
@@ -8989,7 +9250,7 @@ const PLU = (function(){
       if (ck && t.classList.contains('pl-ck-t')){
         const empty = !t.value.trim();
         skipCk = !empty;
-        doOp(ts => PLE.editCheck(ts, id, ck.dataset.c, { text: t.value })); skipCk = false; fill(); return;
+        doOp(ts => PLE.editCheck(ts, id, ck.dataset.c, { text: t.value }), { structural: empty }); skipCk = false; fill(); return;
       }
       const lk = t.closest('.pl-lnk.edit'); if (lk) return;
     });
@@ -8999,7 +9260,7 @@ const PLU = (function(){
         if (t.dataset.d && t.tagName === 'INPUT'){ e.preventDefault(); t.blur(); }
         else if (t.id === 'dtChNew'){
           e.preventDefault();
-          if (t.value.trim()){ const v = t.value; t.value = ''; doOp(ts => PLE.addCheck(ts, id, v)); fill(); q('#dtChNew').focus(); }
+          if (t.value.trim()){ const v = t.value; t.value = ''; P().collapsed = P().collapsed.filter(x => x !== id); doOp(ts => PLE.addCheck(ts, id, v), { structural: true }); fill(); q('#dtChNew').focus(); }
         }
         else if (t.id === 'dtUrl' || t.id === 'dtTitle'){ e.preventDefault(); addLinkNow(); }
         else if (t.classList.contains('pl-ck-t') && t.closest('.pl-ck[data-c]')){ e.preventDefault(); t.blur(); q('#dtChNew').focus(); }
@@ -9027,7 +9288,7 @@ const PLU = (function(){
       if (x === 'gotoProj'){ box.close(); if (typeof switchView === 'function') switchView('projgantt'); return; }
       if (x === 'unlink'){ doOp(ts => PLE.setProjLink(ts, id, null), { structural: true }); toast('Unlinked from the project. The tasks stay on the board.'); fill(); return; }
       const ck = b.closest('.pl-ck[data-c]');
-      if (x === 'rmck' && ck){ doOp(ts => PLE.removeCheck(ts, id, ck.dataset.c)); fill(); return; }
+      if (x === 'rmck' && ck){ doOp(ts => PLE.removeCheck(ts, id, ck.dataset.c), { structural: true }); fill(); return; }
       const lk = b.closest('.pl-lnk');
       if (!lk) return;
       const l = T().links.find(y => y.id === lk.dataset.l); if (!l) return;
@@ -9046,7 +9307,7 @@ const PLU = (function(){
     try {
       const rows = PLE.instantiateTemplate(tpl, null, PLE.todayDn()); PLE.recalc(rows);
       let s = Infinity, f = -Infinity; rows.forEach(t => { s = Math.min(s, toDn(t.start)); f = Math.max(f, toDn(t.finish)); });
-      return { rows: rows.length, days: PLE.workDays(s, f) };
+      return { rows: rows.length, days: PLE.workIn(s, f) };
     } catch (e) { return { rows: (tpl.rows || []).length, days: 0 }; }
   }
   function blankProject(name, startDn){
@@ -9210,8 +9471,11 @@ const PLU = (function(){
     if (f === 'start' || f === 'finish'){
       const y = +String(v).slice(0, 4);
       if (!v || y < 1990 || y > 2100){ refresh(); return null; }
+      const gi = PLE.find(P().tasks, id);
+      if (gi >= 0 && V.meta && V.meta.isParent[gi]) return doOp(ts => PLE.setGroupDates(ts, id, f, v));       // a phase: apply to every task inside
       return f === 'start' ? doOp(ts => PLE.setStart(ts, id, v, 'move')) : doOp(ts => PLE.setFinish(ts, id, v));
     }
+    if (f === 'wk') return doOp(ts => PLE.setWeekend(ts, id, v === true || v === 'true'));
     if (f === 'duration') return doOp(ts => PLE.setDuration(ts, id, v));
     if (f === 'pct') return doOp(ts => PLE.setPct(ts, id, v));
     if (f === 'preds') return doOp(ts => PLE.setPreds(ts, id, v));
@@ -9246,7 +9510,7 @@ const PLU = (function(){
       else if (a === 'clear') clearBoard();
       else if (a === 'today') scrollToDn(PLE.todayDn(), chart.clientWidth / 2);
       else if (a === 'toggleAll'){
-        const parents = P().tasks.filter((t, i) => V.meta.isParent[i]).map(t => t.id);
+        const parents = collapsible();
         P().collapsed = P().collapsed.length >= parents.length && parents.length ? [] : parents;
         save(); render_();
       }
@@ -9258,16 +9522,25 @@ const PLU = (function(){
     // grid: edits
     gridIn.addEventListener('change', e => {
       const el = e.target, f = el.dataset.f; if (!f) return;
-      applyField(el.closest('.pl-row').dataset.id, f, el.value);
+      const row = el.closest('.pl-row'), id = row.dataset.id;
+      if (f === 'ck-done'){ const cid = row.dataset.c; doOp(ts => PLE.editCheck(ts, id, cid, { done: el.checked })); return; }
+      if (f === 'ck-text'){ const cid = row.dataset.c, empty = !el.value.trim(); doOp(ts => PLE.editCheck(ts, id, cid, { text: el.value }), { structural: empty }); return; }
+      applyField(id, f, el.value);
     });
     gridIn.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && e.target.classList.contains('pl-in')){ e.preventDefault(); e.target.blur(); }
+      if (e.key === 'Enter' && e.target.dataset.f === 'ck-text'){
+        e.preventDefault();
+        const row = e.target.closest('.pl-row'), id = row.dataset.id, cid = row.dataset.c, txt = e.target.value;
+        if (txt.trim()) doOp(ts => { const a = PLE.editCheck(ts, id, cid, { text: txt }); if (!a.ok) return a; return PLE.addCheck(ts, id, 'New item', cid); }, { structural: true, focusItem: true });
+        else e.target.blur();
+      }
+      else if (e.key === 'Enter' && e.target.classList.contains('pl-in')){ e.preventDefault(); e.target.blur(); }
       else if (e.key === 'Escape' && e.target.classList.contains('pl-in')){ syncGrid(); e.target.blur(); }
       else if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('pl-as') && e.target.dataset.act === 'assign'){ e.preventDefault(); openAssign(e.target, e.target.closest('.pl-row').dataset.id); }
     });
     gridIn.addEventListener('pointerdown', e => {
       const rz = e.target.closest('.pl-rz'); if (rz){ startColResize(e, rz.dataset.k); return; }
-      const n = e.target.closest('.pl-num'); if (n) startReorder(e, n.closest('.pl-row').dataset.id);
+      const n = e.target.closest('.pl-num:not(.ck)'); if (n) startReorder(e, n.closest('.pl-row').dataset.id);
     });
     gridIn.addEventListener('dblclick', e => {
       const rz = e.target.closest('.pl-rz'); if (!rz) return;
@@ -9283,6 +9556,7 @@ const PLU = (function(){
         if (a === 'sample'){ loadSample(); return; }
         if (!row) return;
         const id = row.dataset.id;
+        if (a === 'ckdel'){ const cid = row.dataset.c; doOp(ts => PLE.removeCheck(ts, id, cid), { structural: true }); return; }
         if (a === 'indent') doOp(ts => PLE.changeIndent(ts, id, 1), { structural: true });
         else if (a === 'outdent') doOp(ts => PLE.changeIndent(ts, id, -1), { structural: true });
         else if (a === 'caret') toggleCaret(id);
@@ -9294,7 +9568,7 @@ const PLU = (function(){
       if (row) setSelected(row.dataset.id);
     });
     gridIn.addEventListener('focusin', e => { const row = e.target.closest('.pl-row'); if (row) setSelected(row.dataset.id); });
-    gridIn.addEventListener('contextmenu', e => { const row = e.target.closest('.pl-row'); if (!row) return; e.preventDefault(); setSelected(row.dataset.id); openMenu(e.clientX, e.clientY, row.dataset.id); });
+    gridIn.addEventListener('contextmenu', e => { const row = e.target.closest('.pl-row'); if (!row) return; if (row.classList.contains('chk')) return; e.preventDefault(); setSelected(row.dataset.id); openMenu(e.clientX, e.clientY, row.dataset.id); });
     document.addEventListener('click', e => { if (menuEl && !e.target.closest('.pl-menu') && !e.target.closest('[data-act="menu"]')) closeMenu(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape'){ closeMenu(); closePop(); } });
     document.addEventListener('click', e => { if (popEl && !popEl.contains(e.target) && !e.target.closest('[data-act="assign"], [data-pl="columns"], [data-dt="assign"]')) closePop(); });
@@ -9311,13 +9585,13 @@ const PLU = (function(){
     }, { passive: false });
 
     // timeline: drag + tooltips
-    chartIn.addEventListener('pointerdown', e => { const l = e.target.closest('.pl-blabel'); if (l){ startReorder(e, l.dataset.for); return; } startDrag(e); });
+    chartIn.addEventListener('pointerdown', e => { const l = e.target.closest('.pl-blabel'); if (l){ if (l.dataset.for) startReorder(e, l.dataset.for); return; } startDrag(e); });
     chartIn.addEventListener('pointermove', e => {
       if (V.drag || V.reorder) return;
       const el = e.target.closest('[data-tip]');
       if (!el){ hideTip(); return; }
       const k = el.dataset.tip;
-      const html = k.startsWith('t:') ? taskTip(k.slice(2)) : (() => { const [a, b] = k.slice(2).split('>'); return linkTip(a, b); })();
+      const html = k.startsWith('t:') ? taskTip(k.slice(2)) : k.startsWith('c:') ? (() => { const [a, b] = k.slice(2).split(':'); return ckTip(a, b); })() : (() => { const [a, b] = k.slice(2).split('>'); return linkTip(a, b); })();
       if (html) showTip(html, e.clientX, e.clientY); else hideTip();
     });
     chartIn.addEventListener('pointerleave', () => { if (!V.drag) hideTip(); });
