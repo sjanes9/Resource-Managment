@@ -1531,7 +1531,7 @@ body.pl-resizing { cursor: col-resize !important; user-select: none; }
 body.pl-resizing * { cursor: col-resize !important; }
 
 /* grid */
-.pl-grid-in { --pl-cols: 44px 262px 128px 128px 80px 96px 108px 92px; min-width: 938px; }
+.pl-grid-in { --pl-cols: 44px 262px 128px 128px 128px 80px 96px 108px 160px 92px; --pl-w1: 44px; min-width: 1070px; }
 .pl-ghead { display: grid; grid-template-columns: var(--pl-cols); height: var(--pl-hdr); position: sticky; top: 0; z-index: 4; background: var(--bg-alt); border-bottom: 1px solid var(--border); }
 .pl-ghead > div { display: flex; align-items: flex-end; padding: 0 8px 9px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--txt-sub); border-right: 1px solid var(--border); white-space: nowrap; }
 .pl-ghead > div:first-child { justify-content: center; padding: 0 0 9px; }
@@ -1672,7 +1672,7 @@ body.pl-dragging-row, body.pl-dragging-row * { cursor: grabbing !important; user
 .pl-as-empty { color: var(--txt-muted); font-size: 12px; font-weight: 400; }
 .pl-more { margin-left: 5px; font-size: 11px; font-weight: 700; color: var(--txt-sub); }
 
-.pl-pop { position: fixed; z-index: 10001; width: 292px; max-height: min(72vh, 460px); overflow: auto; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 34px rgba(15,23,42,.2); padding: 8px; font-family: var(--sans); font-size: 12.5px; color: var(--txt-main); }
+.pl-pop { position: fixed; z-index: 10003; width: 292px; max-height: min(72vh, 460px); overflow: auto; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 34px rgba(15,23,42,.2); padding: 8px; font-family: var(--sans); font-size: 12.5px; color: var(--txt-main); }
 .pl-pop-h { font-weight: 700; font-size: 12px; padding: 4px 6px 8px; }
 .pl-pop-s { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid var(--border); border-radius: 6px; font: inherit; margin-bottom: 6px; outline: none; }
 .pl-pop-s:focus { border-color: var(--blue); }
@@ -1729,12 +1729,104 @@ body.pl-dragging-row, body.pl-dragging-row * { cursor: grabbing !important; user
 
 /* frozen first two columns (row number + task name) so the drag grip and names stay visible while scrolling sideways */
 .pl-row > .pl-num { position: sticky; left: 0; z-index: 3; }
-.pl-row > .pl-c-name { position: sticky; left: 44px; z-index: 3; background: inherit; box-shadow: 1px 0 0 var(--border); }
+.pl-row > .pl-c-name { position: sticky; left: var(--pl-w1, 44px); z-index: 3; background: inherit; box-shadow: 1px 0 0 var(--border); }
 .pl-ghead > div:nth-child(1), .pl-ghead > div:nth-child(2) { position: sticky; z-index: 5; background: var(--bg-alt); }
 .pl-ghead > div:nth-child(1) { left: 0; }
-.pl-ghead > div:nth-child(2) { left: 44px; box-shadow: 1px 0 0 var(--border); }
+.pl-ghead > div:nth-child(2) { left: var(--pl-w1, 44px); box-shadow: 1px 0 0 var(--border); }
 #resourceModal .form-group { min-width: 0; }
 #resourceModal .form-input { min-width: 0; width: 100%; box-sizing: border-box; }
+
+
+/* ===== v3: resizable columns, status, task details pop-up ===== */
+.pl-ghead > div { position: relative; }
+.pl-ghead > div > .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pl-rz { position: absolute; top: 0; right: -4px; bottom: 0; width: 9px; cursor: col-resize; z-index: 6; touch-action: none; }
+.pl-rz::after { content: ''; position: absolute; top: 25%; bottom: 25%; left: 4px; width: 2px; border-radius: 1px; background: transparent; transition: background .1s; }
+.pl-ghead > div:hover .pl-rz::after { background: var(--border); }
+.pl-rz:hover::after, .pl-rz.drag::after { background: var(--blue) !important; }
+
+/* status */
+.pl-st { width: 100%; min-width: 0; height: calc(var(--pl-row) - 12px); box-sizing: border-box; border: 1px solid transparent; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 600; padding: 0 22px 0 22px; cursor: pointer; outline: none; display: block;
+  -webkit-appearance: none; appearance: none; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+  background-color: var(--stbg, #F1F5F9); color: var(--stfg, #475569);
+  background-image: radial-gradient(circle at 11px 50%, var(--stdot, #94A3B8) 0, var(--stdot, #94A3B8) 4px, transparent 4.5px), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%2364748B' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3.5l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 0 0, right 7px center; }
+.pl-st:hover { border-color: var(--stdot, #94A3B8); }
+.pl-st:focus-visible { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,.18); }
+.pl-st.ro { cursor: default; line-height: calc(var(--pl-row) - 14px); background-image: radial-gradient(circle at 11px 50%, var(--stdot, #94A3B8) 0, var(--stdot, #94A3B8) 4px, transparent 4.5px); }
+.pl-st.ro:hover { border-color: transparent; }
+.s-ns { --stbg: #F1F5F9; --stfg: #475569; --stdot: #94A3B8; }
+.s-ip { --stbg: #DBEAFE; --stfg: #1E40AF; --stdot: #3B82F6; }
+.s-dl { --stbg: #FFEDD5; --stfg: #9A3412; --stdot: #F97316; }
+.s-ok { --stbg: #DCFCE7; --stfg: #166534; --stdot: #22C55E; }
+.pl-bar.st-dl { background: #FDBA74; } .pl-bar.st-dl .pl-prog { background: #EA580C; }
+.pl-bar.st-ok { background: #86EFAC; } .pl-bar.st-ok .pl-prog { background: #16A34A; }
+.pl-ms.st-dl { background: #F97316; } .pl-ms.st-ok { background: #16A34A; }
+
+/* details button + linked-project mark inside the name cell */
+.pl-dtb { flex: 0 0 24px; width: 24px; height: 24px; margin-left: 2px; border: 0; background: transparent; color: var(--txt-muted); border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; position: relative; opacity: .55; }
+.pl-row:hover .pl-dtb, .pl-dtb.has, .pl-dtb:focus-visible { opacity: 1; }
+.pl-dtb:hover { background: var(--border); color: var(--blue); }
+.pl-dtb.has { color: var(--blue); }
+.pl-dtb.has::after { content: ''; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 1.5px #fff; }
+.pl-lk { flex: 0 0 18px; display: inline-flex; align-items: center; justify-content: center; color: #7C3AED; margin-left: 2px; }
+
+/* task details pop-up */
+.pl-modal.dt { max-width: 980px; padding: 0; display: flex; flex-direction: column; max-height: min(92vh, 860px); overflow: hidden; }
+.pl-dt-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px 12px 22px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
+.pl-dt-path { font-size: 13px; font-weight: 600; color: var(--txt-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pl-dt-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); flex: 1 1 auto; min-height: 0; overflow: auto; }
+.pl-dt-main { padding: 18px 22px 22px; min-width: 0; }
+.pl-dt-side { padding: 18px 22px 22px; border-left: 1px solid var(--border); background: var(--bg-surface, #F8FAFC); min-width: 0; }
+.pl-dt-title { width: 100%; box-sizing: border-box; font: inherit; font-size: 20px; font-weight: 700; color: var(--txt-main); border: 1px solid transparent; border-radius: 7px; padding: 4px 8px; margin: 0 0 2px -8px; background: transparent; outline: none; }
+.pl-dt-title:hover { border-color: var(--border); }
+.pl-dt-title:focus { border-color: var(--blue); background: #fff; box-shadow: 0 0 0 2px rgba(59,130,246,.18); }
+.pl-dt-sub { font-size: 11.5px; color: var(--txt-muted); margin-bottom: 12px; }
+.pl-dt-asg { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 14px; min-height: 30px; }
+.pl-dt-ic { color: var(--txt-muted); display: inline-flex; }
+.pl-asg-i { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+.pl-asg-i .pl-av { margin-left: 0; }
+.pl-asg-none { font-size: 12.5px; color: var(--txt-muted); }
+.pl-dt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin-bottom: 14px; }
+.pl-dt-grid .pl-f { min-width: 0; }
+.pl-dt-grid .pl-fi:disabled { background: var(--bg-alt); color: var(--txt-sub); cursor: not-allowed; }
+.pl-dt-note { font-size: 12px; color: var(--txt-sub); background: #F1F5F9; border-radius: 7px; padding: 8px 10px; margin-bottom: 14px; line-height: 1.45; }
+.pl-dt-h { font-size: 13px; font-weight: 700; color: var(--txt-main); margin: 8px 0 8px; }
+.pl-dt-notes { min-height: 150px; height: 190px; resize: vertical; line-height: 1.5; padding: 10px 12px; font-family: inherit; }
+.pl-dt-proj { border: 1px solid #DDD6FE; background: #F5F3FF; border-radius: 9px; padding: 10px 12px; margin-bottom: 14px; font-size: 12px; line-height: 1.55; color: var(--txt-sub); }
+.pl-dt-proj .h { display: flex; align-items: center; gap: 7px; color: #6D28D9; font-size: 12.5px; flex-wrap: wrap; }
+.pl-dt-proj .h span { color: var(--txt-main); font-weight: 700; }
+.pl-dt-proj .a { display: flex; gap: 6px; margin-top: 8px; }
+.pl-ap-info { background: #F8FAFC; border-radius: 7px; padding: 8px 10px; margin-bottom: 8px; }
+
+/* checklist */
+.pl-ck { display: flex; align-items: center; gap: 10px; padding: 2px 0; min-height: 34px; border-bottom: 1px solid #F1F5F9; }
+.pl-ck-b { width: 17px; height: 17px; margin: 0; flex: 0 0 auto; accent-color: #6D5BD0; cursor: pointer; }
+.pl-ck-box { width: 17px; height: 17px; flex: 0 0 auto; border: 1.5px dashed var(--border); border-radius: 50%; box-sizing: border-box; }
+.pl-ck-t { flex: 1; min-width: 0; font: inherit; font-size: 13px; color: var(--txt-main); border: 1px solid transparent; border-radius: 6px; padding: 6px 8px; background: transparent; outline: none; }
+.pl-ck-t:hover { border-color: var(--border); }
+.pl-ck-t:focus { border-color: var(--blue); background: #fff; }
+.pl-ck.done .pl-ck-t { color: var(--txt-muted); text-decoration: line-through; }
+.pl-ck.add .pl-ck-t::placeholder { color: var(--txt-muted); }
+.pl-ck-x { flex: 0 0 auto; width: 26px; height: 26px; border: 0; background: transparent; color: var(--txt-muted); font-size: 18px; line-height: 1; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.pl-ck-x:hover { background: var(--border); color: var(--txt-main); }
+
+/* links to documents */
+.pl-lnk { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: #fff; margin-bottom: 6px; }
+.pl-lnk .ic { color: var(--blue); display: inline-flex; flex: 0 0 auto; }
+.pl-lnk .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.pl-lnk a { color: var(--blue); font-size: 13px; font-weight: 600; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-lnk a:hover { text-decoration: underline; }
+.pl-lnk small { color: var(--txt-muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-lnk.edit { flex-direction: column; align-items: stretch; gap: 6px; }
+.pl-lnk.edit .r { display: flex; gap: 6px; justify-content: flex-end; }
+.pl-dt-addl { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.pl-dt-addl .pl-fi { flex: 1 1 150px; width: auto; min-width: 0; }
+.pl-dt-addl .pl-fi.bad { border-color: var(--red); background: #FEF2F2; }
+@media (max-width: 820px) {
+  .pl-dt-body { grid-template-columns: 1fr; }
+  .pl-dt-side { border-left: 0; border-top: 1px solid var(--border); }
+}
 
 </style>
 
@@ -5643,7 +5735,7 @@ const TUTORIAL_STEPS = [
   { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
   { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent: parents roll up their children and are read-only. Durations count Monday to Friday only.', targetId:'tabPlanner' },
-  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project drops a whole project on the board, either blank or from a template. Build a project once, then use the row menu (the three dots) and Save as Template, or manage everything under Templates. Drag the number cell on the left of any row, or a task name on the timeline, to move that row (and its children) up or down. Assigned To lets you put one or more people on a task. Columns hides or shows grid columns. Critical Path highlights the red zero-float chain, and Daily, Weekly and Monthly change the scale. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
+  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project adds a project to the board. Pick a project that already exists in the Projects tab to pull in its name, dates and phases (its client and owner show in the task details), or add a standalone project, blank or from a template. Save any project as a template from the row menu (the three dots); templates keep durations, dependencies, notes, links and checklists. Drag the number cell on the left of any row, or a task name on the timeline, to move that row. Drag the edge of any column heading to change its width (double-click the edge to reset it). Columns hides or shows columns. Status is a drop-down: Not Started, In Progress, Delayed or Complete. Choosing Complete sets 100%, and group rows roll up their children. Click the notes icon beside a task name, double-click a bar, or use the row menu to open the task details: notes, links to documents, a checklist, dates and people. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
   { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet.', targetId:null },
   { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile, or use the pencil beside a name to edit their details (name, role, title, department, hire date, type, manager, email, tags, capacity and target).', targetId:'tabPeopleRpt' },
@@ -7468,8 +7560,27 @@ const PLE = (function(){
   const uid = () => 't' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
   const todayDn = () => { const n = new Date(); return Math.round(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / MS); };
 
+  const STATUSES = ['Not Started', 'In Progress', 'Delayed', 'Complete'];
+  const statusFromPct = p => p >= 100 ? 'Complete' : p > 0 ? 'In Progress' : 'Not Started';
   function makeTask(over){
-    return Object.assign({ id: uid(), name: 'New task', start: '', finish: '', duration: 1, pct: 0, preds: [], indent: 0, assign: [] }, over || {});
+    return Object.assign({ id: uid(), name: 'New task', start: '', finish: '', duration: 1, pct: 0, status: 'Not Started', preds: [], indent: 0, assign: [], notes: '', links: [], checklist: [] }, over || {});
+  }
+  // Make sure the optional detail fields exist and have the right shape (older saves, imports, templates).
+  function normalizeDetail(t){
+    if (typeof t.notes !== 'string') t.notes = '';
+    t.links = (Array.isArray(t.links) ? t.links : []).filter(l => l && typeof l.url === 'string' && l.url).slice(0, 50)
+      .map(l => ({ id: l.id || uid(), title: String(l.title || '').slice(0, 120), url: l.url }));
+    t.checklist = (Array.isArray(t.checklist) ? t.checklist : []).filter(c => c && typeof c.text === 'string').slice(0, 100)
+      .map(c => ({ id: c.id || uid(), text: c.text.slice(0, 200), done: !!c.done }));
+    if (typeof t.projId !== 'string' || !t.projId) t.projId = null;
+  }
+  // Leaf status must agree with % complete: 100% is always Complete, Not Started never has progress.
+  function normalizeStatus(t){
+    const p = Math.min(100, Math.max(0, Math.round(+t.pct || 0)));
+    if (!STATUSES.includes(t.status)) t.status = statusFromPct(p);
+    if (p >= 100) t.status = 'Complete';
+    else if (t.status === 'Complete') t.status = statusFromPct(p);
+    else if (t.status === 'Not Started' && p > 0) t.status = 'In Progress';
   }
 
   // ── structure ──
@@ -7564,7 +7675,8 @@ const PLE = (function(){
     const warnings = sanitize(tasks, m);
     const { order } = topo(tasks, m);
     const n = tasks.length;
-    const S = new Array(n).fill(0), F = new Array(n).fill(0), D = new Array(n).fill(0), PC = new Array(n).fill(0);
+    const S = new Array(n).fill(0), F = new Array(n).fill(0), D = new Array(n).fill(0), PC = new Array(n).fill(0), ST = new Array(n).fill('Not Started');
+    tasks.forEach(normalizeDetail);
 
     order.forEach(i => {
       const t = tasks[i];
@@ -7575,6 +7687,10 @@ const PLE = (function(){
         let sw = 0, sp = 0, sm = 0;
         m.children[i].forEach(c => { sw += D[c]; sp += PC[c] * D[c]; sm += PC[c]; });
         PC[i] = sw > 0 ? Math.round(sp / sw) : Math.round(sm / m.children[i].length);
+        // a group's status is rolled up from its children
+        const cs = m.children[i].map(c => ST[c]);
+        ST[i] = cs.every(x => x === 'Complete') ? 'Complete' : cs.includes('Delayed') ? 'Delayed'
+          : (cs.includes('In Progress') || cs.includes('Complete')) ? 'In Progress' : 'Not Started';
       } else {
         const d = Math.max(0, Math.floor(+t.duration || 0));
         let s = toDn(t.start); s = isNaN(s) ? fallback : nextWork(s);
@@ -7584,8 +7700,9 @@ const PLE = (function(){
         }
         S[i] = s; D[i] = d; F[i] = finishFor(s, d);
         PC[i] = Math.min(100, Math.max(0, Math.round(+t.pct || 0)));
+        normalizeStatus(t); ST[i] = t.status;
       }
-      t.start = toStr(S[i]); t.finish = toStr(F[i]); t.duration = D[i]; t.pct = PC[i];
+      t.start = toStr(S[i]); t.finish = toStr(F[i]); t.duration = D[i]; t.pct = PC[i]; t.status = ST[i];
     });
 
     const crit = criticalPath(tasks, m, order, S, F, D);
@@ -7653,8 +7770,26 @@ const PLE = (function(){
     const r = leafOrFail(tasks, id); if (r.err) return r.err;
     const n = Number(v);
     if (!isFinite(n)) return fail('% Complete must be a number from 0 to 100.');
-    r.t.pct = Math.min(100, Math.max(0, Math.round(n)));
+    const p = Math.min(100, Math.max(0, Math.round(n)));
+    r.t.pct = p;
+    // keep Status in step with the percentage
+    if (p >= 100) r.t.status = 'Complete';
+    else if (p > 0 && (r.t.status === 'Not Started' || r.t.status === 'Complete')) r.t.status = 'In Progress';
+    else if (p === 0 && r.t.status === 'Complete') r.t.status = 'Not Started';
     return finish(tasks, n < 0 || n > 100 ? { note: '% Complete was limited to 0 to 100.' } : null);
+  }
+  // Status choices: Complete sets 100%, Not Started sets 0%. Moving a task off Complete restores the
+  // percentage it had before it was completed (or 0 when that is unknown).
+  function setStatus(tasks, id, status){
+    const r = leafOrFail(tasks, id); if (r.err) return r.err;
+    if (!STATUSES.includes(status)) return fail('Status must be Not Started, In Progress, Delayed or Complete.');
+    const t = r.t;
+    if (t.status === status) return { ok: true, warnings: [], noop: true };
+    if (status === 'Complete'){ if (t.pct < 100) t.pctBefore = t.pct; t.pct = 100; }
+    else if (status === 'Not Started'){ t.pct = 0; delete t.pctBefore; }
+    else if (t.pct >= 100){ const b = +t.pctBefore; t.pct = isFinite(b) && b >= 0 && b < 100 ? Math.round(b) : 0; delete t.pctBefore; }
+    t.status = status;
+    return finish(tasks);
   }
   function setDuration(tasks, id, v){
     const r = leafOrFail(tasks, id); if (r.err) return r.err;
@@ -7795,6 +7930,96 @@ const PLE = (function(){
     return moveBlock(tasks, id, subtreeEnd(tasks, e));
   }
 
+  // ── notes, links to documents, checklist (allowed on parent rows too) ──
+  const SCHEMES = ['http', 'https', 'file', 'mailto', 'onenote'];
+  // Returns a cleaned link, or null when it cannot be used. Plain web addresses get https://, Windows paths become file links.
+  function normalizeUrl(raw){
+    const u = String(raw == null ? '' : raw).trim();
+    if (!u) return null;
+    const enc = x => x.replace(/ /g, '%20');
+    if (/^\\\\[^\\]/.test(u)) return 'file://' + enc(u.slice(2).replace(/\\/g, '/'));      // \\server\share\file
+    if (/^[a-z]:[\\/]/i.test(u)) return 'file:///' + enc(u.replace(/\\/g, '/'));             // C:\folder\file
+    const m = /^([a-z][a-z0-9+.-]*):/i.exec(u);
+    if (m){
+      const sch = m[1].toLowerCase();
+      if (!SCHEMES.includes(sch)) return null;
+      if (sch === 'file') return enc(u);
+      if (/\s/.test(u)) return null;
+      if (sch === 'http' || sch === 'https') return /^https?:\/\/[^\/\s]+/i.test(u) ? u : null;
+      return u;
+    }
+    if (/^[^\s\/]+\.[a-z]{2,}([\/:?#]\S*)?$/i.test(u)) return 'https://' + u;
+    return null;
+  }
+  const LINK_ERR = 'Enter a web address (https://...), a OneNote or mailto link, or a file path such as \\\\server\\share\\file.';
+  function setNotes(tasks, id, text){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const v = String(text == null ? '' : text).slice(0, 20000);
+    if (v === tasks[i].notes) return { ok: true, warnings: [], noop: true };
+    tasks[i].notes = v; return { ok: true, warnings: [] };
+  }
+  function addLink(tasks, id, url, title){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const u = normalizeUrl(url); if (!u) return fail(LINK_ERR);
+    if (tasks[i].links.length >= 50) return fail('A task can hold up to 50 links.');
+    tasks[i].links.push({ id: uid(), title: String(title || '').trim().slice(0, 120), url: u });
+    return { ok: true, warnings: [] };
+  }
+  function updateLink(tasks, id, linkId, url, title){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const l = tasks[i].links.find(x => x.id === linkId); if (!l) return fail('Link not found.');
+    const u = normalizeUrl(url); if (!u) return fail(LINK_ERR);
+    l.url = u; l.title = String(title || '').trim().slice(0, 120);
+    return { ok: true, warnings: [] };
+  }
+  function removeLink(tasks, id, linkId){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    tasks[i].links = tasks[i].links.filter(x => x.id !== linkId); return { ok: true, warnings: [] };
+  }
+  function addCheck(tasks, id, text){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const v = String(text || '').trim(); if (!v) return { ok: true, warnings: [], noop: true };
+    if (tasks[i].checklist.length >= 100) return fail('A checklist can hold up to 100 items.');
+    tasks[i].checklist.push({ id: uid(), text: v.slice(0, 200), done: false }); return { ok: true, warnings: [] };
+  }
+  function editCheck(tasks, id, itemId, patch){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    const c = tasks[i].checklist.find(x => x.id === itemId); if (!c) return fail('Checklist item not found.');
+    if (patch.text != null){ const v = String(patch.text).trim(); if (!v) tasks[i].checklist = tasks[i].checklist.filter(x => x !== c); else c.text = v.slice(0, 200); }
+    if (patch.done != null) c.done = !!patch.done;
+    return { ok: true, warnings: [] };
+  }
+  function removeCheck(tasks, id, itemId){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    tasks[i].checklist = tasks[i].checklist.filter(x => x.id !== itemId); return { ok: true, warnings: [] };
+  }
+  function setProjLink(tasks, id, projId){
+    const i = find(tasks, id); if (i < 0) return fail('Task not found.');
+    tasks[i].projId = projId || null; return { ok: true, warnings: [] };
+  }
+
+  // Build planner rows from a project in the Projects tab: a parent row with one child per phase
+  // (or a single child spanning the project dates when it has no phases). Returns unplaced tasks.
+  function rowsFromProject(proj){
+    const ps0 = toDn(proj.start), pe0 = toDn(proj.end);
+    const ps = isNaN(ps0) ? nextWork(todayDn()) : nextWork(ps0);
+    let pe = isNaN(pe0) ? ps + 28 : Math.max(pe0, ps);
+    const spanDays = (s, e) => { const f = Math.max(s, prevWork(e)); return Math.max(1, workDays(s, f)); };
+    const root = makeTask({ name: String(proj.name || 'Project').slice(0, 200), indent: 0, duration: 1, start: toStr(ps), projId: proj.id || null, notes: String(proj.desc || '').slice(0, 20000) });
+    const phases = (Array.isArray(proj.phases) ? proj.phases : []).filter(p => p && String(p.name || '').trim());
+    let kids;
+    if (phases.length){
+      kids = phases.map(ph => {
+        const a = toDn(ph.start), b = toDn(ph.end);
+        const s = nextWork(isNaN(a) ? ps : a), e = isNaN(b) ? pe : Math.max(b, s);
+        return makeTask({ name: String(ph.name).trim().slice(0, 200), indent: 1, start: toStr(s), duration: spanDays(s, e), notes: String(ph.desc || '').slice(0, 20000) });
+      });
+    } else {
+      kids = [makeTask({ name: 'Project work', indent: 1, start: toStr(ps), duration: spanDays(ps, pe) })];
+    }
+    return [root].concat(kids);
+  }
+
   // ── assignments ──
   function setAssign(tasks, id, list){
     const r = leafOrFail(tasks, id); if (r.err) return r.err;
@@ -7815,7 +8040,10 @@ const PLE = (function(){
       name: t.name, indent: t.indent - base,
       duration: m.isParent[i + k] ? 1 : t.duration,
       off: wi(toDn(t.start)) - wi(minS),
-      preds: t.preds.filter(p => pos.has(p.id)).map(p => ({ row: pos.get(p.id), lag: p.lag || 0 }))
+      preds: t.preds.filter(p => pos.has(p.id)).map(p => ({ row: pos.get(p.id), lag: p.lag || 0 })),
+      notes: t.notes || '',
+      checklist: (t.checklist || []).map(c => c.text),
+      links: (t.links || []).map(l => ({ title: l.title, url: l.url }))
     }));
     return { id: uid(), name: String(name || block[0].name || 'Template').slice(0, 80), desc: String(desc || '').slice(0, 300), created: new Date().toISOString().slice(0, 10), rows };
   }
@@ -7824,14 +8052,17 @@ const PLE = (function(){
     const s0 = nextWork(startDn);
     const out = tpl.rows.map(r => makeTask({
       name: r.name, indent: Math.max(0, r.indent || 0), duration: Math.max(0, r.duration | 0), pct: 0,
-      start: toStr(fromWi(wi(s0) + Math.max(0, r.off | 0)))
+      start: toStr(fromWi(wi(s0) + Math.max(0, r.off | 0))),
+      notes: typeof r.notes === 'string' ? r.notes : '',
+      checklist: (Array.isArray(r.checklist) ? r.checklist : []).map(x => ({ id: uid(), text: String(x), done: false })),
+      links: (Array.isArray(r.links) ? r.links : []).map(l => ({ id: uid(), title: l.title || '', url: l.url }))
     }));
     tpl.rows.forEach((r, k) => { out[k].preds = (r.preds || []).filter(p => p.row >= 1 && p.row <= out.length && p.row - 1 !== k).map(p => ({ id: out[p.row - 1].id, lag: p.lag || 0 })); });
     if (out.length && projectName) out[0].name = projectName;
     return out;
   }
 
-  return { moveBlock, moveSibling, setAssign, extractTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
+  return { STATUSES, setStatus, normalizeUrl, setNotes, addLink, updateLink, removeLink, addCheck, editCheck, removeCheck, setProjLink, rowsFromProject, moveBlock, moveSibling, setAssign, extractTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
            meta, subtreeEnd, isAncestor, hasCycle, recalc, setName, setPct, setDuration, setStart, setFinish, setPreds,
            parsePreds, insertAt, removeTask, changeIndent, find };
 })();
@@ -7851,15 +8082,16 @@ const PLU = (function(){
   const HDR = 56, ADDH = 48;
   const LS = 'etRM_pl';
   const V = { zoom: 'week', critical: false, gridW: 0, origin: null, end: null, selected: null, drag: null, focusId: null,
-              inited: false, rowH: 34, pos: new Map(), vis: [], crit: new Set(), floatOf: new Map(), meta: null, hidden: [], reorder: null, reveal: null };
+              inited: false, rowH: 34, pos: new Map(), vis: [], crit: new Set(), floatOf: new Map(), meta: null, hidden: [], widths: {}, dt: null, reorder: null, reveal: null };
   try {
     const o = JSON.parse(localStorage.getItem(LS) || '{}');
     if (o.zoom && PPD[o.zoom]) V.zoom = o.zoom;
     V.critical = !!o.critical;
     if (o.gridW > 0) V.gridW = o.gridW;
     if (Array.isArray(o.hidden)) V.hidden = o.hidden;
+    if (o.widths && typeof o.widths === 'object') V.widths = o.widths;
   } catch (e) {}
-  const persist = () => { try { localStorage.setItem(LS, JSON.stringify({ zoom: V.zoom, critical: V.critical, gridW: V.gridW, hidden: V.hidden })); } catch (e) {} };
+  const persist = () => { try { localStorage.setItem(LS, JSON.stringify({ zoom: V.zoom, critical: V.critical, gridW: V.gridW, hidden: V.hidden, widths: V.widths })); } catch (e) {} };
   const $ = id => document.getElementById(id);
   const P = () => state.planner;
   const pesc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -7927,6 +8159,8 @@ const PLU = (function(){
     const resIds = new Set((state.resources || []).map(r => r.id));
     p.tasks.forEach(t => { t.assign = Array.isArray(t.assign) ? t.assign.filter(id => resIds.has(id)) : []; });
     if (!Array.isArray(p.collapsed)) p.collapsed = [];
+    const projIds = new Set((state.projects || []).map(x => x.id));
+    p.tasks.forEach(t => { if (t.projId && !projIds.has(t.projId)) t.projId = null; });
     p.tasks.forEach(t => {
       if (!t.id) t.id = PLE.uid();
       if (!Array.isArray(t.preds)) t.preds = [];
@@ -7937,6 +8171,14 @@ const PLU = (function(){
     return p;
   }
   const task = id => P().tasks.find(t => t.id === id);
+  const projById = id => (state.projects || []).find(x => x.id === id);
+  function dtState(t){
+    const parts = [], n = (t.notes || '').trim() ? 1 : 0, l = (t.links || []).length, c = (t.checklist || []).length;
+    if (n) parts.push('notes');
+    if (l) parts.push(l + ' link' + (l === 1 ? '' : 's'));
+    if (c) parts.push('checklist ' + t.checklist.filter(x => x.done).length + '/' + c);
+    return { has: parts.length > 0, title: parts.length ? 'Task details: ' + parts.join(', ') : 'Open task details: notes, links and checklist' };
+  }
   const predText = (tasks, t) => t.preds.map(p => { const n = tasks.findIndex(x => x.id === p.id) + 1; return p.lag ? n + '+' + p.lag : String(n); }).join(', ');
 
   // ── tiny UI helpers ──
@@ -8007,19 +8249,26 @@ const PLU = (function(){
   const ICON_MORE = '<svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor"><circle cx="3" cy="7" r="1.3"/><circle cx="7" cy="7" r="1.3"/><circle cx="11" cy="7" r="1.3"/></svg>';
 
   const GRIP = '<svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor"><circle cx="3.5" cy="3" r="1.2"/><circle cx="8.5" cy="3" r="1.2"/><circle cx="3.5" cy="7" r="1.2"/><circle cx="8.5" cy="7" r="1.2"/><circle cx="3.5" cy="11" r="1.2"/><circle cx="8.5" cy="11" r="1.2"/></svg>';
-  // grid columns. "lock" columns can never be hidden.
+  const NOTE_ICON = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 1.8h5.2L11 4.6v7.6H3z"/><path d="M8 1.8v3h3M5 7.2h4M5 9.6h4"/></svg>';
+  const LINK_ICON = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a2.4 2.4 0 003.4 0l2-2a2.4 2.4 0 00-3.4-3.4l-.7.7M8 6a2.4 2.4 0 00-3.4 0l-2 2a2.4 2.4 0 003.4 3.4l.7-.7"/></svg>';
+  const COPY_ICON = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4.5" width="7.5" height="7.5" rx="1.5"/><path d="M9.5 4.5V3A1.5 1.5 0 008 1.5H3A1.5 1.5 0 001.5 3v5A1.5 1.5 0 003 9.5h1.5"/></svg>';
+  const PENCIL_ICON = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2l2.5 2.5L5 11.5l-3 .5.5-3z"/></svg>';
+  // grid columns. "lock" columns can never be hidden. "min" is the narrowest a column can be dragged to.
+  const STAT_CLS = { 'Not Started': 's-ns', 'In Progress': 's-ip', 'Delayed': 's-dl', 'Complete': 's-ok' };
   const COLS = [
-    { k: 'num',      label: '#',            w: 44,  lock: true },
-    { k: 'name',     label: 'Task Name',    w: 262, lock: true },
-    { k: 'start',    label: 'Start Date',   w: 128 },
-    { k: 'finish',   label: 'Finish Date',  w: 128 },
-    { k: 'duration', label: 'Duration',     w: 80, title: 'Working days (Monday to Friday)' },
-    { k: 'pct',      label: '% Complete',   w: 96 },
-    { k: 'preds',    label: 'Predecessors', w: 108 },
-    { k: 'assign',   label: 'Assigned To',  w: 160 },
-    { k: 'act',      label: '',             w: 92,  lock: true }
+    { k: 'num',      label: '#',            w: 44,  min: 36,  lock: true },
+    { k: 'name',     label: 'Task Name',    w: 262, min: 140, lock: true },
+    { k: 'status',   label: 'Status',       w: 128, min: 100 },
+    { k: 'start',    label: 'Start Date',   w: 128, min: 104 },
+    { k: 'finish',   label: 'Finish Date',  w: 128, min: 104 },
+    { k: 'duration', label: 'Duration',     w: 80,  min: 58, title: 'Working days (Monday to Friday)' },
+    { k: 'pct',      label: '% Complete',   w: 96,  min: 72 },
+    { k: 'preds',    label: 'Predecessors', w: 108, min: 72 },
+    { k: 'assign',   label: 'Assigned To',  w: 160, min: 100 },
+    { k: 'act',      label: '',             w: 92,  min: 92,  lock: true, fixed: true }
   ];
   const visCols = () => COLS.filter(c => c.lock || !V.hidden.includes(c.k));
+  const colW = c => c.fixed ? c.w : Math.max(c.min, Math.min(700, Math.round(+V.widths[c.k]) || c.w));
 
   // resources ----
   const resById = id => (state.resources || []).find(r => r.id === id);
@@ -8049,10 +8298,14 @@ const PLU = (function(){
     switch (k){
       case 'num': return `<div class="pl-c pl-num" title="Row ${i + 1}. Drag to move this row, with its children, up or down. Use this number in Predecessors."><span class="n">${i + 1}</span><span class="grip">${GRIP}</span></div>`;
       case 'name': {
+        const ds = dtState(t), pj = t.projId && projById(t.projId);
         return `<div class="pl-c pl-c-name" style="padding-left:${4 + t.indent * 18}px">
         ${parent ? `<button class="pl-caret${coll ? ' closed' : ''}" data-act="caret" title="${coll ? 'Expand' : 'Collapse'}" aria-label="${coll ? 'Expand' : 'Collapse'} ${pesc(t.name)}">${CARET}</button>` : '<span class="pl-caret-sp"></span>'}
-        <input class="pl-in" data-f="name" value="${pesc(t.name)}" maxlength="200" aria-label="Task name for row ${i + 1}" placeholder="Task name"></div>`;
+        <input class="pl-in" data-f="name" value="${pesc(t.name)}" maxlength="200" aria-label="Task name for row ${i + 1}" placeholder="Task name">${pj ? `<span class="pl-lk" title="Linked to project: ${pesc(pj.name)}">${LINK_ICON}</span>` : ''}<button class="pl-dtb${ds.has ? ' has' : ''}" data-act="details" title="${pesc(ds.title)}" aria-label="Open details for row ${i + 1}">${NOTE_ICON}</button></div>`;
       }
+      case 'status': return parent
+        ? `<div class="pl-c"><span class="pl-st ro ${STAT_CLS[t.status] || 's-ns'}" data-stro title="Calculated from the child tasks">${pesc(t.status)}</span></div>`
+        : `<div class="pl-c"><select class="pl-st ${STAT_CLS[t.status] || 's-ns'}" data-f="status" aria-label="Status for row ${i + 1}">${PLE.STATUSES.map(x => `<option${x === t.status ? ' selected' : ''}>${x}</option>`).join('')}</select></div>`;
       case 'start':    return `<div class="pl-c"><input class="pl-in" type="date" data-f="start" value="${t.start}"${dis}${dtitle} aria-label="Start date for row ${i + 1}"></div>`;
       case 'finish':   return `<div class="pl-c"><input class="pl-in" type="date" data-f="finish" value="${t.finish}"${dis}${dtitle} aria-label="Finish date for row ${i + 1}"></div>`;
       case 'duration': return `<div class="pl-c"><input class="pl-in" type="number" min="0" step="1" data-f="duration" value="${t.duration}"${dis}${dtitle} aria-label="Duration in working days for row ${i + 1}"></div>`;
@@ -8074,11 +8327,17 @@ const PLU = (function(){
     const cls = 'pl-row' + (parent ? ' parent' : '') + (V.selected === t.id ? ' sel' : '') + (V.critical && V.crit.has(t.id) ? ' crit' : '');
     return `<div class="${cls}" data-id="${t.id}">${visCols().map(c => cellHTML(c.k, i, t, parent, coll)).join('')}</div>`;
   }
+  // column widths live in CSS variables so a resize drag never has to rebuild the rows
+  function applyCols(){
+    const cols = visCols(), gin = $('plGridIn'); if (!gin) return;
+    gin.style.setProperty('--pl-cols', cols.map(c => colW(c) + 'px').join(' '));
+    gin.style.setProperty('--pl-w1', colW(COLS[0]) + 'px');
+    gin.style.minWidth = cols.reduce((n, c) => n + colW(c), 0) + 'px';
+  }
   function renderGrid(){
     const cols = visCols(), gin = $('plGridIn');
-    gin.style.setProperty('--pl-cols', cols.map(c => c.w + 'px').join(' '));
-    gin.style.minWidth = cols.reduce((n, c) => n + c.w, 0) + 'px';
-    let h = `<div class="pl-ghead">${cols.map((c, n) => `<div${c.title ? ` title="${pesc(c.title)}"` : ''}${n === cols.length - 1 ? ' style="border-right:0"' : ''}>${c.k === 'num' ? '#' : pesc(c.label)}</div>`).join('')}</div><div class="pl-gbody">`;
+    applyCols();
+    let h = `<div class="pl-ghead">${cols.map((c, n) => `<div data-k="${c.k}"${c.title ? ` title="${pesc(c.title)}"` : ''}${n === cols.length - 1 ? ' style="border-right:0"' : ''}><span class="lbl">${c.k === 'num' ? '#' : pesc(c.label)}</span>${c.fixed ? '' : `<i class="pl-rz" data-k="${c.k}" title="Drag to change the column width. Double-click to reset it."></i>`}</div>`).join('')}</div><div class="pl-gbody">`;
     V.vis.forEach(i => { h += rowHTML(i, V.meta); });
     h += `<div class="pl-addrow"><button data-act="addEnd">+ Add task</button></div></div>`;
     gin.innerHTML = h;
@@ -8090,7 +8349,10 @@ const PLU = (function(){
       const i = tasks.findIndex(x => x.id === row.dataset.id); if (i < 0) return;
       const t = tasks[i];
       const set = (f, v) => { const el = row.querySelector(`[data-f="${f}"]`); if (el && el.value !== String(v)) el.value = v; };
-      set('name', t.name); set('start', t.start); set('finish', t.finish); set('duration', t.duration); set('pct', t.pct);
+      set('name', t.name); set('start', t.start); set('finish', t.finish); set('duration', t.duration); set('pct', t.pct); set('status', t.status);
+      const st = row.querySelector('select.pl-st, .pl-st.ro');
+      if (st){ st.className = 'pl-st' + (st.tagName === 'SPAN' ? ' ro ' : ' ') + (STAT_CLS[t.status] || 's-ns'); if (st.tagName === 'SPAN') st.textContent = t.status; }
+      const db = row.querySelector('.pl-dtb'); if (db){ const ds = dtState(t); db.classList.toggle('has', ds.has); db.title = ds.title; }
       set('preds', predText(tasks, t));
       const pc = row.querySelector('.pl-pct'); if (pc) pc.style.setProperty('--p', t.pct + '%');
       const ac = row.querySelector('[data-col="assign"]'); if (ac) ac.innerHTML = assignCell(i);
@@ -8204,7 +8466,7 @@ const PLU = (function(){
     // bars
     V.vis.forEach((i, r) => {
       const t = tasks[i], b = V.pos.get(t.id), top = r * RH;
-      const isC = crit && V.crit.has(t.id), cls = (isC ? ' crit' : '') + (crit && !isC ? ' dim' : '');
+      const isC = crit && V.crit.has(t.id), cls = (isC ? ' crit' : '') + (crit && !isC ? ' dim' : '') + (!b.parent && t.status === 'Delayed' ? ' st-dl' : '') + (!b.parent && t.status === 'Complete' ? ' st-ok' : '');
       const pc = Math.max(0, Math.min(100, t.pct));
       if (b.parent){
         const w = Math.max(6, b.xe - b.xs);
@@ -8282,6 +8544,7 @@ const PLU = (function(){
     if (!$('plGridIn') || !state.planner) return;
     analyse();
     syncGrid(); drawChart(); updateInfo();
+    if (V.dt) V.dt.fill();
   }
   function render_(){
     ensure();
@@ -8298,6 +8561,7 @@ const PLU = (function(){
         `<div class="pl-empty"><h3>The board is empty</h3>Add your first task, or start from a sample plan.<br><button class="pl-btn primary" data-act="addEnd">+ Add Task</button><button class="pl-btn" data-act="sample">Load sample plan</button></div>`);
     }
     drawChart(); syncToolbar(); updateInfo();
+    if (V.dt) V.dt.fill();
     if (V.inited && V.sl != null && $('plChart').clientWidth){ $('plChart').scrollLeft = V.sl; $('plChart').scrollTop = V.st || 0; }
     if (!V.inited && $('plChart').clientWidth){
       V.inited = true;
@@ -8337,7 +8601,7 @@ const PLU = (function(){
       doOp(ts => { ts.length = 0; P().collapsed = []; return { ok: true, warnings: [] }; }, { structural: true });
     });
   }
-  function loadSample(){ doOp(() => { state.planner = { tasks: seedTasks(), collapsed: [] }; PLE.recalc(state.planner.tasks); return { ok: true, warnings: [] }; }, { structural: true }); }
+  function loadSample(){ doOp(() => { state.planner = Object.assign({}, P(), { tasks: seedTasks(), collapsed: [] }); PLE.recalc(state.planner.tasks); return { ok: true, warnings: [] }; }, { structural: true }); }
   function toggleCaret(id){
     const c = P().collapsed, k = c.indexOf(id);
     if (k >= 0) c.splice(k, 1); else c.push(id);
@@ -8367,7 +8631,7 @@ const PLU = (function(){
     const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
     const canIn = i > 0 && ts[i-1].indent >= ts[i].indent, canOut = ts[i].indent > 0;
     menuEl = document.createElement('div'); menuEl.className = 'pl-menu';
-    menuEl.innerHTML = `<button data-m="above">Add Task Above</button><button data-m="below">Add Task Below</button><hr><button data-m="up">Move Up</button><button data-m="down">Move Down</button><button data-m="indent"${canIn ? '' : ' disabled'}>Indent</button><button data-m="outdent"${canOut ? '' : ' disabled'}>Outdent</button><hr><button data-m="tpl">Save as Template...</button><hr><button data-m="delete" class="danger">Delete Task</button>`;
+    menuEl.innerHTML = `<button data-m="details">Task Details...</button><hr><button data-m="above">Add Task Above</button><button data-m="below">Add Task Below</button><hr><button data-m="up">Move Up</button><button data-m="down">Move Down</button><button data-m="indent"${canIn ? '' : ' disabled'}>Indent</button><button data-m="outdent"${canOut ? '' : ' disabled'}>Outdent</button><hr><button data-m="tpl">Save as Template...</button><hr><button data-m="delete" class="danger">Delete Task</button>`;
     document.body.appendChild(menuEl); menuEl.style.display = 'block';
     const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
     menuEl.style.left = Math.max(6, Math.min(x, window.innerWidth - w - 6)) + 'px';
@@ -8375,7 +8639,8 @@ const PLU = (function(){
     menuEl.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b || b.disabled) return;
       const a = b.dataset.m; closeMenu();
-      if (a === 'above') addAbove(id); else if (a === 'below') addBelow(id);
+      if (a === 'details') openDetails(id);
+      else if (a === 'above') addAbove(id); else if (a === 'below') addBelow(id);
       else if (a === 'indent') doOp(t => PLE.changeIndent(t, id, 1), { structural: true });
       else if (a === 'outdent') doOp(t => PLE.changeIndent(t, id, -1), { structural: true });
       else if (a === 'up') doOp(t => PLE.moveSibling(t, id, -1), { structural: true });
@@ -8394,7 +8659,10 @@ const PLU = (function(){
     let h = `<b>${pesc(t.name || 'Untitled')}</b><span class="k">Row ${i + 1}</span><br>`;
     h += `<span class="k">Start:</span> ${fmtL(s)}<br><span class="k">Finish:</span> ${fmtL(f)}<br>`;
     h += `<span class="k">Duration:</span> ${t.duration === 0 && !parent ? 'Milestone (0 days)' : t.duration + ' working day' + (t.duration === 1 ? '' : 's')}<br>`;
-    h += `<span class="k">% Complete:</span> ${t.pct}%`;
+    h += `<span class="k">% Complete:</span> ${t.pct}%<br><span class="k">Status:</span> ${pesc(t.status)}`;
+    if ((t.notes || '').trim()){ const nn = t.notes.trim().replace(/\s+/g, ' '); h += `<br><span class="k">Notes:</span> ${pesc(nn.length > 90 ? nn.slice(0, 90) + '...' : nn)}`; }
+    if ((t.links || []).length) h += `<br><span class="k">Links:</span> ${t.links.length}`;
+    if ((t.checklist || []).length) h += `<br><span class="k">Checklist:</span> ${t.checklist.filter(x => x.done).length} of ${t.checklist.length} done`;
     if (parent) h += `<br><span class="k">Summary of ${V.meta.children[i].length} child row${V.meta.children[i].length === 1 ? '' : 's'}</span>`;
     if (t.preds.length) h += `<br><span class="k">Predecessors:</span> ${pesc(predText(ts, t))}`;
     const who = assigneesOf(i).map(r => r.first + ' ' + r.last);
@@ -8477,11 +8745,12 @@ const PLU = (function(){
     popEl.style.left = Math.max(8, L) + 'px'; popEl.style.top = T + 'px';
     return popEl;
   }
-  function modalBox(html, cls){
+  function modalBox(html, cls, onClose, onEsc){
     const ov = document.createElement('div'); ov.className = 'pl-modal-ov';
     ov.innerHTML = `<div class="pl-modal ${cls || ''}" role="dialog" aria-modal="true">${html}</div>`;
-    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey, true); };
-    const onKey = e => { if (e.key === 'Escape'){ e.stopPropagation(); close(); } };
+    let closed = false;
+    const close = () => { if (closed) return; closed = true; if (onClose) onClose(); ov.remove(); document.removeEventListener('keydown', onKey, true); };
+    const onKey = e => { if (e.key === 'Escape'){ e.stopPropagation(); if (popEl){ closePop(); return; } if (onEsc && onEsc(e)) return; close(); } };
     let down = false;
     ov.addEventListener('mousedown', e => { down = e.target === ov; });
     ov.addEventListener('click', e => { if (e.target === ov && down) close(); });
@@ -8493,7 +8762,7 @@ const PLU = (function(){
   // ══ columns show/hide ══
   function openColumns(btn){
     const items = COLS.filter(c => !c.lock).map(c => `<label class="pl-pi"><input type="checkbox" data-col="${c.k}"${V.hidden.includes(c.k) ? '' : ' checked'}><span class="pl-pi-t"><b>${pesc(c.label)}</b></span></label>`).join('');
-    const p = openPop('cols', btn, `<div class="pl-pop-h">Show columns</div>${items}<div class="pl-pop-f"><button class="pl-btn" data-x="all">Show all</button></div><div class="pl-pop-n">Task Name, the row number and the row buttons are always shown. Hidden columns keep working in the background.</div>`);
+    const p = openPop('cols', btn, `<div class="pl-pop-h">Show columns</div>${items}<div class="pl-pop-f"><button class="pl-btn" data-x="all">Show all</button> <button class="pl-btn" data-x="widths">Reset widths</button></div><div class="pl-pop-n">Task Name, the row number and the row buttons are always shown. Hidden columns keep working in the background. Drag the edge of any column heading to change its width.</div>`);
     if (!p) return;
     p.addEventListener('change', e => {
       const k = e.target.dataset.col; if (!k) return;
@@ -8502,6 +8771,7 @@ const PLU = (function(){
     });
     p.addEventListener('click', e => {
       if (e.target.dataset.x === 'all'){ V.hidden = []; persist(); renderGrid(); syncToolbar(); p.querySelectorAll('input').forEach(i => { i.checked = true; }); }
+      else if (e.target.dataset.x === 'widths'){ V.widths = {}; persist(); applyCols(); toast('Column widths reset.'); }
     });
   }
 
@@ -8584,6 +8854,193 @@ const PLU = (function(){
     showTip(`<b>Move ${pesc(ts[R.i].name || 'row')}</b>${n > 1 ? `with its ${n - 1} child row${n - 1 === 1 ? '' : 's'}<br>` : ''}${valid ? 'Release to drop here' : 'Drop on another row position'}`, R.lastX || (document.body.clientWidth / 2), R.lastY);
   }
 
+
+  // ══ task details pop-up: status, dates, assignees, notes, links to documents, checklist ══
+  function fileDisplay(u){
+    if (!/^file:/i.test(u)) return u;
+    let x = u.replace(/^file:\/\//i, '');
+    try { x = decodeURI(x); } catch (e) {}
+    if (/^\/[a-z]:\//i.test(x)) return x.slice(1).replace(/\//g, '\\');
+    return '\\\\' + x.replace(/^\//, '').replace(/\//g, '\\');
+  }
+  function linkHost(u){
+    if (/^file:/i.test(u)) return fileDisplay(u);
+    if (/^mailto:/i.test(u)) return u.slice(7);
+    if (/^onenote:/i.test(u)) return 'OneNote link';
+    try { const x = new URL(u); return x.host + (x.pathname.length > 1 ? x.pathname : ''); } catch (e) { return u; }
+  }
+  function copyText(txt){
+    const ok = () => toast('Copied to the clipboard.', 'success');
+    const fallback = () => { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) { toast('Could not copy. Select the text and copy it manually.', 'error'); } ta.remove(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fallback); else fallback();
+  }
+  function openDetails(id){
+    if (PLE.find(P().tasks, id) < 0) return;
+    if (V.dt) V.dt.close();
+    closePop(); closeMenu(); hideTip();
+    const idx = () => P().tasks.findIndex(x => x.id === id);
+    const T = () => P().tasks[idx()];
+    const sig = {}; let editLink = null, skipCk = false;
+    const f = (k, lab, inner) => `<label class="pl-f">${lab}${inner.replace('<input', `<input data-d="${k}"`)}</label>`;
+    const html = `<div class="pl-dt-top"><div class="pl-dt-path" id="dtPath"></div><button class="pl-x" data-x="close" aria-label="Close">&times;</button></div>
+      <div class="pl-dt-body">
+        <div class="pl-dt-main">
+          <input class="pl-dt-title" data-d="name" maxlength="200" aria-label="Task name" placeholder="Task name">
+          <div class="pl-dt-sub" id="dtSub"></div>
+          <div class="pl-dt-asg" id="dtAsg"></div>
+          <div id="dtProj"></div>
+          <div class="pl-dt-grid">
+            <label class="pl-f">Status<select class="pl-fi" data-d="status">${PLE.STATUSES.map(x => `<option>${x}</option>`).join('')}</select></label>
+            ${f('pct', '% Complete', '<input class="pl-fi" type="number" min="0" max="100" step="1">')}
+            ${f('start', 'Start date', '<input class="pl-fi" type="date">')}
+            ${f('finish', 'Finish date', '<input class="pl-fi" type="date">')}
+            ${f('duration', 'Duration (working days)', '<input class="pl-fi" type="number" min="0" step="1">')}
+            ${f('preds', 'Predecessors (row numbers)', '<input class="pl-fi" type="text" placeholder="e.g. 2,3">')}
+          </div>
+          <div class="pl-dt-note" id="dtParentNote" style="display:none">This row is a group. Its dates, duration, % complete, status and predecessors are calculated from its child tasks.</div>
+          <div class="pl-dt-h"><span id="dtChT">Checklist</span></div>
+          <div id="dtChList"></div>
+          <div class="pl-ck add"><span class="pl-ck-box"></span><input class="pl-ck-t" id="dtChNew" maxlength="200" placeholder="Add an item" aria-label="Add a checklist item"></div>
+        </div>
+        <div class="pl-dt-side">
+          <div class="pl-dt-h">Notes</div>
+          <textarea id="dtNotes" class="pl-fi pl-dt-notes" maxlength="20000" placeholder="Add notes for this task: scope, decisions, who to call, site details..." aria-label="Notes"></textarea>
+          <div class="pl-dt-h" style="margin-top:16px"><span id="dtLkT">Links to documents</span></div>
+          <div id="dtLinks"></div>
+          <div class="pl-dt-addl"><input id="dtUrl" class="pl-fi" placeholder="Paste a link or file path" aria-label="Link address"><input id="dtTitle" class="pl-fi" placeholder="Name (optional)" maxlength="120" aria-label="Link name"><button class="pl-btn primary" data-x="addlink">Add</button></div>
+          <div class="pl-pop-n">Works with SharePoint, OneNote, Teams and web addresses, mailto links, and file paths such as \\\\server\\share\\file.pdf. Your browser may block links to local files from a web page. If that happens, use the copy button and paste the path into File Explorer.</div>
+        </div>
+      </div>`;
+    const box = modalBox(html, 'dt', () => { commitNotes(); V.dt = null; }, () => { if (editLink){ editLink = null; fill(); return true; } return false; });
+    const el = box.el, q = s => el.querySelector(s), qa = s => [...el.querySelectorAll(s)];
+    const setVal = (e, v) => { if (e && document.activeElement !== e && e.value !== String(v)) e.value = v; };
+
+    function paintAsg(t, i, parent){
+      const list = assigneesOf(i);
+      const chips = list.map(r => `<span class="pl-asg-i">${avHTML(r)}<span>${pesc(r.first + ' ' + r.last)}</span></span>`).join('');
+      q('#dtAsg').innerHTML = `<span class="pl-dt-ic" title="${parent ? 'Team' : 'Assigned to'}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="5.2" r="2.4"/><path d="M1.8 13c.3-2.4 2-3.7 4.2-3.7s3.9 1.3 4.2 3.7M12 4v4M10 6h4"/></svg></span>`
+        + (chips || `<span class="pl-asg-none">${parent ? 'No one is assigned to tasks in this group yet' : 'No one assigned'}</span>`)
+        + (parent ? '' : `<button class="pl-btn" data-dt="assign">${list.length ? 'Change' : 'Assign people'}</button>`);
+    }
+    function paintProj(t){
+      const pj = t.projId && projById(t.projId), box_ = q('#dtProj');
+      if (!pj){ box_.innerHTML = ''; return; }
+      const fd = s => { const d = toDn(s); return isNaN(d) ? 'no date' : fmtL(d); };
+      box_.innerHTML = `<div class="pl-dt-proj"><div class="h">${LINK_ICON}<b>Linked project</b><span>${pesc(pj.name)}</span></div>
+        <div class="b">${[pj.client, pj.code ? 'Code ' + pj.code : '', pj.owner ? 'Owner ' + pj.owner : '', pj.manager ? 'Manager ' + pj.manager : ''].filter(Boolean).map(pesc).join(' | ') || 'No client or owner on the project'}<br>
+        Projects tab dates: ${fd(pj.start)} to ${fd(pj.end)}<br>Plan dates here: ${fd(t.start)} to ${fd(t.finish)}</div>
+        <div class="a"><button class="pl-btn" data-x="gotoProj">Open Projects tab</button><button class="pl-btn" data-x="unlink">Unlink</button></div></div>`;
+    }
+    function paintChecklist(t){
+      q('#dtChList').innerHTML = t.checklist.map(c => `<div class="pl-ck${c.done ? ' done' : ''}" data-c="${c.id}"><input type="checkbox" class="pl-ck-b"${c.done ? ' checked' : ''} aria-label="Done"><input class="pl-ck-t" value="${pesc(c.text)}" maxlength="200" aria-label="Checklist item"><button class="pl-ck-x" data-x="rmck" aria-label="Remove item" title="Remove">&times;</button></div>`).join('');
+    }
+    function paintLinks(t){
+      q('#dtLinks').innerHTML = t.links.map(l => {
+        if (editLink === l.id) return `<div class="pl-lnk edit" data-l="${l.id}"><input class="pl-fi" data-e="url" value="${pesc(/^file:/i.test(l.url) ? fileDisplay(l.url) : l.url)}" aria-label="Link address"><input class="pl-fi" data-e="title" value="${pesc(l.title)}" placeholder="Name (optional)" aria-label="Link name"><div class="r"><button class="pl-btn primary" data-x="svlink">Save</button><button class="pl-btn" data-x="cxlink">Cancel</button></div></div>`;
+        return `<div class="pl-lnk" data-l="${l.id}"><span class="ic">${LINK_ICON}</span><div class="tx"><a href="${pesc(l.url)}" target="_blank" rel="noopener noreferrer" title="${pesc(l.url)}">${pesc(l.title || linkHost(l.url))}</a>${l.title ? `<small>${pesc(linkHost(l.url))}</small>` : ''}</div><button class="pl-ck-x" data-x="cplink" title="Copy the link" aria-label="Copy link">${COPY_ICON}</button><button class="pl-ck-x" data-x="edlink" title="Edit this link" aria-label="Edit link">${PENCIL_ICON}</button><button class="pl-ck-x" data-x="rmlink" title="Remove this link" aria-label="Remove link">&times;</button></div>`;
+      }).join('') || '<div class="pl-pop-n" style="padding:2px 0 8px">No links yet.</div>';
+    }
+    function fill(){
+      const i = idx(); if (i < 0){ box.close(); return; }
+      const t = P().tasks[i], m = V.meta, parent = !!(m && m.isParent[i]);
+      // breadcrumb of parent rows
+      const names = []; let p = m ? m.parent[i] : -1; while (p !== -1 && p != null){ names.unshift(P().tasks[p].name || 'Untitled'); p = m.parent[p]; }
+      q('#dtPath').innerHTML = pesc(names.length ? names.join('  /  ') : 'Planner');
+      setVal(q('[data-d="name"]'), t.name);
+      const stSel = q('[data-d="status"]'); setVal(stSel, t.status);
+      ['pct', 'start', 'finish', 'duration'].forEach(k => setVal(q(`[data-d="${k}"]`), t[k]));
+      setVal(q('[data-d="preds"]'), predText(P().tasks, t));
+      ['status', 'pct', 'start', 'finish', 'duration', 'preds'].forEach(k => { q(`[data-d="${k}"]`).disabled = parent; });
+      q('#dtParentNote').style.display = parent ? 'block' : 'none';
+      const bits = ['Row ' + (i + 1)];
+      if (parent) bits.push(`Group of ${m.children[i].length} row${m.children[i].length === 1 ? '' : 's'}`);
+      if (V.critical && V.crit.has(id)) bits.push('On the critical path');
+      else if (!parent && V.floatOf.has(id) && (t.preds.length || P().tasks.some(x => x.preds.some(pp => pp.id === id)))) bits.push(`Float ${V.floatOf.get(id)} working day${V.floatOf.get(id) === 1 ? '' : 's'}`);
+      q('#dtSub').textContent = bits.join('  |  ');
+      const asig = JSON.stringify([parent, assigneesOf(i).map(r => r.id)]);
+      if (asig !== sig.asg){ sig.asg = asig; paintAsg(t, i, parent); }
+      const psig = JSON.stringify([t.projId, t.start, t.finish, t.projId && projById(t.projId) ? JSON.stringify(projById(t.projId)).length : 0]);
+      if (psig !== sig.proj){ sig.proj = psig; paintProj(t); }
+      const csig = JSON.stringify(t.checklist);
+      if (csig !== sig.ck){ sig.ck = csig; if (!skipCk) paintChecklist(t); skipCk = false; }
+      const done = t.checklist.filter(c => c.done).length;
+      q('#dtChT').textContent = t.checklist.length ? `Checklist (${done} of ${t.checklist.length} item${t.checklist.length === 1 ? '' : 's'} done)` : 'Checklist';
+      const lsig = JSON.stringify(t.links) + '|' + editLink;
+      if (lsig !== sig.lk){ sig.lk = lsig; paintLinks(t); }
+      q('#dtLkT').textContent = t.links.length ? `Links to documents (${t.links.length})` : 'Links to documents';
+      const nt = q('#dtNotes'); if (document.activeElement !== nt && nt.value !== t.notes) nt.value = t.notes;
+    }
+    function commitNotes(){
+      const n = q('#dtNotes'); if (!n || idx() < 0) return;
+      if (n.value !== T().notes) doOp(ts => PLE.setNotes(ts, id, n.value));
+    }
+    V.dt = { id, fill, close: box.close };
+
+    // fields
+    el.addEventListener('change', e => {
+      const t = e.target, d = t.dataset.d;
+      if (d){ applyField(id, d, t.value); fill(); return; }
+      if (t.id === 'dtNotes'){ commitNotes(); return; }
+      const ck = t.closest('.pl-ck[data-c]');
+      if (ck && t.classList.contains('pl-ck-b')){
+        skipCk = true; ck.classList.toggle('done', t.checked);
+        doOp(ts => PLE.editCheck(ts, id, ck.dataset.c, { done: t.checked })); skipCk = false; fill(); return;
+      }
+      if (ck && t.classList.contains('pl-ck-t')){
+        const empty = !t.value.trim();
+        skipCk = !empty;
+        doOp(ts => PLE.editCheck(ts, id, ck.dataset.c, { text: t.value })); skipCk = false; fill(); return;
+      }
+      const lk = t.closest('.pl-lnk.edit'); if (lk) return;
+    });
+    el.addEventListener('keydown', e => {
+      const t = e.target;
+      if (e.key === 'Enter' && !e.shiftKey){
+        if (t.dataset.d && t.tagName === 'INPUT'){ e.preventDefault(); t.blur(); }
+        else if (t.id === 'dtChNew'){
+          e.preventDefault();
+          if (t.value.trim()){ const v = t.value; t.value = ''; doOp(ts => PLE.addCheck(ts, id, v)); fill(); q('#dtChNew').focus(); }
+        }
+        else if (t.id === 'dtUrl' || t.id === 'dtTitle'){ e.preventDefault(); addLinkNow(); }
+        else if (t.classList.contains('pl-ck-t') && t.closest('.pl-ck[data-c]')){ e.preventDefault(); t.blur(); q('#dtChNew').focus(); }
+        else if (t.closest('.pl-lnk.edit') && t.tagName === 'INPUT'){ e.preventDefault(); saveLink(t.closest('.pl-lnk')); }
+      }
+    });
+    function addLinkNow(){
+      const u = q('#dtUrl'), ti = q('#dtTitle');
+      if (!u.value.trim()){ u.focus(); return; }
+      const r = doOp(ts => PLE.addLink(ts, id, u.value, ti.value));
+      if (r && r.ok){ u.value = ''; ti.value = ''; u.classList.remove('bad'); fill(); u.focus(); } else { u.classList.add('bad'); u.focus(); }
+    }
+    function saveLink(row){
+      const url = row.querySelector('[data-e="url"]').value, title = row.querySelector('[data-e="title"]').value, lid = row.dataset.l;
+      const r = doOp(ts => PLE.updateLink(ts, id, lid, url, title));
+      if (r && r.ok){ editLink = null; fill(); }
+    }
+    el.addEventListener('input', e => { if (e.target.id === 'dtUrl') e.target.classList.remove('bad'); });
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-x], [data-dt]'); if (!b) return;
+      if (b.dataset.dt === 'assign'){ openAssign(b, id); return; }
+      const x = b.dataset.x;
+      if (x === 'close'){ box.close(); return; }
+      if (x === 'addlink'){ addLinkNow(); return; }
+      if (x === 'gotoProj'){ box.close(); if (typeof switchView === 'function') switchView('projgantt'); return; }
+      if (x === 'unlink'){ doOp(ts => PLE.setProjLink(ts, id, null), { structural: true }); toast('Unlinked from the project. The tasks stay on the board.'); fill(); return; }
+      const ck = b.closest('.pl-ck[data-c]');
+      if (x === 'rmck' && ck){ doOp(ts => PLE.removeCheck(ts, id, ck.dataset.c)); fill(); return; }
+      const lk = b.closest('.pl-lnk');
+      if (!lk) return;
+      const l = T().links.find(y => y.id === lk.dataset.l); if (!l) return;
+      if (x === 'cplink') copyText(fileDisplay(l.url));
+      else if (x === 'edlink'){ editLink = l.id; fill(); const u = q('.pl-lnk.edit [data-e="url"]'); if (u){ u.focus(); u.select(); } }
+      else if (x === 'cxlink'){ editLink = null; fill(); }
+      else if (x === 'svlink') saveLink(lk);
+      else if (x === 'rmlink'){ doOp(ts => PLE.removeLink(ts, id, l.id)); fill(); }
+    });
+    fill();
+    const nm = q('[data-d="name"]'); nm.focus(); nm.select();
+  }
+
   // ══ project templates ══
   function tplSpan(tpl){
     try {
@@ -8598,36 +9055,79 @@ const PLU = (function(){
     return [root, kid];
   }
   function openAddProject(){
-    const tpls = P().templates || [];
+    const tpls = P().templates || [], projs = (state.projects || []).filter(p => !p._builtin && !p._ooo);   // the built-in Out of Office entry is not a real project
+    const used = new Set(P().tasks.map(t => t.projId).filter(Boolean));
     const spans = new Map(tpls.map(t => [t.id, tplSpan(t)]));
-    const list = `<label class="pl-tpl"><input type="radio" name="plTpl" value="blank" checked><span><b>Blank project</b><small>A project row with one task to start from</small></span></label>` +
+    const projOpts = `<option value="">None. A standalone project that only lives on the Planner</option>` + projs.map(p => `<option value="${pesc(p.id)}"${used.has(p.id) ? ' disabled' : ''}>${pesc(p.name)}${p.client ? ' (' + pesc(p.client) + ')' : ''}${used.has(p.id) ? ' - already on the board' : ''}</option>`).join('');
+    const list = `<label class="pl-tpl"><input type="radio" name="plTpl" value="blank" checked><span><b id="plApBT">Blank project</b><small id="plApBS">A project row with one task to start from</small></span></label>` +
       tpls.map(t => { const sp = spans.get(t.id); return `<label class="pl-tpl"><input type="radio" name="plTpl" value="${t.id}"><span><b>${pesc(t.name)}</b><small>${sp.rows} rows, about ${sp.days} working days${t.desc ? '. ' + pesc(t.desc) : ''}</small></span></label>`; }).join('');
-    const { el, close } = modalBox(`<h4>Add Project</h4><p>Pick a template, name the project and choose when it starts. The tasks are added to the bottom of the board with their dependencies.</p>
+    const { el, close } = modalBox(`<h4>Add Project</h4><p>Add a standalone project, or pull one that already exists in the Projects tab. The tasks are added to the bottom of the board.</p>
+      <label class="pl-f" style="margin-bottom:6px">Pull from a project in the Projects tab<select id="plApProj" class="pl-fi">${projOpts}</select></label>
+      <div class="pl-pop-n pl-ap-info" id="plApInfo" style="display:none"></div>
+      <div class="pl-dt-h" style="margin:10px 0 6px">Task plan</div>
       <div class="pl-tpls" role="radiogroup" aria-label="Template">${list}</div>
       <div class="pl-fr"><label class="pl-f">Project name<input id="plApName" class="pl-fi" maxlength="120" value="New Project"></label>
       <label class="pl-f">Start date<input id="plApStart" class="pl-fi" type="date" value="${toStr(PLE.nextWork(PLE.todayDn()))}"></label></div>
-      <div class="row"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok">Add Project</button></div>`, 'wide');
-    const nameI = el.querySelector('#plApName'), dateI = el.querySelector('#plApStart');
+      <div class="row"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok">Add Project</button></div>`, 'wide tall');
+    const nameI = el.querySelector('#plApName'), dateI = el.querySelector('#plApStart'), projI = el.querySelector('#plApProj'), info = el.querySelector('#plApInfo');
     let touched = false, curName = 'New Project';
+    const curProj = () => projs.find(x => x.id === projI.value) || null;
+    const curTpl = () => tpls.find(x => x.id === el.querySelector('input[name="plTpl"]:checked').value) || null;
+    const phasesOf = p => (Array.isArray(p.phases) ? p.phases : []).filter(x => x && String(x.name || '').trim());
+    const fmtD = s => { const d = toDn(s); return isNaN(d) ? 'no date' : fmtL(d); };
+    function sync(){
+      const p = curProj(), tpl = curTpl();
+      const bt = el.querySelector('#plApBT'), bs = el.querySelector('#plApBS');
+      if (p){
+        const ph = phasesOf(p);
+        bt.textContent = ph.length ? 'Phases and dates from the project' : 'One task spanning the project dates';
+        bs.textContent = ph.length ? `${ph.length} phase${ph.length === 1 ? '' : 's'} become tasks, using the dates set in the Projects tab` : `A single task from ${fmtD(p.start)} to ${fmtD(p.end)}`;
+        const bits = [p.client, p.code ? 'Code ' + p.code : '', p.owner ? 'Owner ' + p.owner : '', p.manager ? 'Manager ' + p.manager : ''].filter(Boolean).map(pesc).join(' | ');
+        let line = `${bits ? bits + '<br>' : ''}Project dates: ${fmtD(p.start)} to ${fmtD(p.end)}`;
+        if (tpl){ const sp = spans.get(tpl.id), pd = toDn(p.start), pe = toDn(p.end); if (!isNaN(pd) && !isNaN(pe)) line += `<br>Template length is about ${sp.days} working days; the project runs ${PLE.workDays(PLE.nextWork(pd), Math.max(PLE.prevWork(pe), PLE.nextWork(pd)))}. The template is scheduled from the start date below.`; }
+        info.innerHTML = line; info.style.display = 'block';
+        dateI.disabled = !tpl;
+        dateI.title = tpl ? '' : 'The dates come from the project';
+      } else {
+        bt.textContent = 'Blank project'; bs.textContent = 'A project row with one task to start from';
+        info.style.display = 'none'; dateI.disabled = false; dateI.title = '';
+      }
+    }
     nameI.addEventListener('input', () => { touched = true; });
+    projI.addEventListener('change', () => {
+      const p = curProj();
+      if (p){
+        nameI.value = curName = p.name; touched = false;
+        const d = toDn(p.start); if (!isNaN(d)) dateI.value = toStr(PLE.nextWork(d));
+      } else if (!touched || nameI.value === curName){
+        const t = curTpl(); curName = t ? t.name : 'New Project'; nameI.value = curName; touched = false;
+      }
+      sync();
+    });
     el.addEventListener('change', e => {
       if (e.target.name !== 'plTpl') return;
-      if (!touched || nameI.value === curName){
+      if (!curProj() && (!touched || nameI.value === curName)){
         const t = tpls.find(x => x.id === e.target.value);
         curName = t ? t.name : 'New Project'; nameI.value = curName; touched = false;
       }
+      sync();
     });
     const submit = () => {
-      const sel = el.querySelector('input[name="plTpl"]:checked').value;
-      const name = nameI.value.trim() || 'New Project';
+      const tpl = curTpl(), proj = curProj();
+      const name = nameI.value.trim() || (proj ? proj.name : 'New Project');
       const sd = toDn(dateI.value), y = +dateI.value.slice(0, 4);
-      if (isNaN(sd) || y < 1990 || y > 2100){ toast('Choose a valid start date.', 'error'); dateI.focus(); return; }
-      const tpl = tpls.find(x => x.id === sel);
-      const rows = tpl ? PLE.instantiateTemplate(tpl, name, sd) : blankProject(name, sd);
+      if (!(proj && !tpl) && (isNaN(sd) || y < 1990 || y > 2100)){ toast('Choose a valid start date.', 'error'); dateI.focus(); return; }
+      let rows;
+      if (tpl){
+        rows = PLE.instantiateTemplate(tpl, name, sd);
+        if (proj){ rows[0].projId = proj.id; if (!rows[0].notes && proj.desc) rows[0].notes = String(proj.desc).slice(0, 20000); }
+      } else if (proj){
+        rows = PLE.rowsFromProject(proj); rows[0].name = name;
+      } else rows = blankProject(name, sd);
       close();
       V.reveal = rows[0].id;
       doOp(ts => { ts.push(...rows); PLE.recalc(ts); return { ok: true, warnings: [] }; }, { structural: true });
-      toast(`Added "${name}"` + (tpl ? ` from template "${tpl.name}"` : ''), 'success');
+      toast(`Added "${name}"` + (proj ? ' from the Projects tab' : '') + (tpl ? ` using template "${tpl.name}"` : ''), 'success');
     };
     el.addEventListener('click', e => { const x = e.target.dataset.x; if (x === 'no') close(); else if (x === 'ok') submit(); });
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'radio'){ e.preventDefault(); submit(); } });
@@ -8637,7 +9137,7 @@ const PLU = (function(){
   function openSaveTemplate(id){
     const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
     const n = PLE.subtreeEnd(ts, i) - i;
-    const { el, close } = modalBox(`<h4>Save as Template</h4><p>Saves "${pesc(ts[i].name)}" and its ${n - 1} sub-row${n - 1 === 1 ? '' : 's'} as a reusable template. Durations, indents and dependencies inside the project are kept. Dates, % complete and assigned people are not.</p>
+    const { el, close } = modalBox(`<h4>Save as Template</h4><p>Saves "${pesc(ts[i].name)}" and its ${n - 1} sub-row${n - 1 === 1 ? '' : 's'} as a reusable template. Durations, indents, dependencies, notes, links and checklist items are kept. Dates, % complete, status and assigned people are not.</p>
       <label class="pl-f">Template name<input id="plStName" class="pl-fi" maxlength="80" value="${pesc(ts[i].name)}"></label>
       <label class="pl-f" style="margin-top:10px">Description (optional)<input id="plStDesc" class="pl-fi" maxlength="300"></label>
       <div class="row" style="margin-top:16px"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok">Save Template</button></div>`);
@@ -8703,6 +9203,33 @@ const PLU = (function(){
     });
   }
 
+  // one place that turns an edited field (grid cell or details pop-up) into an engine call
+  function applyField(id, f, v){
+    if (f === 'name') return doOp(ts => PLE.setName(ts, id, v));
+    if (f === 'status') return doOp(ts => PLE.setStatus(ts, id, v));
+    if (f === 'start' || f === 'finish'){
+      const y = +String(v).slice(0, 4);
+      if (!v || y < 1990 || y > 2100){ refresh(); return null; }
+      return f === 'start' ? doOp(ts => PLE.setStart(ts, id, v, 'move')) : doOp(ts => PLE.setFinish(ts, id, v));
+    }
+    if (f === 'duration') return doOp(ts => PLE.setDuration(ts, id, v));
+    if (f === 'pct') return doOp(ts => PLE.setPct(ts, id, v));
+    if (f === 'preds') return doOp(ts => PLE.setPreds(ts, id, v));
+    return null;
+  }
+
+  // ── resize a grid column by dragging the edge of its heading ──
+  function startColResize(e, k){
+    const c = COLS.find(x => x.k === k); if (!c || c.fixed || e.button !== 0) return;
+    e.preventDefault(); e.stopPropagation();
+    const h = e.target, x0 = e.clientX, w0 = colW(c);
+    try { h.setPointerCapture(e.pointerId); } catch (err) {}
+    h.classList.add('drag'); document.body.classList.add('pl-resizing'); hideTip();
+    const mv = ev => { V.widths[k] = Math.max(c.min, Math.min(700, Math.round(w0 + ev.clientX - x0))); applyCols(); showTip(`<b>${pesc(c.label || 'Column')}</b>${colW(c)} px`, ev.clientX, ev.clientY); };
+    const up = () => { h.classList.remove('drag'); document.body.classList.remove('pl-resizing'); h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up); hideTip(); persist(); };
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  }
+
   // ── wiring ──
   let wired = false;
   function wire(){
@@ -8731,26 +9258,21 @@ const PLU = (function(){
     // grid: edits
     gridIn.addEventListener('change', e => {
       const el = e.target, f = el.dataset.f; if (!f) return;
-      const row = el.closest('.pl-row'), id = row.dataset.id;
-      if (f === 'name') doOp(ts => PLE.setName(ts, id, el.value), { el });
-      else if (f === 'start' || f === 'finish'){
-        const v = el.value;
-        if (!v){ syncGrid(); return; }
-        const y = +v.slice(0, 4);
-        if (y < 1990 || y > 2100){ syncGrid(); return; }
-        if (f === 'start') doOp(ts => PLE.setStart(ts, id, v, 'move'), { el });
-        else doOp(ts => PLE.setFinish(ts, id, v), { el });
-      }
-      else if (f === 'duration') doOp(ts => PLE.setDuration(ts, id, el.value), { el });
-      else if (f === 'pct') doOp(ts => PLE.setPct(ts, id, el.value), { el });
-      else if (f === 'preds') doOp(ts => PLE.setPreds(ts, id, el.value), { el });
+      applyField(el.closest('.pl-row').dataset.id, f, el.value);
     });
     gridIn.addEventListener('keydown', e => {
       if (e.key === 'Enter' && e.target.classList.contains('pl-in')){ e.preventDefault(); e.target.blur(); }
       else if (e.key === 'Escape' && e.target.classList.contains('pl-in')){ syncGrid(); e.target.blur(); }
       else if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('pl-as') && e.target.dataset.act === 'assign'){ e.preventDefault(); openAssign(e.target, e.target.closest('.pl-row').dataset.id); }
     });
-    gridIn.addEventListener('pointerdown', e => { const n = e.target.closest('.pl-num'); if (n) startReorder(e, n.closest('.pl-row').dataset.id); });
+    gridIn.addEventListener('pointerdown', e => {
+      const rz = e.target.closest('.pl-rz'); if (rz){ startColResize(e, rz.dataset.k); return; }
+      const n = e.target.closest('.pl-num'); if (n) startReorder(e, n.closest('.pl-row').dataset.id);
+    });
+    gridIn.addEventListener('dblclick', e => {
+      const rz = e.target.closest('.pl-rz'); if (!rz) return;
+      delete V.widths[rz.dataset.k]; applyCols(); persist();
+    });
     // grid: buttons, selection, context menu
     gridIn.addEventListener('click', e => {
       const row = e.target.closest('.pl-row');
@@ -8765,6 +9287,7 @@ const PLU = (function(){
         else if (a === 'outdent') doOp(ts => PLE.changeIndent(ts, id, -1), { structural: true });
         else if (a === 'caret') toggleCaret(id);
         else if (a === 'assign') openAssign(btn, id);
+        else if (a === 'details') openDetails(id);
         else if (a === 'menu'){ const r = btn.getBoundingClientRect(); openMenu(r.left, r.bottom + 4, id); }
         return;
       }
@@ -8774,7 +9297,7 @@ const PLU = (function(){
     gridIn.addEventListener('contextmenu', e => { const row = e.target.closest('.pl-row'); if (!row) return; e.preventDefault(); setSelected(row.dataset.id); openMenu(e.clientX, e.clientY, row.dataset.id); });
     document.addEventListener('click', e => { if (menuEl && !e.target.closest('.pl-menu') && !e.target.closest('[data-act="menu"]')) closeMenu(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape'){ closeMenu(); closePop(); } });
-    document.addEventListener('click', e => { if (popEl && !popEl.contains(e.target) && !e.target.closest('[data-act="assign"], [data-pl="columns"]')) closePop(); });
+    document.addEventListener('click', e => { if (popEl && !popEl.contains(e.target) && !e.target.closest('[data-act="assign"], [data-pl="columns"], [data-dt="assign"]')) closePop(); });
     window.addEventListener('wheel', closeMenu, { passive: true, capture: true });
 
     // vertical scroll sync (the timeline owns the vertical scrollbar)
@@ -8800,9 +9323,8 @@ const PLU = (function(){
     chartIn.addEventListener('pointerleave', () => { if (!V.drag) hideTip(); });
     chartIn.addEventListener('click', e => { const el = e.target.closest('[data-id]'); if (el) setSelected(el.dataset.id); });
     chartIn.addEventListener('dblclick', e => {
-      const el = e.target.closest('[data-id]'); if (!el) return;
-      const inp = gridIn.querySelector(`.pl-row[data-id="${el.dataset.id}"] [data-f="name"]`);
-      if (inp){ inp.focus(); inp.select(); }
+      const el = e.target.closest('[data-id], [data-for]'); if (!el) return;
+      openDetails(el.dataset.id || el.dataset.for);
     });
 
     // resizable divider
