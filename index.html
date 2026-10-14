@@ -2938,7 +2938,11 @@ function phaseView(p, phaseId){
   if(!p || !phaseId) return p;
   const ph = (p.phases||[]).find(x=>x.id===phaseId);
   if(!ph || !ph.start || !ph.end) return p;
-  return {...p, start:ph.start, end:ph.end, name:p.name+' · '+(ph.name||'Phase'), _phaseId:phaseId, _phaseName:ph.name||'Phase'};
+  return {...p, start:ph.start, end:ph.end, name:p.name+' · '+(ph.name||'Phase'), _baseName:p.name, _phaseId:phaseId, _phaseName:ph.name||'Phase'};
+}
+// text on a Schedule bar: project name, then the project code, then the phase (when the bar is one phase)
+function barLabel(p){
+  return (p._baseName||p.name) + (p.code ? ' · '+p.code : '') + (p._phaseId ? ' · '+p._phaseName : '');
 }
 // move or resize the bar of an assignment: a phase assignment changes that phase, anything else the project
 function applyBarDates(p, vals){
@@ -3380,13 +3384,13 @@ function renderSchedule(){
       bar.style.cssText = `left:${bx}px;width:${bw}px;top:${topPx}px;height:${heightPx}px;bottom:auto;background:${p.color};cursor:grab;`;
       bar.innerHTML = `
         <div class="g-bar-left-handle"></div>
-        <span class="g-bar-label">${p.name}${clientShort}</span>
+        <span class="g-bar-label">${barLabel(p)}${clientShort}</span>
         <span class="g-bar-meta">${hpdStr}</span>
         <div class="g-bar-resize-handle"></div>`;
 
       bar.onclick    = ev => { ev.stopPropagation(); showBarPopover(ev, p, a, res); };
       bar.oncontextmenu = ev => { ev.preventDefault(); ev.stopPropagation(); hideTip(); showCtx(ev,'project',p.id); };
-      bar.onmouseenter = ev => showTip(ev, `<strong>${p.name}</strong><br>${p.client||''}<br>${p.start} → ${p.end}<br>Allocation: ${a.pct}% (${hpdStr})`);
+      bar.onmouseenter = ev => showTip(ev, `<strong>${barLabel(p)}</strong><br>${p.client||''}<br>${p.start} → ${p.end}<br>Allocation: ${a.pct}% (${hpdStr})`);
       bar.onmouseleave = hideTip;
 
       // ── Helper: live label ──
@@ -3602,13 +3606,8 @@ function renderSchedule(){
       lanes.forEach(laneAllocs => {
         const laneEl = document.createElement('div');
         laneEl.style.cssText = `height:${LANE_H}px;min-height:${LANE_H}px;max-height:${LANE_H}px;border-top:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;gap:2px;padding:4px 14px 4px 40px;box-sizing:border-box;overflow:hidden;`;
-        laneAllocs.forEach(a => {
-          const row = document.createElement('div');
-          row.className = 'pr-proj-row';
-          row.style.cssText = 'height:auto;padding:0;border:none;';
-          row.innerHTML = `<span class="pr-proj-dot" style="background:${a.project.color}"></span><span class="pr-proj-name">${a.project.name}</span>`;
-          laneEl.appendChild(row);
-        });
+        // (the list of project names under each person was removed: the bars already say it. The empty
+        // lane box stays so the left panel keeps the same row heights as the timeline.)
         ppGroup.appendChild(laneEl);
       });
 
@@ -5959,14 +5958,14 @@ function buildUtilizationChart(res) {
 // ══════════════════════════════════════════
 const TUTORIAL_STEPS = [
   { title:'Welcome to Resource Manager', body:'This quick tour covers the key features. Use the arrows to navigate, or press Escape to exit at any time.', targetId:null },
-  { title:'Schedule View', body:'The main timeline shows every team member\'s project assignments. Each colored bar is a project. Hover for details, click a bar for the full info card — you can even edit the allocation % or hours/day right there.', targetId:'tabSchedule' },
+  { title:'Schedule View', body:'The main timeline shows every team member\'s project assignments. Each colored bar is a project, or one phase of a project. A bar reads: project name, project code, phase, then client. Hover for details, click a bar for the full info card, and edit the allocation % or hours/day right there.', targetId:'tabSchedule' },
   { title:'D / W / M Granularity', body:'Switch between Day, Week, and Month views. In Week mode (default), weekend columns are lightly shaded. Use the ‹ › arrows to scroll through time — the app auto-scrolls to keep Today in view.', targetId:'dwmW' },
   { title:'Employee Rows', body:'Click a person\'s name or avatar to open their Snapshot panel — contact info, a 6-month utilization chart, and upcoming/recent project assignments. Right-click a row for quick actions like "New Assignment", or click any empty week to assign a project on the spot. In the assignment picker, check "Repeat weekly" to schedule the same project across several individual weeks in one go, instead of one long continuous bar.', targetId:'personPanelBody' },
   { title:'Utilization Target Bar', body:'When a person\'s overlapping projects push them over their utilization target, a red bar appears above the conflicting period showing the combined %. Set each person\'s target in Edit Team Member.', targetId:null },
   { title:'Schedule Filters', body:'Use the sidebar filters to narrow the Schedule view by client, role, department, manager, work status, utilization, and more — great for finding who\'s over-allocated or free to staff.', targetId:'mainSidebar' },
   { title:'Projects Gantt', body:'The Projects tab shows a project-centric Gantt — each row is a project with its own timeline bar. Expand any project to see everyone assigned to it.', targetId:'tabProjGantt' },
   { title:'Planner (Gantt)', body:'The Planner tab is a Smartsheet-style task plan: a data grid on the left and a Gantt timeline on the right, joined by a draggable divider. Edit dates, duration, % complete or predecessors (row numbers, comma separated) in the grid, or drag a bar to move it and drag either edge to change its start or finish. Indent a task to make the row above it a parent: parents roll up their children and are read-only. Durations count Monday to Friday only, unless a task is set to Include weekends (row menu or task details): then its start, finish, duration and lag count every calendar day, and typing a Saturday or Sunday date switches that on for you. Type a start or finish date on a group row (a phase such as Design) to set it for every task inside, and each task can still be edited afterwards.', targetId:'tabPlanner' },
-  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project adds a project to the board. Pick a project that already exists in the Projects tab to pull in its name, dates and phases (its client and owner show in the task details), or add a standalone project, blank or from a template. Save any project as a template from the row menu (the three dots); templates keep durations, dependencies, notes, links and checklists. Drag the number cell on the left of any row, or a task name on the timeline, to move that row. Drag the edge of any column heading to change its width (double-click the edge to reset it). Columns hides, shows or rearranges columns (use its arrows, or drag a column heading left or right in the grid; the pop-up follows its row when you scroll and closes when the row leaves the screen). Status is a drop-down: Not Started, In Progress, Delayed or Complete. Choosing Complete sets 100%, and group rows roll up their children. Click the notes icon beside a task name, double-click a bar, or use the row menu to open the task details: notes, links to documents, a checklist, dates and people. Checklist items show as sub-rows under their task (use the caret to hide them) and set its % Complete (items done divided by items); Complete ticks every item and Not Started clears them. Use the row menu to Duplicate a task or phase with everything inside it, or Copy it and Paste Below on any row; copies start at 0% and keep their links between tasks. Click Assigned To on a phase or project row to add a person to every task inside it (a dash means only some tasks have them), or on a single task to assign just that one. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
+  { title:'Planner: Projects, Templates and Columns', body:'+ Add Project adds a project to the board. Pick a project that already exists in the Projects tab to pull in its name, dates and phases (its client and owner show in the task details), or add a standalone project, blank or from a template. Save any project as a template from the row menu (the three dots), or update a template you already have (Save as Template then choose Update, or Templates then Update from board) to replace its rows with the current plan; templates keep durations, dependencies, notes, links and checklists. Drag the number cell on the left of any row, or a task name on the timeline, to move that row. Drag the edge of any column heading to change its width (double-click the edge to reset it). Columns hides, shows or rearranges columns (use its arrows, or drag a column heading left or right in the grid; the pop-up follows its row when you scroll and closes when the row leaves the screen). Status is a drop-down: Not Started, In Progress, Delayed or Complete. Choosing Complete sets 100%, and group rows roll up their children. Click the notes icon beside a task name, double-click a bar, or use the row menu to open the task details: notes, links to documents, a checklist, dates and people. Checklist items show as sub-rows under their task (use the caret to hide them) and set its % Complete (items done divided by items); Complete ticks every item and Not Started clears them. Use the row menu to Duplicate a task or phase with everything inside it, or Copy it and Paste Below on any row; copies start at 0% and keep their links between tasks. Click Assigned To on a phase or project row to add a person to every task inside it (a dash means only some tasks have them), or on a single task to assign just that one. Assignments are not counted in utilization yet (coming soon).', targetId:'tabPlanner' },
   { title:'Project Portfolio', body:'The Portfolio tab lists every project in a sortable, filterable table. Change a project\'s type directly via the dropdown, and duplicate a project from its edit modal.', targetId:'tabPortfolio' },
   { title:'Project Phases & What\'s Still In Progress', body:'"+ Add Phase" on a project lets you break it into named phases with their own dates and descriptions — these do save. A few sections in that same modal (Budgets, Bill Rates, Time Entry Locking, and per-phase Tags) are marked "Coming Soon" — they\'re visible but intentionally disabled since they don\'t persist yet. A phase\'s duration is worked out from its start and end dates (Monday to Friday, both days counted), or type a duration to set the end date. In the Schedule, the assignment picker lists a project\'s phases: tick one or more to assign the person to just those phases, or leave them all unticked for the whole project.', targetId:null },
   { title:'People', body:'The People tab is an employee overview report — timesheet/training status, utilization sparklines, and an expandable row with a 6-week schedule and skills summary per person. Click any name to open their full profile, or use the pencil beside a name to edit their details (name, role, title, department, hire date, type, manager, email, tags, capacity and target).', targetId:'tabPeopleRpt' },
@@ -8569,6 +8568,13 @@ const PLE = (function(){
     }));
     return { id: uid(), name: String(name || block[0].name || 'Template').slice(0, 80), desc: String(desc || '').slice(0, 300), created: new Date().toISOString().slice(0, 10), rows };
   }
+  // Replace the rows of an existing template with the current rows of a project or group on the board.
+  // The template keeps its id, created date and starter flag; name and description can be changed.
+  function refreshTemplate(tpl, tasks, id, name, desc){
+    const t = extractTemplate(tasks, id, name != null ? name : tpl.name, desc != null ? desc : tpl.desc);
+    if (!t) return null;
+    return Object.assign({}, tpl, { name: t.name, desc: t.desc, rows: t.rows, updated: new Date().toISOString().slice(0, 10) });
+  }
   // Build fresh tasks from a template. Returns the new task objects (not yet inserted).
   function instantiateTemplate(tpl, projectName, startDn){
     const s0 = nextWork(startDn);
@@ -8585,7 +8591,7 @@ const PLE = (function(){
     return out;
   }
 
-  return { assignTo, assignCounts, leavesOf, setWeekend, setGroupDates, copyBlock, pasteBlock, duplicateBlock, wiEnd, workIn, nextAfter, ckStats, STATUSES, setStatus, normalizeUrl, setNotes, addLink, updateLink, removeLink, addCheck, editCheck, removeCheck, setProjLink, rowsFromProject, moveBlock, moveSibling, setAssign, extractTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
+  return { assignTo, assignCounts, leavesOf, setWeekend, setGroupDates, copyBlock, pasteBlock, duplicateBlock, wiEnd, workIn, nextAfter, ckStats, STATUSES, setStatus, normalizeUrl, setNotes, addLink, updateLink, removeLink, addCheck, editCheck, removeCheck, setProjLink, rowsFromProject, moveBlock, moveSibling, setAssign, extractTemplate, refreshTemplate, instantiateTemplate, toDn, toStr, isWork, wi, fromWi, nextWork, prevWork, nearestWork, workDays, finishFor, todayDn, uid, makeTask,
            meta, subtreeEnd, isAncestor, hasCycle, recalc, setName, setPct, setDuration, setStart, setFinish, setPreds,
            parsePreds, insertAt, removeTask, changeIndent, find };
 })();
@@ -9855,15 +9861,29 @@ const PLU = (function(){
   function tplOp(fn){ pushUndo(); fn(P().templates); save(); }
   function openSaveTemplate(id){
     const ts = P().tasks, i = PLE.find(ts, id); if (i < 0) return;
-    const n = PLE.subtreeEnd(ts, i) - i;
-    const { el, close } = modalBox(`<h4>Save as Template</h4><p>Saves "${pesc(ts[i].name)}" and its ${n - 1} sub-row${n - 1 === 1 ? '' : 's'} as a reusable template. Durations, indents, dependencies, notes, links and checklist items are kept. Dates, % complete, status and assigned people are not.</p>
-      <label class="pl-f">Template name<input id="plStName" class="pl-fi" maxlength="80" value="${pesc(ts[i].name)}"></label>
+    const n = PLE.subtreeEnd(ts, i) - i, tpls = P().templates || [];
+    const { el, close } = modalBox(`<h4>Save as Template</h4><p>Saves "${pesc(ts[i].name)}" and its ${n - 1} sub-row${n - 1 === 1 ? '' : 's'} as a reusable template, or replaces the rows of a template you already have. Durations, indents, dependencies, notes, links and checklist items are kept. Dates, % complete, status and assigned people are not.</p>
+      <label class="pl-f">Save as<select id="plStTo" class="pl-fi"><option value="">A new template</option>${tpls.map(t => `<option value="${t.id}">Update: ${pesc(t.name)}</option>`).join('')}</select></label>
+      <label class="pl-f" style="margin-top:10px">Template name<input id="plStName" class="pl-fi" maxlength="80" value="${pesc(ts[i].name)}"></label>
       <label class="pl-f" style="margin-top:10px">Description (optional)<input id="plStDesc" class="pl-fi" maxlength="300"></label>
-      <div class="row" style="margin-top:16px"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok">Save Template</button></div>`);
-    const nameI = el.querySelector('#plStName');
+      <div class="pl-pop-n" id="plStNote" style="margin-top:8px"></div>
+      <div class="row" style="margin-top:16px"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok" id="plStOk">Save Template</button></div>`);
+    const nameI = el.querySelector('#plStName'), descI = el.querySelector('#plStDesc'), toS = el.querySelector('#plStTo'), note = el.querySelector('#plStNote'), okB = el.querySelector('#plStOk');
+    const sync = () => {
+      const t = tpls.find(y => y.id === toS.value);
+      if (t){ nameI.value = t.name; descI.value = t.desc || ''; note.textContent = `The ${t.rows.length} rows in "${t.name}" will be replaced with these ${n}. Projects already on the board are not affected.`; okB.textContent = 'Update Template'; }
+      else { note.textContent = ''; okB.textContent = 'Save Template'; }
+    };
+    toS.addEventListener('change', sync);
     const submit = () => {
       const name = nameI.value.trim(); if (!name){ nameI.focus(); return; }
-      const tpl = PLE.extractTemplate(P().tasks, id, name, el.querySelector('#plStDesc').value.trim());
+      const desc = descI.value.trim(), t0 = tpls.find(y => y.id === toS.value);
+      if (t0){
+        const nt = PLE.refreshTemplate(t0, P().tasks, id, name, desc);
+        if (!nt){ close(); return; }
+        close(); tplOp(a => { const k = a.findIndex(y => y.id === t0.id); if (k >= 0) a[k] = nt; }); toast(`Template "${name}" updated.`, 'success'); return;
+      }
+      const tpl = PLE.extractTemplate(P().tasks, id, name, desc);
       if (!tpl){ close(); return; }
       close(); tplOp(t => t.push(tpl)); toast(`Template "${name}" saved. Use it from + Add Project.`, 'success');
     };
@@ -9879,8 +9899,8 @@ const PLU = (function(){
       const rowsHtml = tpls.map(t => {
         const sp = tplSpan(t);
         const prev = open.has(t.id) ? `<div class="pl-tprev">${t.rows.map(r => `<div style="padding-left:${r.indent * 16}px">${pesc(r.name)} <span class="d">${r.duration === 0 ? 'milestone' : r.duration + 'd'}${(r.preds || []).length ? ', after ' + r.preds.map(p => p.row).join(', ') : ''}</span></div>`).join('')}</div>` : '';
-        return `<div class="pl-trow" data-id="${t.id}"><div class="pl-tmain"><input class="pl-fi pl-tn" data-f="name" value="${pesc(t.name)}" maxlength="80" aria-label="Template name"><input class="pl-fi pl-td" data-f="desc" value="${pesc(t.desc || '')}" maxlength="300" placeholder="Description" aria-label="Template description"><small>${sp.rows} rows, about ${sp.days} working days${t.starter ? ', starter template' : ''}</small></div>
-          <div class="pl-tact"><button class="pl-btn" data-x="prev">${open.has(t.id) ? 'Hide' : 'Preview'}</button><button class="pl-btn" data-x="dup">Duplicate</button><button class="pl-btn danger" data-x="del">Delete</button></div>${prev}</div>`;
+        return `<div class="pl-trow" data-id="${t.id}"><div class="pl-tmain"><input class="pl-fi pl-tn" data-f="name" value="${pesc(t.name)}" maxlength="80" aria-label="Template name"><input class="pl-fi pl-td" data-f="desc" value="${pesc(t.desc || '')}" maxlength="300" placeholder="Description" aria-label="Template description"><small>${sp.rows} rows, about ${sp.days} working days${t.starter ? ', starter template' : ''}${t.updated ? ', updated ' + pesc(t.updated) : ''}</small></div>
+          <div class="pl-tact"><button class="pl-btn" data-x="prev">${open.has(t.id) ? 'Hide' : 'Preview'}</button><button class="pl-btn" data-x="upd" title="Replace this template's rows with a project or group from the board">Update from board</button><button class="pl-btn" data-x="dup">Duplicate</button><button class="pl-btn danger" data-x="del">Delete</button></div>${prev}</div>`;
       }).join('') || '<div class="pl-pop-n" style="padding:14px 4px">No templates yet. Save a project from the board below.</div>';
       box.el.innerHTML = `<div class="pl-mh"><h4>Project Templates</h4><button class="pl-x" data-x="close" aria-label="Close">&times;</button></div>
         <p>Templates are reusable task lists. Choose one from + Add Project to drop a fresh copy on the board.</p>
@@ -9914,6 +9934,23 @@ const PLU = (function(){
       const row = e.target.closest('.pl-trow'); if (!row) return;
       const id = row.dataset.id;
       if (x === 'prev'){ if (open.has(id)) open.delete(id); else open.add(id); paint(); }
+      else if (x === 'upd'){
+        const t = P().templates.find(y => y.id === id); if (!t) return;
+        const ts = P().tasks, m = V.meta, parents = []; ts.forEach((q, i) => { if (m.isParent[i]) parents.push({ id: q.id, label: `Row ${i + 1}: ${q.name}` }); });
+        if (!parents.length){ toast('There is no project or group on the board to copy from. Build one first.', 'error'); return; }
+        const hit = parents.find(p => p.label.replace(/^Row \d+: /, '').toLowerCase() === String(t.name).toLowerCase());
+        const um = modalBox(`<h4>Update template</h4><p>Replace the ${t.rows.length} rows in "${pesc(t.name)}" with the current rows of a project or group on the board. Projects already on the board are not affected.</p>
+          <label class="pl-f">Copy rows from<select id="plUpSel" class="pl-fi">${parents.map(p => `<option value="${p.id}"${hit && hit.id === p.id ? ' selected' : ''}>${pesc(p.label)}</option>`).join('')}</select></label>
+          <div class="row" style="margin-top:16px"><button class="pl-btn" data-x="no">Cancel</button><button class="pl-btn primary" data-x="ok">Update Template</button></div>`);
+        um.el.addEventListener('click', ev => {
+          const z = ev.target.dataset.x; if (z === 'no') um.close();
+          else if (z === 'ok'){
+            const nt = PLE.refreshTemplate(t, P().tasks, um.el.querySelector('#plUpSel').value);
+            um.close(); if (!nt) return;
+            tplOp(a => { const k = a.findIndex(y => y.id === id); if (k >= 0) a[k] = nt; }); toast(`Template "${t.name}" updated.`, 'success'); paint();
+          }
+        });
+      }
       else if (x === 'dup'){ tplOp(t => { const s = t.find(y => y.id === id); if (s){ const c = JSON.parse(JSON.stringify(s)); c.id = PLE.uid(); c.name = s.name + ' (copy)'; c.starter = false; t.push(c); } }); paint(); }
       else if (x === 'del'){
         const t = P().templates.find(y => y.id === id);
@@ -10107,4 +10144,3 @@ renderSummary();
 </script>
 </body>
 </html>
-
